@@ -1,20 +1,24 @@
 @import "tailwindcss";
 
 @theme {
-  --color-void: #0a0d14;
-  --color-pane: #11151c;
-  --color-pane-2: #161c26;
-  --color-edge: #1f2530;
-  --color-edge-bright: #2b3340;
-  --color-text: #c4cbd6;
-  --color-text-h: #e8edf5;
-  --color-text-dim: #6b7280;
-  --color-cyan: #5fc5d4;
-  --color-cyan-dim: #3d8a96;
-  --color-amber: #d97746;
-  --color-amber-dim: #8b4a2c;
-  --color-red: #c84a4a;
-  --color-green: #6db17e;
+  /* ── Echo 9 palette tokens (PLAN.md §9, locked) ──────────────────────────
+     Single source of truth: src/ui/tokens/palette.ts
+     Contrast ratios enforced by: src/tests/ui/colorGuard.test.ts
+     DO NOT add arbitrary hex values here — add a token to palette.ts instead.
+  ──────────────────────────────────────────────────────────────────────── */
+
+  /* Background — used on html/body/#root below */
+  --color-background: #0A0B0D;
+
+  /* Text tokens — all ≥ 4.5:1 against #0A0B0D */
+  --color-fg-primary:    #E8E6E1;   /* Body text, headings          ~15:1  */
+  --color-fg-secondary:  #A8A39A;   /* Metadata, trace hints        ~7.1:1 */
+  --color-silas-accent:  #D97757;   /* Silas borders/icons only     ~4.8:1 */
+  --color-null-accent:   #7FB3D5;   /* Echo 9 narrator accents      ~6.2:1 */
+  --color-warn:          #E07A5F;   /* Destructive/warning          ~4.6:1 */
+
+  /* UI-only token — ≥ 3.0:1, NEVER use as text */
+  --color-sealed-dim:    #6B6660;   /* UI components only           ~3.1:1 */
 
   --font-mono: ui-monospace, "Cascadia Mono", "Consolas", "Menlo", monospace;
   --font-sans: -apple-system, "Segoe UI", Roboto, system-ui, sans-serif;
@@ -23,8 +27,8 @@
 html,
 body,
 #root {
-  background: var(--color-void);
-  color: var(--color-text);
+  background: var(--color-background);
+  color: var(--color-fg-primary);
   min-height: 100vh;
   margin: 0;
   font-family: var(--font-sans);
