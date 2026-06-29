@@ -36,3 +36,12 @@ test-results/
 # Echo9 workdir extras (not part of the game)
 claude.exe
 .remember/
+
+# Secrets — never commit these
+API Keys.txt
+*api*key*.txt
+*api*keys*.txt
+*.pem
+*.key
+secrets/
+*.secret
