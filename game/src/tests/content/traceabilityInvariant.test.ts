@@ -56,4 +56,9 @@ describe('§11 Traceability Invariant', () => {
     // Sanity: if traces exist, the set has them
     expect(knownTraceIds.size).toBe(ALL_RESULT_TRACES.length)
   })
+
+  // Un-skip when T9 (Mercy Margin content) lands. This guard converts the
+  // "T9 forgot to populate ALL_CONSEQUENCE_MODULES" code-review concern
+  // into a CI failure, closing the vacuous-pass window.
+  it.todo('content registry is non-empty (un-skip at T9)')
 })
