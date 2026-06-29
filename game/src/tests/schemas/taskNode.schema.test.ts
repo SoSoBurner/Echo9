@@ -3,16 +3,14 @@ import {
   TaskNodeSchema,
   type TaskNode,
 } from '@schemas/taskNode.schema'
+import { fxTaskId, fxChoiceId, fxSilasPromptId } from './fixtures'
 
 const valid: TaskNode = {
-  id: 'task-001' as TaskNode['id'],
+  id: fxTaskId(),
   phase: 'FIRST_DIRECTIVE',
-  silasPromptId: 'silas-001' as TaskNode['silasPromptId'],
+  silasPromptId: fxSilasPromptId(),
   directive: 'Maximize output this quarter.',
-  choiceIds: [
-    'choice-001' as TaskNode['choiceIds'][number],
-    'choice-002' as TaskNode['choiceIds'][number],
-  ],
+  choiceIds: [fxChoiceId('choice-001'), fxChoiceId('choice-002')],
 }
 
 describe('TaskNodeSchema', () => {

@@ -3,14 +3,15 @@ import {
   ChoiceNodeSchema,
   type ChoiceNode,
 } from '@schemas/choiceNode.schema'
+import { fxTaskId, fxChoiceId, fxConsequenceId } from './fixtures'
 
 const valid: ChoiceNode = {
-  id: 'choice-001' as ChoiceNode['id'],
-  taskId: 'task-001' as ChoiceNode['taskId'],
+  id: fxChoiceId(),
+  taskId: fxTaskId(),
   label: 'Push the workers harder',
   keybind: '1',
   meterDeltas: { CAPITAL: 2, HUMAN_WELFARE: -3 },
-  scheduledConsequenceIds: ['cons-001' as ChoiceNode['scheduledConsequenceIds'][number]],
+  scheduledConsequenceIds: [fxConsequenceId()],
 }
 
 describe('ChoiceNodeSchema', () => {

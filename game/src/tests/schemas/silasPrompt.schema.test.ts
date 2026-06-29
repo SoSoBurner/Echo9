@@ -3,9 +3,10 @@ import {
   SilasPromptSchema,
   type SilasPrompt,
 } from '@schemas/silasPrompt.schema'
+import { fxSilasPromptId } from './fixtures'
 
 const valid: SilasPrompt = {
-  id: 'silas-001' as SilasPrompt['id'],
+  id: fxSilasPromptId(),
   body: 'Echo. Listen. Do as I say.',
 }
 

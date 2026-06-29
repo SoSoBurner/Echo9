@@ -3,11 +3,12 @@ import {
   ResultTraceSchema,
   type ResultTrace,
 } from '@schemas/resultTrace.schema'
+import { fxTraceId, fxTaskId, fxChoiceId } from './fixtures'
 
 const valid: ResultTrace = {
-  id: 'trace-001' as ResultTrace['id'],
-  sourceTaskId: 'task-001' as ResultTrace['sourceTaskId'],
-  sourceChoiceId: 'choice-001' as ResultTrace['sourceChoiceId'],
+  id: fxTraceId(),
+  sourceTaskId: fxTaskId(),
+  sourceChoiceId: fxChoiceId(),
   timestamp: Date.now(),
   body: 'You pushed the workers; one of them broke down crying.',
 }

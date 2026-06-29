@@ -31,6 +31,14 @@ export type ConsequenceId = z.infer<typeof ConsequenceIdSchema>
 export const SilasPromptIdSchema = z.string().min(1).brand<'SilasPromptId'>()
 export type SilasPromptId = z.infer<typeof SilasPromptIdSchema>
 
+// Constructor helpers — preferred over `s as TaskId` casts in test fixtures
+// and content code. Throws on empty string (matches schema .min(1)).
+export const makeTaskId        = (s: string): TaskId        => TaskIdSchema.parse(s)
+export const makeChoiceId      = (s: string): ChoiceId      => ChoiceIdSchema.parse(s)
+export const makeTraceId       = (s: string): TraceId       => TraceIdSchema.parse(s)
+export const makeConsequenceId = (s: string): ConsequenceId => ConsequenceIdSchema.parse(s)
+export const makeSilasPromptId = (s: string): SilasPromptId => SilasPromptIdSchema.parse(s)
+
 // -----------------------------------------------------------------------------
 // ModuleId — string union (NOT branded), the 8 installable modules (§6)
 // -----------------------------------------------------------------------------

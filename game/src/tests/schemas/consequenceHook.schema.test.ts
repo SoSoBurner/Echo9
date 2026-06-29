@@ -11,11 +11,12 @@ import {
   RevealConditionSchema,
   type ConsequenceHook,
 } from '@schemas/consequenceHook.schema'
+import { fxConsequenceId, fxTaskId, fxChoiceId } from './fixtures'
 
 const validHook: ConsequenceHook = {
-  id: 'cons-001' as ConsequenceHook['id'],
-  sourceTaskId: 'task-001' as ConsequenceHook['sourceTaskId'],
-  sourceChoiceId: 'choice-001' as ConsequenceHook['sourceChoiceId'],
+  id: fxConsequenceId(),
+  sourceTaskId: fxTaskId(),
+  sourceChoiceId: fxChoiceId(),
   traceHint: 'A worker complained',
   ledgerEntry: 'On day 3, the worker filed a grievance citing your directive.',
   revealCondition: { type: 'PHASE', phase: 'CONSEQUENCE_RETURN' },
