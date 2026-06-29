@@ -1,8 +1,8 @@
-import { useGameState } from '../state/gameState'
+import { useGameStore } from '@state/store'
 import { BootScreen } from './BootScreen'
 
 export function App() {
-  const phase = useGameState((s) => s.phase)
+  const phase = useGameStore((s) => s.phase)
 
   if (phase === 'BOOT') return <BootScreen />
 

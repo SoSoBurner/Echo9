@@ -1,7 +1,7 @@
-import { useGameState } from '../state/gameState'
+import { useGameStore } from '@state/store'
 
 export function BootScreen() {
-  const initialize = useGameState((s) => s.initialize)
+  const initialize = useGameStore((s) => s.initialize)
 
   return (
     <main
