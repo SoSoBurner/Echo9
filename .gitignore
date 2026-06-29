@@ -1,0 +1,38 @@
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Node / build
+node_modules/
+dist/
+build/
+.cache/
+.vite/
+.turbo/
+coverage/
+*.tsbuildinfo
+
+# Env
+.env
+.env.local
+.env.*.local
+
+# Test / runtime artifacts
+playwright-report/
+test-results/
+
+# Echo9 workdir extras (not part of the game)
+claude.exe
+.remember/
