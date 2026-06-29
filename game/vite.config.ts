@@ -24,5 +24,6 @@ export default defineConfig({
     globals: true,
     setupFiles: './src/setupTests.ts',
     css: true,
+    typecheck: { tsconfig: './tsconfig.test.json' },
   },
 })
