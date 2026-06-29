@@ -355,3 +355,28 @@ describe('resolveChoice — catalog validation', () => {
     ).toThrow(/choice-err/)
   })
 })
+
+// ---------------------------------------------------------------------------
+// 9. Unknown meter key throws (guards against JSON-loaded content that
+//    bypassed Zod parsing; would otherwise silently NaN downstream).
+// ---------------------------------------------------------------------------
+
+describe('resolveChoice — meter key validation', () => {
+  it('throws when meterDeltas contains an unknown meter key', () => {
+    const tid = fxTaskId('task-bad-meter')
+    const cid = fxChoiceId('choice-bad-meter')
+    // Cast required: simulating a JSON-loaded choice that bypassed Zod.
+    const choice = makeChoice({
+      id: cid,
+      taskId: tid,
+      meterDeltas: { MOOD: 5 } as ChoiceNode['meterDeltas'],
+    })
+
+    expect(() =>
+      resolveChoice(makeBaseState(), choice, new Map(), baseCtx),
+    ).toThrow(/MOOD/)
+    expect(() =>
+      resolveChoice(makeBaseState(), choice, new Map(), baseCtx),
+    ).toThrow(/choice-bad-meter/)
+  })
+})

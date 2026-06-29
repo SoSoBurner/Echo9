@@ -24,7 +24,12 @@
 import type { ConsequenceHook } from '@schemas/consequenceHook.schema'
 import type { ChoiceNode } from '@schemas/choiceNode.schema'
 import type { ResultTrace } from '@schemas/resultTrace.schema'
-import type { MeterKey, ConsequenceId, TraceId } from '@schemas/gameState.schema'
+import {
+  MeterKeySchema,
+  type MeterKey,
+  type ConsequenceId,
+  type TraceId,
+} from '@schemas/gameState.schema'
 
 // ---------------------------------------------------------------------------
 // GameState — narrow input type; only the fields the resolver touches.
@@ -87,12 +92,26 @@ export function resolveChoice(
   const debugEvents: DebugEvent[] = []
 
   // 1. Apply meter deltas — produce a fresh meters object, never mutate.
+  // `Object.entries` widens keys to `string`; validate against MeterKeySchema
+  // before indexing into `Record<MeterKey, number>` so a JSON-loaded choice
+  // that bypassed Zod (or a content authoring typo like `"MOOD"`) throws loudly
+  // instead of silently producing NaN arithmetic downstream.
   const nextMeters: Record<MeterKey, number> = { ...state.meters }
-  for (const [key, delta] of Object.entries(choice.meterDeltas) as [MeterKey, number][]) {
-    const from = nextMeters[key]
+  for (const [key, delta] of Object.entries(choice.meterDeltas)) {
+    if (delta === undefined) continue
+    const parsed = MeterKeySchema.safeParse(key)
+    if (!parsed.success) {
+      throw new Error(
+        `resolveChoice: unknown meter key "${key}" in choice.meterDeltas. ` +
+        `This is a content authoring bug. ` +
+        `Choice id: "${choice.id}", Task id: "${choice.taskId}".`,
+      )
+    }
+    const meterKey = parsed.data
+    const from = nextMeters[meterKey]
     const to = from + delta
-    nextMeters[key] = to
-    debugEvents.push({ type: 'METER_DELTA', meter: key, from, to, delta })
+    nextMeters[meterKey] = to
+    debugEvents.push({ type: 'METER_DELTA', meter: meterKey, from, to, delta })
   }
 
   // 2. Resolve hook ids → ConsequenceHook objects. Throw on missing catalog entry.
