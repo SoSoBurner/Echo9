@@ -4,7 +4,7 @@
     "target": "es2023",
     "lib": ["ES2023", "DOM"],
     "module": "esnext",
-    "types": ["vite/client"],
+    "types": ["vite/client", "node", "vitest/globals"],
     "skipLibCheck": true,
 
     /* Bundler mode */
@@ -14,6 +14,22 @@
     "moduleDetection": "force",
     "noEmit": true,
     "jsx": "react-jsx",
+
+    /* Strict discipline (PLAN.md §11) */
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
+    "noImplicitOverride": true,
+
+    /* Path aliases (PLAN.md §11) — paths resolve relative to this config (TS 5+, no baseUrl needed) */
+    "paths": {
+      "@state/*":   ["./src/state/*"],
+      "@schemas/*": ["./src/schemas/*"],
+      "@content/*": ["./src/content/*"],
+      "@systems/*": ["./src/systems/*"],
+      "@ui/*":      ["./src/ui/*"],
+      "@tests/*":   ["./src/tests/*"]
+    },
 
     /* Linting */
     "noUnusedLocals": true,
