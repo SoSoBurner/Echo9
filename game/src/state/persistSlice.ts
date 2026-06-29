@@ -5,8 +5,8 @@
  * partialized state. UI code should gate ledger / meter reads on `isHydrated`
  * to avoid flashing zero-state on first paint.
  *
- * `lastSavedAt` is reserved for a future autosave-indicator widget; we record
- * it here today so the field exists when T14 (UI polish) wires it up.
+ * `lastSavedAt` is left null until T14 (save engine) wires real save events.
+ * Do not stamp it from hydration — that would conflate load with save.
  */
 import type { StateCreator } from 'zustand'
 import type { RootState } from './store'
@@ -28,6 +28,5 @@ export const createPersistSlice: StateCreator<
   markHydrated: () =>
     set((state) => {
       state.isHydrated = true
-      state.lastSavedAt = Date.now()
     }),
 })
