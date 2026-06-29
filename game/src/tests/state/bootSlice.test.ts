@@ -2,14 +2,12 @@
  * bootSlice tests — phase initial value + transition actions.
  */
 import { describe, it, expect, beforeEach } from 'vitest'
-import { useGameStore, PERSIST_KEY } from '@state/store'
+import { useGameStore } from '@state/store'
+import { resetStore } from './testHelpers'
 
 describe('bootSlice', () => {
   beforeEach(() => {
-    localStorage.removeItem(PERSIST_KEY)
-    useGameStore.setState({
-      phase: 'BOOT',
-    })
+    resetStore()
   })
 
   it('initial phase is BOOT', () => {

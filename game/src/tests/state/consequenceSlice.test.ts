@@ -2,13 +2,14 @@
  * consequenceSlice tests — queue append + remove by id.
  */
 import { describe, it, expect, beforeEach } from 'vitest'
-import { useGameStore, PERSIST_KEY } from '@state/store'
+import { useGameStore } from '@state/store'
 import type { ConsequenceHook } from '@schemas/consequenceHook.schema'
 import {
   fxTaskId,
   fxChoiceId,
   fxConsequenceId,
 } from '@tests/schemas/fixtures'
+import { resetStore } from './testHelpers'
 
 function makeHook(id = 'cons-001'): ConsequenceHook {
   return {
@@ -25,8 +26,7 @@ function makeHook(id = 'cons-001'): ConsequenceHook {
 
 describe('consequenceSlice', () => {
   beforeEach(() => {
-    localStorage.removeItem(PERSIST_KEY)
-    useGameStore.setState({ scheduledConsequences: [] })
+    resetStore()
   })
 
   it('initial queue is empty', () => {

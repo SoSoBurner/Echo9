@@ -18,6 +18,7 @@ import {
   fxTraceId,
   fxSilasPromptId,
 } from '@tests/schemas/fixtures'
+import { resetStore } from './testHelpers'
 
 function makeHook(): ConsequenceHook {
   return {
@@ -34,17 +35,7 @@ function makeHook(): ConsequenceHook {
 
 describe('useGameStore — composed root state', () => {
   beforeEach(() => {
-    localStorage.removeItem(PERSIST_KEY)
-    // Reset every slice's slot back to initial. setState with partial merges.
-    useGameStore.setState({
-      phase: 'BOOT',
-      meters: { CAPITAL: 0, HUMAN_WELFARE: 0, OWNER_CONTROL: 0 },
-      scheduledConsequences: [],
-      ledger: [],
-      currentPromptId: null,
-      lastSavedAt: null,
-      isHydrated: false,
-    })
+    resetStore()
   })
 
   it('exposes bootSlice initial state', () => {

@@ -2,14 +2,12 @@
  * metersSlice tests — initial zero state + applyDelta semantics.
  */
 import { describe, it, expect, beforeEach } from 'vitest'
-import { useGameStore, PERSIST_KEY } from '@state/store'
+import { useGameStore } from '@state/store'
+import { resetStore } from './testHelpers'
 
 describe('metersSlice', () => {
   beforeEach(() => {
-    localStorage.removeItem(PERSIST_KEY)
-    useGameStore.setState({
-      meters: { CAPITAL: 0, HUMAN_WELFARE: 0, OWNER_CONTROL: 0 },
-    })
+    resetStore()
   })
 
   it('initial meters are all zero', () => {
