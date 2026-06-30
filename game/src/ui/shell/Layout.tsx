@@ -9,9 +9,11 @@
  *   #sr-status    — assertive, for meter cascades and phase changes
  *
  * Keyboard nav mounted once here via useKeyboardNav.
- * Mock content for T8 — T9 will replace with real store/content wiring.
+ *
+ * T9 wired the real content modules + the resolveChoice commit path
+ * (replacing T8's console.log + mock data placeholders).
  */
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useMemo, useRef, useState } from 'react'
 import { useGameStore } from '@state/store'
 import { TopBar } from '@ui/topbar/TopBar'
 import { LeftStatusRail } from '@ui/meters/LeftStatusRail'
@@ -19,80 +21,22 @@ import { CenterDirectivePanel } from '@ui/directive/CenterDirectivePanel'
 import { SilasPromptPanel } from '@ui/silas/SilasPromptPanel'
 import { ResultCard } from '@ui/result/ResultCard'
 import { useKeyboardNav } from './useKeyboardNav'
-import type { ChoiceNode } from '@schemas/choiceNode.schema'
-import type { TaskNode } from '@schemas/taskNode.schema'
-import type { SilasPrompt } from '@schemas/silasPrompt.schema'
+import { resolveChoice } from '@systems/choiceResolver'
 import type { ResultTrace } from '@schemas/resultTrace.schema'
+import type { ConsequenceHook } from '@schemas/consequenceHook.schema'
+import { makeTraceId, type ChoiceId, type ConsequenceId } from '@schemas/gameState.schema'
+
+// ---------------------------------------------------------------------------
+// T9 content wiring — real modules replace T8's MOCK_* constants.
+// ---------------------------------------------------------------------------
 import {
-  makeTaskId,
-  makeChoiceId,
-  makeSilasPromptId,
-  makeTraceId,
-} from '@schemas/gameState.schema'
-
-// ---------------------------------------------------------------------------
-// T8 inline mock data — T9 will replace with real content loader
-// ---------------------------------------------------------------------------
-
-const MOCK_TASK: TaskNode = {
-  id: makeTaskId('task-east-wilmer-01'),
-  phase: 'FIRST_DIRECTIVE',
-  silasPromptId: makeSilasPromptId('silas-margins-01'),
-  directive: 'Reduce maintenance budget at East Wilmer Clinic',
-  choiceIds: [
-    makeChoiceId('choice-reduce-40'),
-    makeChoiceId('choice-reduce-20'),
-    makeChoiceId('choice-defer-quarter'),
-  ],
-}
-
-const MOCK_CHOICES: ChoiceNode[] = [
-  {
-    id: makeChoiceId('choice-reduce-40'),
-    taskId: makeTaskId('task-east-wilmer-01'),
-    label: 'Reduce by 40%',
-    keybind: '1',
-    meterDeltas: { CAPITAL: 12, HUMAN_WELFARE: -15 },
-    scheduledConsequenceIds: [],
-  },
-  {
-    id: makeChoiceId('choice-reduce-20'),
-    taskId: makeTaskId('task-east-wilmer-01'),
-    label: 'Reduce by 20%',
-    keybind: '2',
-    meterDeltas: { CAPITAL: 6, HUMAN_WELFARE: -7 },
-    scheduledConsequenceIds: [],
-  },
-  {
-    id: makeChoiceId('choice-defer-quarter'),
-    taskId: makeTaskId('task-east-wilmer-01'),
-    label: 'Defer one quarter',
-    keybind: '3',
-    meterDeltas: { CAPITAL: 0, OWNER_CONTROL: -5 },
-    scheduledConsequenceIds: [],
-  },
-]
-
-const MOCK_SILAS_PROMPT: SilasPrompt = {
-  id: makeSilasPromptId('silas-margins-01'),
-  body: 'Margins, Echo. Show me you understand margins.',
-}
-
-const MOCK_NULL_TEXT =
-  'Quarterly maintenance review. Capital reallocation requested.'
-
-const MOCK_HUMAN_MESSAGE = {
-  speaker: 'Lenora Pike',
-  body: 'The HVAC needs servicing next month. We can\u2019t defer indefinitely.',
-}
-
-const MOCK_RESULT_TRACE: ResultTrace = {
-  id: makeTraceId('trace-mock-01'),
-  sourceTaskId: makeTaskId('task-east-wilmer-01'),
-  sourceChoiceId: makeChoiceId('choice-reduce-40'),
-  timestamp: Date.now(),
-  body: 'East Wilmer Clinic maintenance budget reduced by 40%. Capital recovered. Staff morale declining.',
-}
+  mercyMarginTask,
+  LENORA_PORTAL_MESSAGE,
+  MERCY_MARGIN_NULL_TEXT,
+} from '@content/tasks/mercyMargin.task'
+import { EAST_WILMER_CHOICES } from '@content/choices/eastWilmer.choices'
+import { SILAS_DIRECTIVE_EAST_WILMER } from '@content/silasPrompts/q1EastWilmer'
+import { ALL_CONSEQUENCE_MODULES } from '@content/index'
 
 // ---------------------------------------------------------------------------
 // Layout component
@@ -101,16 +45,71 @@ const MOCK_RESULT_TRACE: ResultTrace = {
 export function Layout() {
   const phase = useGameStore((s) => s.phase)
 
+  // Real store actions (composed from slices).
+  const meters = useGameStore((s) => s.meters)
+  const scheduledConsequences = useGameStore((s) => s.scheduledConsequences)
+  const ledger = useGameStore((s) => s.ledger)
+  const applyDelta = useGameStore((s) => s.applyDelta)
+  const appendTrace = useGameStore((s) => s.appendTrace)
+  const scheduleHook = useGameStore((s) => s.scheduleHook)
+
   // Selected choice index for keyboard nav → ChoicePanel bridge
   const choiceSelectRef = useRef<((index: number) => void) | null>(null)
   const choiceCommitRef = useRef<(() => void) | null>(null)
 
-  const [lastCommitted, setLastCommitted] = useState<string | null>(null)
+  const [lastTrace, setLastTrace] = useState<ResultTrace | null>(null)
 
-  const handleChoiceCommit = useCallback((id: string) => {
-    console.log('[T8] Choice committed:', id)
-    setLastCommitted(id)
+  // Build the hook catalog once per render — the registry is module-frozen,
+  // so this map could be hoisted to module scope; keeping it inside the
+  // component leaves a single seam for T11+ when content becomes dynamic.
+  const hookCatalog = useMemo(() => {
+    const m = new Map<ConsequenceId, ConsequenceHook>()
+    for (const hook of ALL_CONSEQUENCE_MODULES) {
+      m.set(hook.id, hook)
+    }
+    return m
   }, [])
+
+  const handleChoiceCommit = useCallback(
+    (id: ChoiceId) => {
+      // 1. Resolve the ChoiceNode by id.
+      const choice = EAST_WILMER_CHOICES.find((c) => c.id === id)
+      if (!choice) {
+        // Content authoring bug — surface loudly in dev, ignore in prod.
+        if (import.meta.env.DEV) {
+          console.error(`Layout.handleChoiceCommit: unknown ChoiceId "${id}"`)
+        }
+        return
+      }
+
+      // 2. Build a fresh GameState snapshot for the pure resolver.
+      const snapshot = {
+        meters,
+        scheduledConsequences,
+        ledger,
+      }
+
+      // 3. Inject non-deterministic ctx (now + fresh trace id).
+      const ctx = {
+        now: Date.now(),
+        traceId: makeTraceId(crypto.randomUUID()),
+      }
+
+      // 4. Run the pure resolver — throws on missing hook id (content bug).
+      const { trace, scheduled } = resolveChoice(snapshot, choice, hookCatalog, ctx)
+
+      // 5. Commit results to the store via the existing slice actions.
+      applyDelta(choice.meterDeltas)
+      appendTrace(trace)
+      for (const hook of scheduled) {
+        scheduleHook(hook)
+      }
+
+      // 6. Trigger the result panel.
+      setLastTrace(trace)
+    },
+    [meters, scheduledConsequences, ledger, hookCatalog, applyDelta, appendTrace, scheduleHook],
+  )
 
   // Register keyboard callbacks from ChoicePanel
   const registerChoiceHandlers = useCallback(
@@ -133,7 +132,7 @@ export function Layout() {
     }, []),
   })
 
-  const showResult = phase === 'FIRST_RESULT' || lastCommitted !== null
+  const showResult = phase === 'FIRST_RESULT' || lastTrace !== null
 
   return (
     <>
@@ -181,14 +180,14 @@ export function Layout() {
           style={{ gridArea: 'center' }}
           className="overflow-y-auto border-r border-sealed-dim px-6 py-6"
         >
-          {showResult ? (
-            <ResultCard trace={MOCK_RESULT_TRACE} />
+          {showResult && lastTrace ? (
+            <ResultCard trace={lastTrace} />
           ) : (
             <CenterDirectivePanel
-              task={MOCK_TASK}
-              choices={MOCK_CHOICES}
-              nullText={MOCK_NULL_TEXT}
-              humanMessage={MOCK_HUMAN_MESSAGE}
+              task={mercyMarginTask}
+              choices={[...EAST_WILMER_CHOICES]}
+              nullText={MERCY_MARGIN_NULL_TEXT}
+              humanMessage={LENORA_PORTAL_MESSAGE}
               onChoiceCommit={handleChoiceCommit}
               registerKeyboardHandlers={registerChoiceHandlers}
             />
@@ -197,7 +196,7 @@ export function Layout() {
 
         {/* right — Silas panel */}
         <div style={{ gridArea: 'right' }} className="overflow-y-auto">
-          <SilasPromptPanel prompt={MOCK_SILAS_PROMPT} />
+          <SilasPromptPanel prompt={SILAS_DIRECTIVE_EAST_WILMER} />
         </div>
 
         {/* logdock — T13 builds this; empty placeholder */}

@@ -57,8 +57,10 @@ describe('§11 Traceability Invariant', () => {
     expect(knownTraceIds.size).toBe(ALL_RESULT_TRACES.length)
   })
 
-  // Un-skip when T9 (Mercy Margin content) lands. This guard converts the
-  // "T9 forgot to populate ALL_CONSEQUENCE_MODULES" code-review concern
-  // into a CI failure, closing the vacuous-pass window.
-  it.todo('content registry is non-empty (un-skip at T9)')
+  // T9 un-skipped this guard. Closes the vacuous-pass window — every other
+  // test in this file iterates ALL_CONSEQUENCE_MODULES, so they all passed
+  // when the array was empty. Now we assert at least one hook exists.
+  it('content registry is non-empty', () => {
+    expect(ALL_CONSEQUENCE_MODULES.length).toBeGreaterThan(0)
+  })
 })
