@@ -8,7 +8,7 @@
  *     is a frozen value object written exactly once in ledgerSlice.
  */
 import { describe, it, expect, beforeEach } from 'vitest'
-import { render, screen, cleanup } from '@testing-library/react'
+import { render, screen, cleanup, act } from '@testing-library/react'
 import React, { useState } from 'react'
 import { LogEntry } from '@ui/log/LogEntry'
 import type { ResultTrace } from '@schemas/resultTrace.schema'
@@ -75,8 +75,10 @@ describe('LogEntry', () => {
     render(React.createElement(Wrapper))
     expect(bodyReads).toBeGreaterThan(0) // initial render did read body
     const afterInitial = bodyReads
-    bump!()
-    bump!()
+    act(() => {
+      bump!()
+      bump!()
+    })
     // Same trace reference → memoized, render body skipped → no new reads.
     expect(bodyReads).toBe(afterInitial)
   })
