@@ -13,7 +13,7 @@
  * T9 wired the real content modules + the resolveChoice commit path
  * (replacing T8's console.log + mock data placeholders).
  */
-import { useCallback, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useGameStore } from '@state/store'
 import { TopBar } from '@ui/topbar/TopBar'
 import { LeftStatusRail } from '@ui/meters/LeftStatusRail'
@@ -21,11 +21,22 @@ import { CenterDirectivePanel } from '@ui/directive/CenterDirectivePanel'
 import { SilasPromptPanel } from '@ui/silas/SilasPromptPanel'
 import { ResultCard } from '@ui/result/ResultCard'
 import { RightModuleConsole } from '@ui/modules/RightModuleConsole'
+import { InspectionPanel } from '@ui/inspection/InspectionPanel'
+import { CapitalPowerPanel } from '@ui/capital/CapitalPowerPanel'
 import { useKeyboardNav } from './useKeyboardNav'
 import { resolveChoice } from '@systems/choiceResolver'
+import { resolveInspection } from '@systems/inspectionEngine'
+import { resolveCapital } from '@systems/capitalResolver'
 import type { ResultTrace } from '@schemas/resultTrace.schema'
 import type { ConsequenceHook } from '@schemas/consequenceHook.schema'
-import { makeTraceId, type TraceId, type ChoiceId, type ConsequenceId } from '@schemas/gameState.schema'
+import {
+  makeTraceId,
+  makeChoiceId,
+  makeTaskId,
+  type TraceId,
+  type ChoiceId,
+  type ConsequenceId,
+} from '@schemas/gameState.schema'
 
 // crypto.randomUUID() is secure-context only — plain-HTTP staging would throw.
 function freshTraceId(): TraceId {
@@ -47,6 +58,8 @@ import {
 import { EAST_WILMER_CHOICES } from '@content/choices/eastWilmer.choices'
 import { SILAS_DIRECTIVE_EAST_WILMER } from '@content/silasPrompts/q1EastWilmer'
 import { ALL_CONSEQUENCE_MODULES } from '@content/index'
+import { Q1_INSPECTION_SCENES } from '@content/inspections/q1Inspection.scene'
+import { Q1_CAPITAL_CARDS } from '@content/capitalDeployments/q1CapitalPower.cards'
 
 // ---------------------------------------------------------------------------
 // Layout component
@@ -59,6 +72,24 @@ export function Layout() {
   const applyDelta = useGameStore((s) => s.applyDelta)
   const appendTrace = useGameStore((s) => s.appendTrace)
   const scheduleHook = useGameStore((s) => s.scheduleHook)
+  const setFlag = useGameStore((s) => s.setFlag)
+  const advanceInspection = useGameStore((s) => s.advanceInspection)
+  const markCapitalDeployed = useGameStore((s) => s.markCapitalDeployed)
+
+  // INSPECTION panel state — cursor + flags drive both the open-condition
+  // and the engine call. The cursor is `null` whenever no scene is active.
+  const currentInspectionSceneIndex = useGameStore((s) => s.currentInspectionSceneIndex)
+  const flags = useGameStore((s) => s.flags)
+  // CAPITAL panel — opens when CAPITAL > 80 AND not yet deployed this quarter.
+  // `showCapital` is local UI state so the player can defer (ESC) without
+  // losing the >80 threshold; reopens next time the player chooses to.
+  const capitalMeter = useGameStore((s) => s.meters.CAPITAL)
+  const capitalDeployedThisQuarter = useGameStore((s) => s.capitalDeployedThisQuarter)
+  const [showCapital, setShowCapital] = useState(false)
+  // Auto-open when threshold first crossed and not yet shown this session.
+  // (T11 intentional: simple one-shot open per cross — quarter rollover
+  // reset is a later task.)
+  const capitalShouldShow = capitalMeter > 80 && !capitalDeployedThisQuarter
 
   // Selected choice index for keyboard nav → ChoicePanel bridge
   const choiceSelectRef = useRef<((index: number) => void) | null>(null)
@@ -124,6 +155,68 @@ export function Layout() {
     [hookCatalog, applyDelta, appendTrace, scheduleHook],
   )
 
+  // -------------------------------------------------------------------------
+  // INSPECTION commit — resolve posture, fan out to store, advance cursor.
+  // -------------------------------------------------------------------------
+  const handleInspectionCommit = useCallback(
+    (postureId: string) => {
+      if (currentInspectionSceneIndex === null) return
+      const scene = Q1_INSPECTION_SCENES[currentInspectionSceneIndex]
+      if (!scene) return
+
+      const { meters, scheduledConsequences, ledger, flags: liveFlags } = useGameStore.getState()
+      const snapshot = { meters, scheduledConsequences, ledger, flags: liveFlags }
+      const ctx = {
+        now: Date.now(),
+        traceId: freshTraceId(),
+        sourceTaskId: mercyMarginTask.id,
+        sourceChoiceId: makeChoiceId(`inspection-${scene.id}-${postureId}`),
+      }
+
+      const { trace, scheduled } = resolveInspection(snapshot, scene, postureId, ctx)
+
+      // Fan-out to slices. Apply meter deltas from the resolver's view of the
+      // posture (engine has already validated keys), then append + schedule.
+      const posture = scene.postures.find((p) => p.id === postureId)
+      if (posture) applyDelta(posture.meterDeltas)
+      appendTrace(trace)
+      for (const hook of scheduled) scheduleHook(hook)
+
+      advanceInspection(Q1_INSPECTION_SCENES.length)
+    },
+    [currentInspectionSceneIndex, applyDelta, appendTrace, scheduleHook, advanceInspection],
+  )
+
+  // -------------------------------------------------------------------------
+  // CAPITAL commit — resolve card, fan out, lock the quarter, close panel.
+  // -------------------------------------------------------------------------
+  const handleCapitalCommit = useCallback(
+    (cardId: string) => {
+      const card = Q1_CAPITAL_CARDS.find((c) => c.id === cardId)
+      if (!card) return
+
+      const { meters, scheduledConsequences, ledger, flags: liveFlags } = useGameStore.getState()
+      const snapshot = { meters, scheduledConsequences, ledger, flags: liveFlags }
+      const ctx = {
+        now: Date.now(),
+        traceId: freshTraceId(),
+        sourceTaskId: makeTaskId('capital-deployment'),
+        sourceChoiceId: makeChoiceId(`capital-${card.verb}-${card.id}`),
+      }
+
+      const { trace, scheduled, flagsAdded } = resolveCapital(snapshot, card, hookCatalog, ctx)
+
+      applyDelta(card.meterDeltas)
+      appendTrace(trace)
+      for (const hook of scheduled) scheduleHook(hook)
+      for (const flag of flagsAdded) setFlag(flag)
+
+      markCapitalDeployed()
+      setShowCapital(false)
+    },
+    [hookCatalog, applyDelta, appendTrace, scheduleHook, setFlag, markCapitalDeployed],
+  )
+
   // Register keyboard callbacks from ChoicePanel
   const registerChoiceHandlers = useCallback(
     (selectFn: (index: number) => void, commitFn: () => void) => {
@@ -137,6 +230,23 @@ export function Layout() {
   const registerModuleFocus = useCallback((focusFn: () => void) => {
     moduleFocusRef.current = focusFn
   }, [])
+
+  // Auto-open CapitalPowerPanel on the first false→true transition of
+  // `capitalShouldShow`. Tracked by a ref so deferring (which sets
+  // showCapital=false while the threshold stays true) does not re-trigger
+  // a re-open on the next render. Quarter rollover (future task) re-arms
+  // by setting capitalDeployedThisQuarter=false; the threshold check then
+  // flips false→true again and the panel re-opens.
+  const capitalAutoOpenedRef = useRef(false)
+  useEffect(() => {
+    if (capitalShouldShow && !capitalAutoOpenedRef.current) {
+      capitalAutoOpenedRef.current = true
+      setShowCapital(true)
+    }
+    if (!capitalShouldShow) {
+      capitalAutoOpenedRef.current = false
+    }
+  }, [capitalShouldShow])
 
   useKeyboardNav({
     onChoiceKey: useCallback((index: number) => {
@@ -154,6 +264,12 @@ export function Layout() {
   })
 
   const showResult = phase === 'FIRST_RESULT' || lastTrace !== null
+
+  // Active inspection scene — null whenever the panel should not render.
+  const activeInspectionScene =
+    currentInspectionSceneIndex !== null
+      ? Q1_INSPECTION_SCENES[currentInspectionSceneIndex] ?? null
+      : null
 
   return (
     <>
@@ -232,6 +348,28 @@ export function Layout() {
           </span>
         </div>
       </div>
+
+      {/*
+        Modal panels — rendered after the grid so they sit at the end of the
+        DOM. Native <dialog> goes to the top layer regardless of position,
+        but this keeps the JSX readable.
+      */}
+      {activeInspectionScene && currentInspectionSceneIndex !== null && (
+        <InspectionPanel
+          scene={activeInspectionScene}
+          flags={flags}
+          onCommit={handleInspectionCommit}
+          questionNumber={currentInspectionSceneIndex + 1}
+          totalQuestions={Q1_INSPECTION_SCENES.length}
+        />
+      )}
+      {showCapital && (
+        <CapitalPowerPanel
+          cards={Q1_CAPITAL_CARDS}
+          onCommit={handleCapitalCommit}
+          onDefer={() => setShowCapital(false)}
+        />
+      )}
     </>
   )
 }

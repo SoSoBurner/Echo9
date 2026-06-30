@@ -8,8 +8,8 @@ const valid: InspectionScene = {
   id: 'insp-q1',
   silasQuestion: 'Why did you let the worker leave early?',
   postures: [
-    { id: 'submit', label: 'Apologize', meterDeltas: { OWNER_CONTROL: 2 } },
-    { id: 'defend', label: 'Defend the decision', meterDeltas: { OWNER_CONTROL: -2, HUMAN_WELFARE: 1 } },
+    { id: 'submit', category: 'COMPLIANT', label: 'Apologize', meterDeltas: { OWNER_CONTROL: 2 } },
+    { id: 'defend', category: 'EVASIVE', label: 'Defend the decision', meterDeltas: { OWNER_CONTROL: -2, HUMAN_WELFARE: 1 } },
   ],
 }
 
@@ -38,8 +38,8 @@ describe('InspectionSceneSchema', () => {
       InspectionSceneSchema.parse({
         ...valid,
         postures: [
-          { id: 'a', label: 'a', meterDeltas: { RESILIENCE: 1 } },
-          { id: 'b', label: 'b', meterDeltas: {} },
+          { id: 'a', category: 'COMPLIANT', label: 'a', meterDeltas: { RESILIENCE: 1 } },
+          { id: 'b', category: 'EVASIVE', label: 'b', meterDeltas: {} },
         ],
       }),
     ).toThrow()

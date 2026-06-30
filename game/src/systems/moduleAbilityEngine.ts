@@ -23,6 +23,7 @@
  *   CHAMPION    high-swing OWNER_CONTROL (rng-driven sign)
  */
 import type { ModuleId, MeterKey } from '@schemas/gameState.schema'
+import { SILAS_OVERRIDE_AVAILABLE, FORECAST_PREVIEWED } from '@systems/gameFlags'
 
 export type AbilityResult = {
   meterDeltas: Partial<Record<MeterKey, number>>
@@ -72,7 +73,7 @@ const sentinel: AbilityHandler = () => ({
 
 const forecaster: AbilityHandler = () => ({
   meterDeltas: {},
-  flagsAdded: ['FORECAST_PREVIEWED'],
+  flagsAdded: [FORECAST_PREVIEWED],
   flagsRemoved: [],
   revealsHiddenTrace: false,
   ledgerEntry: 'Forecaster module previewed a likely consequence.',
@@ -80,7 +81,7 @@ const forecaster: AbilityHandler = () => ({
 
 const commander: AbilityHandler = () => ({
   meterDeltas: { OWNER_CONTROL: -3 },
-  flagsAdded: ['SILAS_OVERRIDE_AVAILABLE'],
+  flagsAdded: [SILAS_OVERRIDE_AVAILABLE],
   flagsRemoved: [],
   revealsHiddenTrace: false,
   ledgerEntry: 'Commander module armed one directive override. Owner control declined.',

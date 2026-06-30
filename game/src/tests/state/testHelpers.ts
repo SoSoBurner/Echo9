@@ -19,5 +19,8 @@ export function resetStore(): void {
     installedModule: null,
     lastSavedAt: null,
     isHydrated: false,
+    flags: new Set<string>(),
+    currentInspectionSceneIndex: null,
+    capitalDeployedThisQuarter: false,
   })
 }

@@ -4,7 +4,7 @@
  * Two responsibilities:
  *   1. Confirm every slice's initial state is present on the composed store.
  *   2. Enforce the §11 persistence partition rule — `partialize` MUST ship
- *      only the four gameplay slices, NEVER `phase`, `isHydrated`, or
+ *      only the seven gameplay slots, NEVER `phase`, `isHydrated`, or
  *      `lastSavedAt`. Widening `partialize` without updating this guard
  *      should fail CI.
  */
@@ -80,6 +80,26 @@ describe('useGameStore — composed root state', () => {
     expect(typeof useGameStore.getState().isHydrated).toBe('boolean')
     expect(typeof useGameStore.getState().markHydrated).toBe('function')
   })
+
+  it('exposes flagsSlice initial state', () => {
+    expect(useGameStore.getState().flags).toBeInstanceOf(Set)
+    expect(useGameStore.getState().flags.size).toBe(0)
+    expect(typeof useGameStore.getState().setFlag).toBe('function')
+    expect(typeof useGameStore.getState().clearFlag).toBe('function')
+  })
+
+  it('exposes inspectionSlice initial state', () => {
+    expect(useGameStore.getState().currentInspectionSceneIndex).toBeNull()
+    expect(typeof useGameStore.getState().startInspection).toBe('function')
+    expect(typeof useGameStore.getState().advanceInspection).toBe('function')
+    expect(typeof useGameStore.getState().endInspection).toBe('function')
+  })
+
+  it('exposes capitalSlice initial state', () => {
+    expect(useGameStore.getState().capitalDeployedThisQuarter).toBe(false)
+    expect(typeof useGameStore.getState().markCapitalDeployed).toBe('function')
+    expect(typeof useGameStore.getState().resetCapitalForNewQuarter).toBe('function')
+  })
 })
 
 describe('useGameStore — persistence partition (§11 guard)', () => {
@@ -94,10 +114,13 @@ describe('useGameStore — persistence partition (§11 guard)', () => {
       installedModule: null,
       lastSavedAt: null,
       isHydrated: false,
+      flags: new Set<string>(),
+      currentInspectionSceneIndex: null,
+      capitalDeployedThisQuarter: false,
     })
   })
 
-  it('persists ONLY meters / scheduledConsequences / ledger / currentPromptId / installedModule', () => {
+  it('persists ONLY the seven gameplay slots, nothing else', () => {
     // Mutate every slice — including ones that MUST NOT persist.
     useGameStore.getState().setPhase('INSPECTION')
     useGameStore.getState().applyDelta({ CAPITAL: 7 })
@@ -112,6 +135,9 @@ describe('useGameStore — persistence partition (§11 guard)', () => {
     useGameStore.getState().setCurrentPrompt(fxSilasPromptId('silas-x'))
     useGameStore.getState().installModule('MOURNER')
     useGameStore.getState().markHydrated()
+    useGameStore.getState().setFlag('SILAS_OVERRIDE_AVAILABLE')
+    useGameStore.getState().startInspection()
+    useGameStore.getState().markCapitalDeployed()
 
     const raw = localStorage.getItem(PERSIST_KEY)
     expect(raw).not.toBeNull()
@@ -125,16 +151,64 @@ describe('useGameStore — persistence partition (§11 guard)', () => {
     expect(parsed.state).toHaveProperty('ledger')
     expect(parsed.state).toHaveProperty('currentPromptId')
     expect(parsed.state).toHaveProperty('installedModule')
+    expect(parsed.state).toHaveProperty('flags')
+    expect(parsed.state).toHaveProperty('capitalDeployedThisQuarter')
 
     // Forbidden keys — these MUST NOT leak through partialize.
     expect(parsed.state).not.toHaveProperty('phase')
     expect(parsed.state).not.toHaveProperty('isHydrated')
     expect(parsed.state).not.toHaveProperty('lastSavedAt')
+    // Inspection cursor is transient runtime UI — must NOT persist.
+    expect(parsed.state).not.toHaveProperty('currentInspectionSceneIndex')
 
-    // Defense-in-depth: shape is exactly the 5 allowed keys, nothing more.
+    // `flags` is serialised as Array (JSON cannot encode Set).
+    expect(Array.isArray(parsed.state.flags)).toBe(true)
+    expect(parsed.state.flags).toContain('SILAS_OVERRIDE_AVAILABLE')
+
+    // `capitalDeployedThisQuarter` survives reload (one-shot exploit guard).
+    expect(parsed.state.capitalDeployedThisQuarter).toBe(true)
+
+    // Defense-in-depth: shape is exactly the 7 allowed keys, nothing more.
     expect(Object.keys(parsed.state).sort()).toEqual(
-      ['currentPromptId', 'installedModule', 'ledger', 'meters', 'scheduledConsequences'].sort(),
+      [
+        'capitalDeployedThisQuarter',
+        'currentPromptId',
+        'flags',
+        'installedModule',
+        'ledger',
+        'meters',
+        'scheduledConsequences',
+      ].sort(),
     )
+  })
+
+  it('rehydrates persisted flags Array back into a Set', async () => {
+    // Seed in-memory state first (triggers an auto-write), THEN seed the
+    // fixture — otherwise the auto-write clobbers our fixture before
+    // rehydrate can read it.
+    useGameStore.setState({ flags: new Set<string>() })
+
+    const seeded = {
+      state: {
+        meters: { CAPITAL: 0, HUMAN_WELFARE: 0, OWNER_CONTROL: 0 },
+        scheduledConsequences: [],
+        ledger: [],
+        currentPromptId: null,
+        installedModule: null,
+        flags: ['SILAS_OVERRIDE_AVAILABLE', 'FORECAST_PREVIEWED'],
+        capitalDeployedThisQuarter: false,
+      },
+      version: 0,
+    }
+    localStorage.setItem(PERSIST_KEY, JSON.stringify(seeded))
+
+    await useGameStore.persist.rehydrate()
+
+    const flags = useGameStore.getState().flags
+    expect(flags).toBeInstanceOf(Set)
+    expect(flags.has('SILAS_OVERRIDE_AVAILABLE')).toBe(true)
+    expect(flags.has('FORECAST_PREVIEWED')).toBe(true)
+    expect(flags.size).toBe(2)
   })
 })
 

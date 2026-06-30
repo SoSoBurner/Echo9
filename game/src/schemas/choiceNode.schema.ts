@@ -19,7 +19,7 @@ export const ChoiceNodeSchema = z.object({
   label: z.string().min(1),
   keybind: z.enum(['1', '2', '3', '4']),
   /** Per-meter integer changes; absent keys mean no change. */
-  meterDeltas: z.partialRecord(MeterKeySchema, z.number()),
+  meterDeltas: z.partialRecord(MeterKeySchema, z.number().int()),
   /** ConsequenceHook ids scheduled when this choice is taken. */
   scheduledConsequenceIds: z.array(ConsequenceIdSchema),
 })
