@@ -139,6 +139,8 @@ interface LogHistoryModalProps {
 function LogHistoryModal({ open, onClose, ledger }: LogHistoryModalProps) {
   const dialogRef = useRef<HTMLDialogElement>(null)
   const headingRef = useRef<HTMLHeadingElement>(null)
+  // Snapshot the opener so L-key (no prior mouse focus) returns focus deterministically.
+  const openerRef = useRef<HTMLElement | null>(null)
 
   // Open/close imperatively from the `open` prop. Focus moves to the
   // heading synchronously after showModal() so screen readers receive the
@@ -147,10 +149,13 @@ function LogHistoryModal({ open, onClose, ledger }: LogHistoryModalProps) {
     const dlg = dialogRef.current
     if (!dlg) return
     if (open && !dlg.open) {
+      openerRef.current = document.activeElement as HTMLElement | null
       dlg.showModal()
       headingRef.current?.focus()
     } else if (!open && dlg.open) {
       dlg.close()
+      openerRef.current?.focus()
+      openerRef.current = null
     }
   }, [open])
 

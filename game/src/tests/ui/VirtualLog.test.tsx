@@ -9,55 +9,25 @@
  *     has no real layout, but @tanstack/react-virtual still produces an
  *     initial overscan slice.
  */
-import { describe, it, expect, beforeEach, beforeAll } from 'vitest'
+import { describe, it, expect, beforeEach, beforeAll, afterAll } from 'vitest'
 import { render, cleanup } from '@testing-library/react'
 import React from 'react'
 import { VirtualLog } from '@ui/log/VirtualLog'
-import type { ResultTrace } from '@schemas/resultTrace.schema'
-import { fxTaskId, fxChoiceId, fxTraceId } from '@tests/schemas/fixtures'
+import {
+  makeTraces,
+  installVirtualizerStubs,
+  restoreVirtualizerStubs,
+} from './virtualLogTestHelpers'
 
 // @tanstack/virtual-core reads offsetWidth/offsetHeight from the scroll
 // element to determine viewport size. jsdom returns 0 for both, which
-// would make the virtualizer skip rendering everything. Patch the
-// prototype getters so the overscan window is non-empty in tests.
-// In a real browser these properties are computed from real layout and
-// the test stub never executes.
-beforeAll(() => {
-  Object.defineProperty(HTMLElement.prototype, 'offsetWidth', {
-    configurable: true,
-    get() {
-      return 800
-    },
-  })
-  Object.defineProperty(HTMLElement.prototype, 'offsetHeight', {
-    configurable: true,
-    get() {
-      return 480
-    },
-  })
-  if (typeof globalThis.ResizeObserver === 'undefined') {
-    class StubResizeObserver {
-      observe() {}
-      unobserve() {}
-      disconnect() {}
-    }
-    globalThis.ResizeObserver = StubResizeObserver as unknown as typeof ResizeObserver
-  }
-})
-
-function makeTraces(n: number): ResultTrace[] {
-  const out: ResultTrace[] = []
-  for (let i = 0; i < n; i++) {
-    out.push({
-      id: fxTraceId(`trace-${String(i).padStart(4, '0')}`),
-      sourceTaskId: fxTaskId(),
-      sourceChoiceId: fxChoiceId(`choice-${i}`),
-      timestamp: 1_700_000_000_000 + i * 1000,
-      body: `Trace body number ${i}`,
-    })
-  }
-  return out
-}
+// would make the virtualizer skip rendering everything. The shared
+// helper patches the prototype getters so the overscan window is
+// non-empty in tests, and restoreVirtualizerStubs() puts the original
+// descriptors back so jsdom mutations don't leak across files in the
+// same Vitest worker. In a real browser these stubs never execute.
+beforeAll(installVirtualizerStubs)
+afterAll(restoreVirtualizerStubs)
 
 describe('VirtualLog', () => {
   beforeEach(() => {

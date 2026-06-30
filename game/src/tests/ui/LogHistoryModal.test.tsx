@@ -16,54 +16,33 @@
  *     boundary. We don't intercept the chunk; we assert that after the
  *     async load resolves, the rendered DOM contains list items.
  */
-import { describe, it, expect, beforeEach, beforeAll, vi } from 'vitest'
+import {
+  describe,
+  it,
+  expect,
+  beforeEach,
+  beforeAll,
+  afterAll,
+  afterEach,
+  vi,
+} from 'vitest'
 import { render, screen, fireEvent, cleanup, act } from '@testing-library/react'
 import React from 'react'
 import { LogDock } from '@ui/log/LogDock'
 import { useGameStore } from '@state/store'
 import { resetStore } from '@tests/state/testHelpers'
 import type { ResultTrace } from '@schemas/resultTrace.schema'
-import { fxTaskId, fxChoiceId, fxTraceId } from '@tests/schemas/fixtures'
+import {
+  makeTraces,
+  installVirtualizerStubs,
+  restoreVirtualizerStubs,
+} from './virtualLogTestHelpers'
 
-// jsdom stubs so the >100 case can render rows in VirtualLog. See
-// VirtualLog.test.tsx for the rationale — these are no-ops in a real
-// browser because the real layout overrides them.
-beforeAll(() => {
-  Object.defineProperty(HTMLElement.prototype, 'offsetWidth', {
-    configurable: true,
-    get() {
-      return 800
-    },
-  })
-  Object.defineProperty(HTMLElement.prototype, 'offsetHeight', {
-    configurable: true,
-    get() {
-      return 480
-    },
-  })
-  if (typeof globalThis.ResizeObserver === 'undefined') {
-    class StubResizeObserver {
-      observe() {}
-      unobserve() {}
-      disconnect() {}
-    }
-    globalThis.ResizeObserver = StubResizeObserver as unknown as typeof ResizeObserver
-  }
-})
-
-function makeTraces(n: number): ResultTrace[] {
-  const out: ResultTrace[] = []
-  for (let i = 0; i < n; i++) {
-    out.push({
-      id: fxTraceId(`trace-${String(i).padStart(4, '0')}`),
-      sourceTaskId: fxTaskId(),
-      sourceChoiceId: fxChoiceId(`choice-${i}`),
-      timestamp: 1_700_000_000_000 + i * 1000,
-      body: `Trace body number ${i}`,
-    })
-  }
-  return out
-}
+// jsdom stubs so the >100 case can render rows in VirtualLog. Shared
+// with VirtualLog.test.tsx — these are no-ops in a real browser because
+// the real layout overrides them.
+beforeAll(installVirtualizerStubs)
+afterAll(restoreVirtualizerStubs)
 
 function seedLedger(traces: ResultTrace[]): void {
   useGameStore.setState({ ledger: traces })
@@ -93,6 +72,12 @@ beforeEach(() => {
       this.open = false
     })
   }
+})
+
+// Restore spies so layered mocks don't accumulate across tests or leak
+// into sibling test files in the same Vitest worker.
+afterEach(() => {
+  vi.restoreAllMocks()
 })
 
 describe('LogHistoryModal (inside LogDock)', () => {
@@ -156,6 +141,30 @@ describe('LogHistoryModal (inside LogDock)', () => {
 
     const dlg = document.querySelector('dialog') as HTMLDialogElement
     expect(dlg.open).toBe(false)
+  })
+
+  it('restores focus to the opener element on close (WCAG 2.4.3 / 3.2.1)', () => {
+    seedLedger(makeTraces(30))
+    render(React.createElement(LogDock))
+
+    const opener = screen.getByRole('button', {
+      name: /view all/i,
+    }) as HTMLButtonElement
+    // Simulate keyboard-only path: caller focused the button explicitly
+    // before activating it (no mouse focus). This mirrors the L-key
+    // entry point where focus may sit on an arbitrary HUD widget.
+    opener.focus()
+    expect(document.activeElement).toBe(opener)
+
+    fireEvent.click(opener)
+    // After open, focus moved to the heading.
+    const heading = screen.getByRole('heading', { name: /history/i })
+    expect(document.activeElement).toBe(heading)
+
+    fireEvent.click(screen.getByRole('button', { name: /^close$/i }))
+
+    // Close should land focus back on the opener, not on some other HUD widget.
+    expect(document.activeElement).toBe(opener)
   })
 
   it('renders 50 entries with plain .map() (no virtualization)', () => {
