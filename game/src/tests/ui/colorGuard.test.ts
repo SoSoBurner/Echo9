@@ -4,8 +4,8 @@
  * Two responsibilities:
  *   1. Contrast assertions: verify every palette token meets WCAG AA minimums
  *      against the background (#0A0B0D).
- *   2. Arbitrary-color scan: fail if any .ts/.tsx file under src/ uses
- *      Tailwind arbitrary color utilities (text-[#, bg-[#, border-[#, ring-[#).
+ *   2. Arbitrary-color scan: fail if any source file under src/ uses Tailwind
+ *      arbitrary color utilities (text-[#...], bg-[#...], etc.).
  *
  * All color must come from @theme tokens.
  * To add a color, edit src/ui/tokens/palette.ts.
@@ -42,7 +42,7 @@ const UI_TOKENS: Array<[string, string]> = [
 ]
 
 describe('Palette contrast — text tokens (≥ 4.5:1 against background)', () => {
-  it.each(TEXT_TOKENS)('%s has contrast ≥ 4.5:1 against %s', (name, hex) => {
+  it.each(TEXT_TOKENS)('%s (%s) has contrast ≥ 4.5:1 against background', (name, hex) => {
     const ratio = contrastRatio(hex, BG)
     expect(
       ratio,
@@ -54,7 +54,7 @@ describe('Palette contrast — text tokens (≥ 4.5:1 against background)', () =
 })
 
 describe('Palette contrast — UI-only tokens (≥ 3.0:1 against background)', () => {
-  it.each(UI_TOKENS)('%s has contrast ≥ 3.0:1 against %s', (name, hex) => {
+  it.each(UI_TOKENS)('%s (%s) has contrast ≥ 3.0:1 against background', (name, hex) => {
     const ratio = contrastRatio(hex, BG)
     expect(
       ratio,
@@ -69,25 +69,28 @@ describe('Palette contrast — UI-only tokens (≥ 3.0:1 against background)', (
 // 2. Arbitrary-color scan
 // ---------------------------------------------------------------------------
 
-/** Tailwind arbitrary color utility patterns that are forbidden. */
-const FORBIDDEN_PATTERNS: RegExp[] = [
-  /text-\[#/,
-  /bg-\[#/,
-  /border-\[#/,
-  /ring-\[#/,
-]
+/**
+ * Forbidden pattern: Tailwind arbitrary color utilities for text/bg/border/etc.
+ * Matches `text-[#abc]`, `bg-[#abc123]`, `border-[#abc]`, `ring-[#abc]`,
+ * `from-[#abc]`, `to-[#abc]`, `via-[#abc]`, `fill-[#abc]`, `stroke-[#abc]`,
+ * `outline-[#abc]`, `divide-[#abc]`, `placeholder-[#abc]`, `caret-[#abc]`,
+ * `decoration-[#abc]`, `accent-[#abc]`, `shadow-[#abc]`.
+ */
+const FORBIDDEN =
+  /\b(?:text|bg|border|ring|from|to|via|fill|stroke|outline|divide|placeholder|caret|decoration|accent|shadow)-\[#[0-9a-fA-F]{3,8}\]/
 
-/** Collect all .ts and .tsx files under a directory, recursively. */
+/** Collect all .ts, .tsx, and .css files under a directory, recursively. */
 function collectSourceFiles(dir: string): string[] {
   const results: string[] = []
 
   function walk(current: string): void {
     const entries = fs.readdirSync(current, { withFileTypes: true })
     for (const entry of entries) {
+      if (entry.name === 'node_modules' || entry.name === 'dist') continue
       const fullPath = path.join(current, entry.name)
       if (entry.isDirectory()) {
         walk(fullPath)
-      } else if (entry.isFile() && /\.(ts|tsx)$/.test(entry.name)) {
+      } else if (entry.isFile() && /\.(tsx?|jsx?|css)$/.test(entry.name)) {
         results.push(fullPath)
       }
     }
@@ -117,35 +120,30 @@ describe('Arbitrary color guard — no inline hex utilities in source files', ()
 
   const allFiles = collectSourceFiles(srcDir).filter((f) => !shouldExclude(f))
 
-  it('src/ contains scannable .ts/.tsx files', () => {
+  it('src/ contains scannable source files', () => {
     expect(allFiles.length).toBeGreaterThan(0)
   })
 
-  it.each(allFiles.map((f) => [path.relative(srcDir, f), f]))(
-    '%s — no arbitrary color utilities',
-    (_rel, filePath) => {
-      const content = fs.readFileSync(filePath, 'utf-8')
-      const lines = content.split('\n')
+  it('forbids arbitrary Tailwind color utilities like text-[#...] or bg-[#...] in all source files', () => {
+    const offenders: { file: string; line: number; text: string }[] = []
 
-      const violations: string[] = []
-
-      lines.forEach((line, i) => {
-        for (const pattern of FORBIDDEN_PATTERNS) {
-          if (pattern.test(line)) {
-            violations.push(
-              `  Line ${i + 1}: ${line.trim()}\n` +
-              `  Pattern: ${pattern.source}`
-            )
-          }
+    for (const filePath of allFiles) {
+      const lines = fs.readFileSync(filePath, 'utf-8').split(/\r?\n/)
+      lines.forEach((text, i) => {
+        if (FORBIDDEN.test(text)) {
+          offenders.push({
+            file: path.relative(srcDir, filePath),
+            line: i + 1,
+            text: text.trim(),
+          })
         }
       })
-
-      expect(
-        violations,
-        `Arbitrary color utility found in ${filePath}:\n${violations.join('\n')}\n\n` +
-        `All color must come from @theme tokens. ` +
-        `To add a color, edit src/ui/tokens/palette.ts.`
-      ).toHaveLength(0)
     }
-  )
+
+    expect(
+      offenders,
+      `Found arbitrary color utilities. To add a color, edit src/ui/tokens/palette.ts.\n` +
+        offenders.map((o) => `  ${o.file}:${o.line}  ${o.text}`).join('\n'),
+    ).toEqual([])
+  })
 })

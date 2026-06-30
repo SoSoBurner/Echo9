@@ -5,7 +5,7 @@ export function BootScreen() {
 
   return (
     <main
-      className="min-h-screen flex items-center justify-center px-6 py-12 font-mono"
+      className="bg-background min-h-screen flex items-center justify-center px-6 py-12 font-mono"
       aria-label="Echo 9 boot screen"
     >
       <section className="w-full max-w-2xl space-y-10">
@@ -34,7 +34,7 @@ export function BootScreen() {
               border border-sealed-dim
               text-fg-primary text-sm tracking-widest uppercase
               hover:border-null-accent
-              focus:outline-none focus:ring-2 focus:ring-null-accent focus:ring-offset-2
+              focus:outline-none focus:ring-2 focus:ring-null-accent
               transition-colors
               cursor-pointer
             "
