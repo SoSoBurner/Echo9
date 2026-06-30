@@ -22,5 +22,6 @@ export function resetStore(): void {
     flags: new Set<string>(),
     currentInspectionSceneIndex: null,
     capitalDeployedThisQuarter: false,
+    pendingFiredHooks: [],
   })
 }

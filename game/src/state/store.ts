@@ -6,11 +6,12 @@
  * `partialize`-filtered state into localStorage; devtools wraps the outside so
  * Redux DevTools sees the final composed actions.
  *
- * Persistence partition rule (CRITICAL): `partialize` ONLY ships the five
- * gameplay slices (meters, scheduledConsequences, ledger, currentPromptId,
- * installedModule). It MUST NOT ship `phase` (transient runtime cursor) or
- * `isHydrated / lastSavedAt` (derived metadata). `store.test.ts` enforces
- * this — widening `partialize` without updating the guard test will fail CI.
+ * Persistence partition rule (CRITICAL): `partialize` ONLY ships the eight
+ * gameplay slots (meters, scheduledConsequences, ledger, currentPromptId,
+ * installedModule, flags, capitalDeployedThisQuarter, pendingFiredHooks). It
+ * MUST NOT ship `phase` (transient runtime cursor) or `isHydrated /
+ * lastSavedAt` (derived metadata). `store.test.ts` enforces this — widening
+ * `partialize` without updating the guard test will fail CI.
  */
 import { create, type StateCreator } from 'zustand'
 import { devtools, persist, createJSONStorage } from 'zustand/middleware'
@@ -33,6 +34,7 @@ import { createPersistSlice, type PersistSlice } from './persistSlice'
 import { createFlagsSlice, type FlagsSlice } from './flagsSlice'
 import { createInspectionSlice, type InspectionSlice } from './inspectionSlice'
 import { createCapitalSlice, type CapitalSlice } from './capitalSlice'
+import { createEventQueueSlice, type EventQueueSlice } from './eventQueueSlice'
 
 export type RootState =
   & BootSlice
@@ -45,6 +47,7 @@ export type RootState =
   & FlagsSlice
   & InspectionSlice
   & CapitalSlice
+  & EventQueueSlice
 
 export const PERSIST_KEY = 'echo9:autosave'
 
@@ -64,6 +67,7 @@ const rootCreator: StateCreator<
   ...createFlagsSlice(set, get, store),
   ...createInspectionSlice(set, get, store),
   ...createCapitalSlice(set, get, store),
+  ...createEventQueueSlice(set, get, store),
 })
 
 export const useGameStore = create<RootState>()(
@@ -86,6 +90,11 @@ export const useGameStore = create<RootState>()(
           installedModule: state.installedModule,
           flags: Array.from(state.flags),
           capitalDeployedThisQuarter: state.capitalDeployedThisQuarter,
+          // T12: pending consequences must survive reload — without this,
+          // the §11 traceability invariant ("every delayed consequence
+          // returns") leaks across reloads when the player closes the tab
+          // between fire and ack.
+          pendingFiredHooks: state.pendingFiredHooks,
         }),
         // Defense against tampered / stale localStorage: an invalid
         // installedModule would crash MODULE_ABILITY_DISPATCH[id] on first use.

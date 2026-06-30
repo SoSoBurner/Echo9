@@ -23,6 +23,8 @@ import { ResultCard } from '@ui/result/ResultCard'
 import { RightModuleConsole } from '@ui/modules/RightModuleConsole'
 import { InspectionPanel } from '@ui/inspection/InspectionPanel'
 import { CapitalPowerPanel } from '@ui/capital/CapitalPowerPanel'
+import { ConsequenceReturnPanel } from '@ui/consequence/ConsequenceReturnPanel'
+import { EventQueueToast } from '@ui/consequence/EventQueueToast'
 import { useKeyboardNav } from './useKeyboardNav'
 import { resolveChoice } from '@systems/choiceResolver'
 import { resolveInspection } from '@systems/inspectionEngine'
@@ -86,6 +88,17 @@ export function Layout() {
   const capitalMeter = useGameStore((s) => s.meters.CAPITAL)
   const capitalDeployedThisQuarter = useGameStore((s) => s.capitalDeployedThisQuarter)
   const [showCapital, setShowCapital] = useState(false)
+  // T12: consequence return panel — open state is local UI; the queue itself
+  // lives in eventQueueSlice. Player presses C to open iff pendingFiredHooks
+  // is non-empty (count guard lives in onConsequenceReview below).
+  const [showConsequencePanel, setShowConsequencePanel] = useState(false)
+  // Narrow subscriptions used to drive evaluateAndEnqueue's dep array — any
+  // change to phase/meters/flags can change a revealCondition match.
+  // (capitalMeter, flags, phase are already subscribed above; reuse those.)
+  const meterHumanWelfare = useGameStore((s) => s.meters.HUMAN_WELFARE)
+  const meterOwnerControl = useGameStore((s) => s.meters.OWNER_CONTROL)
+  const pendingCount = useGameStore((s) => s.pendingFiredHooks.length)
+  const evaluateAndEnqueue = useGameStore((s) => s.evaluateAndEnqueue)
   // Auto-open when threshold first crossed and not yet shown this session.
   // (T11 intentional: simple one-shot open per cross — quarter rollover
   // reset is a later task.)
@@ -231,6 +244,21 @@ export function Layout() {
     moduleFocusRef.current = focusFn
   }, [])
 
+  // T12: re-evaluate the scheduled-consequence queue whenever something that
+  // could change a revealCondition match changes (PLAN.md §8: "evaluate runs
+  // at every phase transition"). Narrow subscriptions above keep this
+  // effect from running on every render.
+  useEffect(() => {
+    evaluateAndEnqueue()
+  }, [
+    phase,
+    capitalMeter,
+    meterHumanWelfare,
+    meterOwnerControl,
+    flags,
+    evaluateAndEnqueue,
+  ])
+
   // Auto-open CapitalPowerPanel on the first false→true transition of
   // `capitalShouldShow`. Tracked by a ref so deferring (which sets
   // showCapital=false while the threshold stays true) does not re-trigger
@@ -261,6 +289,13 @@ export function Layout() {
     onModuleFocus: useCallback(() => {
       moduleFocusRef.current?.()
     }, []),
+    onConsequenceReview: useCallback(() => {
+      // Open the panel only if the queue is non-empty AND the panel isn't
+      // already open. The panel reads pendingFiredHooks[0] itself.
+      if (pendingCount > 0) {
+        setShowConsequencePanel(true)
+      }
+    }, [pendingCount]),
   })
 
   const showResult = phase === 'FIRST_RESULT' || lastTrace !== null
@@ -370,6 +405,17 @@ export function Layout() {
           onDefer={() => setShowCapital(false)}
         />
       )}
+      {/*
+        T12: ConsequenceReturnPanel + EventQueueToast. The toast is always
+        mounted (it self-hides when the queue is empty). The panel is always
+        mounted too — the `open` prop controls its visible state so the
+        close-effect can run `dlg.close()` on transition.
+      */}
+      <EventQueueToast />
+      <ConsequenceReturnPanel
+        open={showConsequencePanel}
+        onClose={() => setShowConsequencePanel(false)}
+      />
     </>
   )
 }

@@ -15,7 +15,8 @@
  *   M         Focus module ability (T10 — no-op)
  *   I         Open inspection (T11 — no-op)
  *   L         Toggle LogDock (T13 — no-op)
- *   C         Review pending consequence toast (T12 — no-op)
+ *   C         Review pending consequence (T12 — opens ConsequenceReturnPanel
+ *             iff the eventQueueSlice has pending fired hooks)
  */
 import { useEffect } from 'react'
 
@@ -28,10 +29,12 @@ export interface KeyboardNavCallbacks {
   onEscape?: () => void
   /** Called on M — focus the active module ability button (T10). */
   onModuleFocus?: () => void
+  /** Called on C — open the ConsequenceReturnPanel (T12). */
+  onConsequenceReview?: () => void
 }
 
 export function useKeyboardNav(callbacks: KeyboardNavCallbacks = {}) {
-  const { onChoiceKey, onCommit, onEscape, onModuleFocus } = callbacks
+  const { onChoiceKey, onCommit, onEscape, onModuleFocus, onConsequenceReview } = callbacks
 
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
@@ -93,7 +96,11 @@ export function useKeyboardNav(callbacks: KeyboardNavCallbacks = {}) {
         }
         case 'c':
         case 'C': {
-          // T12: review pending consequence toast — no-op for T8
+          // T12: open ConsequenceReturnPanel iff there are pending hooks.
+          // The callback itself decides whether to open (count check lives
+          // in Layout so this hook stays state-agnostic).
+          e.preventDefault()
+          onConsequenceReview?.()
           break
         }
         default:
@@ -103,5 +110,5 @@ export function useKeyboardNav(callbacks: KeyboardNavCallbacks = {}) {
 
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [onChoiceKey, onCommit, onEscape, onModuleFocus])
+  }, [onChoiceKey, onCommit, onEscape, onModuleFocus, onConsequenceReview])
 }

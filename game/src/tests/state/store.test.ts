@@ -100,6 +100,14 @@ describe('useGameStore — composed root state', () => {
     expect(typeof useGameStore.getState().markCapitalDeployed).toBe('function')
     expect(typeof useGameStore.getState().resetCapitalForNewQuarter).toBe('function')
   })
+
+  it('exposes eventQueueSlice initial state', () => {
+    expect(useGameStore.getState().pendingFiredHooks).toEqual([])
+    expect(typeof useGameStore.getState().enqueueFired).toBe('function')
+    expect(typeof useGameStore.getState().ackFirstPending).toBe('function')
+    expect(typeof useGameStore.getState().clearPending).toBe('function')
+    expect(typeof useGameStore.getState().evaluateAndEnqueue).toBe('function')
+  })
 })
 
 describe('useGameStore — persistence partition (§11 guard)', () => {
@@ -117,10 +125,11 @@ describe('useGameStore — persistence partition (§11 guard)', () => {
       flags: new Set<string>(),
       currentInspectionSceneIndex: null,
       capitalDeployedThisQuarter: false,
+      pendingFiredHooks: [],
     })
   })
 
-  it('persists ONLY the seven gameplay slots, nothing else', () => {
+  it('persists ONLY the eight gameplay slots, nothing else', () => {
     // Mutate every slice — including ones that MUST NOT persist.
     useGameStore.getState().setPhase('INSPECTION')
     useGameStore.getState().applyDelta({ CAPITAL: 7 })
@@ -138,6 +147,7 @@ describe('useGameStore — persistence partition (§11 guard)', () => {
     useGameStore.getState().setFlag('SILAS_OVERRIDE_AVAILABLE')
     useGameStore.getState().startInspection()
     useGameStore.getState().markCapitalDeployed()
+    useGameStore.getState().enqueueFired([makeHook()])
 
     const raw = localStorage.getItem(PERSIST_KEY)
     expect(raw).not.toBeNull()
@@ -153,6 +163,7 @@ describe('useGameStore — persistence partition (§11 guard)', () => {
     expect(parsed.state).toHaveProperty('installedModule')
     expect(parsed.state).toHaveProperty('flags')
     expect(parsed.state).toHaveProperty('capitalDeployedThisQuarter')
+    expect(parsed.state).toHaveProperty('pendingFiredHooks')
 
     // Forbidden keys — these MUST NOT leak through partialize.
     expect(parsed.state).not.toHaveProperty('phase')
@@ -168,7 +179,7 @@ describe('useGameStore — persistence partition (§11 guard)', () => {
     // `capitalDeployedThisQuarter` survives reload (one-shot exploit guard).
     expect(parsed.state.capitalDeployedThisQuarter).toBe(true)
 
-    // Defense-in-depth: shape is exactly the 7 allowed keys, nothing more.
+    // Defense-in-depth: shape is exactly the 8 allowed keys, nothing more.
     expect(Object.keys(parsed.state).sort()).toEqual(
       [
         'capitalDeployedThisQuarter',
@@ -177,6 +188,7 @@ describe('useGameStore — persistence partition (§11 guard)', () => {
         'installedModule',
         'ledger',
         'meters',
+        'pendingFiredHooks',
         'scheduledConsequences',
       ].sort(),
     )
@@ -197,6 +209,7 @@ describe('useGameStore — persistence partition (§11 guard)', () => {
         installedModule: null,
         flags: ['SILAS_OVERRIDE_AVAILABLE', 'FORECAST_PREVIEWED'],
         capitalDeployedThisQuarter: false,
+        pendingFiredHooks: [],
       },
       version: 0,
     }
