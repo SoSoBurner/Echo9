@@ -4,8 +4,10 @@
  * Accessibility (WAI-ARIA grid pattern):
  *   - Container: role="grid", aria-label="Select a personality module"
  *   - Rows:      role="row"
- *   - Cells:     role="gridcell" containing a focusable role="button"
+ *   - Cells:     role="gridcell" (the cell itself is focusable; no nested
+ *                interactive child — avoids double-announcement under SRs)
  *   - Arrow keys move focus left/right/up/down between cells (roving tabindex)
+ *   - Home/End:  row-scoped first/last; Ctrl/Cmd+Home/End: grid-global
  *   - Enter/Space activates a cell → opens the inline confirm panel
  *
  * Install protocol — explicit confirmation (§14 acceptance criterion):
