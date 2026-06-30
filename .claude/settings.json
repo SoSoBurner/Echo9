@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash -c 'case \"$CLAUDE_FILE_PATH\" in */PLAN.md) echo \"BLOCKED: PLAN.md is the locked design contract. Re-prompt the user for explicit authorization before editing.\" >&2; exit 2 ;; esac'"
+            "command": "bash -c 'case \"$CLAUDE_FILE_PATH\" in */Echo9/PLAN.md) echo \"BLOCKED: PLAN.md is the locked design contract. Re-prompt the user for explicit authorization before editing.\" >&2; exit 2 ;; esac'"
           }
         ]
       }
