@@ -67,6 +67,13 @@ function hasOperationalDetail(body: string): boolean {
   return false
 }
 
+// Known limitations of this heuristic:
+//   - abbreviations like "Dr.", "Mr.", or initials inflate the count
+//     (every "." is treated as a terminator).
+//   - "…" (Unicode horizontal ellipsis U+2026) is NOT split, so a body
+//     ending in "…" undercounts.
+//   - Author guidance: prefer terminal "." / "!" / "?" and avoid leading
+//     abbreviations in Silas prompt bodies.
 function countSentences(body: string): number {
   return body
     .split(/[.!?]+/)

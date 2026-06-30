@@ -24,7 +24,16 @@ import { useKeyboardNav } from './useKeyboardNav'
 import { resolveChoice } from '@systems/choiceResolver'
 import type { ResultTrace } from '@schemas/resultTrace.schema'
 import type { ConsequenceHook } from '@schemas/consequenceHook.schema'
-import { makeTraceId, type ChoiceId, type ConsequenceId } from '@schemas/gameState.schema'
+import { makeTraceId, type TraceId, type ChoiceId, type ConsequenceId } from '@schemas/gameState.schema'
+
+// crypto.randomUUID() is secure-context only — plain-HTTP staging would throw.
+function freshTraceId(): TraceId {
+  const id =
+    typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
+      ? crypto.randomUUID()
+      : `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 12)}`
+  return makeTraceId(id)
+}
 
 // ---------------------------------------------------------------------------
 // T9 content wiring — real modules replace T8's MOCK_* constants.
@@ -46,9 +55,6 @@ export function Layout() {
   const phase = useGameStore((s) => s.phase)
 
   // Real store actions (composed from slices).
-  const meters = useGameStore((s) => s.meters)
-  const scheduledConsequences = useGameStore((s) => s.scheduledConsequences)
-  const ledger = useGameStore((s) => s.ledger)
   const applyDelta = useGameStore((s) => s.applyDelta)
   const appendTrace = useGameStore((s) => s.appendTrace)
   const scheduleHook = useGameStore((s) => s.scheduleHook)
@@ -83,6 +89,9 @@ export function Layout() {
       }
 
       // 2. Build a fresh GameState snapshot for the pure resolver.
+      //    Read live state from the store (not render-time selectors) so
+      //    rapid/programmatic commits never feed resolveChoice a stale view.
+      const { meters, scheduledConsequences, ledger } = useGameStore.getState()
       const snapshot = {
         meters,
         scheduledConsequences,
@@ -92,7 +101,7 @@ export function Layout() {
       // 3. Inject non-deterministic ctx (now + fresh trace id).
       const ctx = {
         now: Date.now(),
-        traceId: makeTraceId(crypto.randomUUID()),
+        traceId: freshTraceId(),
       }
 
       // 4. Run the pure resolver — throws on missing hook id (content bug).
@@ -108,7 +117,7 @@ export function Layout() {
       // 6. Trigger the result panel.
       setLastTrace(trace)
     },
-    [meters, scheduledConsequences, ledger, hookCatalog, applyDelta, appendTrace, scheduleHook],
+    [hookCatalog, applyDelta, appendTrace, scheduleHook],
   )
 
   // Register keyboard callbacks from ChoicePanel
