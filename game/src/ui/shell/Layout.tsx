@@ -25,6 +25,7 @@ import { InspectionPanel } from '@ui/inspection/InspectionPanel'
 import { CapitalPowerPanel } from '@ui/capital/CapitalPowerPanel'
 import { ConsequenceReturnPanel } from '@ui/consequence/ConsequenceReturnPanel'
 import { EventQueueToast } from '@ui/consequence/EventQueueToast'
+import { LogDock } from '@ui/log/LogDock'
 import { useKeyboardNav } from './useKeyboardNav'
 import { resolveChoice } from '@systems/choiceResolver'
 import { resolveInspection } from '@systems/inspectionEngine'
@@ -116,6 +117,14 @@ export function Layout() {
 
   // Module ability focus bridge (T10 — M key focuses the ability button)
   const moduleFocusRef = useRef<(() => void) | null>(null)
+
+  // LogDock history-modal toggle bridge (T13 — L key toggles the modal).
+  // LogDock calls registerLogToggle once with its toggle function; the
+  // L key callback below routes through this ref.
+  const logToggleRef = useRef<(() => void) | null>(null)
+  const registerLogToggle = useCallback((toggle: () => void) => {
+    logToggleRef.current = toggle
+  }, [])
 
   const [lastTrace, setLastTrace] = useState<ResultTrace | null>(null)
 
@@ -303,6 +312,9 @@ export function Layout() {
         setShowConsequencePanel(true)
       }
     }, [pendingCount]),
+    onLogToggle: useCallback(() => {
+      logToggleRef.current?.()
+    }, []),
   })
 
   const showResult = phase === 'FIRST_RESULT' || lastTrace !== null
@@ -379,15 +391,12 @@ export function Layout() {
           <SilasPromptPanel prompt={SILAS_DIRECTIVE_EAST_WILMER} />
         </div>
 
-        {/* logdock — T13 builds this; empty placeholder */}
+        {/* logdock — T13: rolling ledger view + lazy virtualized history */}
         <div
           style={{ gridArea: 'logdock' }}
-          className="border-t border-sealed-dim px-4 py-2"
-          aria-label="Log dock (coming soon)"
+          className="border-t border-sealed-dim px-4 py-2 overflow-hidden"
         >
-          <span className="text-fg-secondary text-xs uppercase tracking-widest">
-            Log Dock — T13
-          </span>
+          <LogDock registerToggle={registerLogToggle} />
         </div>
       </div>
 

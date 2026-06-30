@@ -37,6 +37,25 @@ body,
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* T13: LogDock entry slide-in. 120ms translateY(4px) + opacity per
+   PLAN.md §9. Only the ENTRY moves — the dock chrome stays still.
+   The keyframe duration collapses to 0 under prefers-reduced-motion via
+   the global reduce-motion block below. */
+@keyframes log-entry-enter {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.log-entry-enter {
+  animation: log-entry-enter 120ms ease-out;
+}
+
 /* §4.4: respect reduced motion — boot effects must be reducible */
 @media (prefers-reduced-motion: reduce) {
   *,

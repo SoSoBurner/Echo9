@@ -14,7 +14,7 @@
  *   F6        Cycle HUD landmarks (placeholder)
  *   M         Focus module ability (T10 — no-op)
  *   I         Open inspection (T11 — no-op)
- *   L         Toggle LogDock (T13 — no-op)
+ *   L         Toggle LogDock full-history modal (T13 — calls onLogToggle)
  *   C         Review pending consequence (T12 — opens ConsequenceReturnPanel
  *             iff the eventQueueSlice has pending fired hooks)
  */
@@ -31,10 +31,19 @@ export interface KeyboardNavCallbacks {
   onModuleFocus?: () => void
   /** Called on C — open the ConsequenceReturnPanel (T12). */
   onConsequenceReview?: () => void
+  /** Called on L — toggle the LogDock full-history modal (T13). */
+  onLogToggle?: () => void
 }
 
 export function useKeyboardNav(callbacks: KeyboardNavCallbacks = {}) {
-  const { onChoiceKey, onCommit, onEscape, onModuleFocus, onConsequenceReview } = callbacks
+  const {
+    onChoiceKey,
+    onCommit,
+    onEscape,
+    onModuleFocus,
+    onConsequenceReview,
+    onLogToggle,
+  } = callbacks
 
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
@@ -91,7 +100,11 @@ export function useKeyboardNav(callbacks: KeyboardNavCallbacks = {}) {
         }
         case 'l':
         case 'L': {
-          // T13: toggle LogDock — no-op for T8
+          // T13: toggle the LogDock full-history modal. Callback is a
+          // no-op when LogDock hasn't registered its toggle yet (e.g.
+          // first render before useEffect commits).
+          e.preventDefault()
+          onLogToggle?.()
           break
         }
         case 'c':
@@ -110,5 +123,12 @@ export function useKeyboardNav(callbacks: KeyboardNavCallbacks = {}) {
 
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [onChoiceKey, onCommit, onEscape, onModuleFocus, onConsequenceReview])
+  }, [
+    onChoiceKey,
+    onCommit,
+    onEscape,
+    onModuleFocus,
+    onConsequenceReview,
+    onLogToggle,
+  ])
 }
