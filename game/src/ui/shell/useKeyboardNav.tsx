@@ -47,6 +47,14 @@ export function useKeyboardNav(callbacks: KeyboardNavCallbacks = {}) {
 
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
+      // An inner React handler that already called preventDefault() has
+      // claimed this event — do not double-handle. Necessary because the
+      // window-level listener fires AFTER React's synthetic event delegation,
+      // and ChoiceCard / other focusable widgets bind their own Enter+Space
+      // handlers. Without this guard, '2' then Enter committed twice
+      // (caught by mercyMarginSlice.spec.ts E2E spine).
+      if (e.defaultPrevented) return
+
       // Ignore when typing in inputs, textareas, or contenteditable regions
       const tag = (e.target as HTMLElement)?.tagName
       if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return

@@ -1,5 +1,6 @@
 /// <reference types="vitest/config" />
 import { defineConfig } from 'vite'
+import { configDefaults } from 'vitest/config'
 import { fileURLToPath } from 'node:url'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
@@ -25,5 +26,10 @@ export default defineConfig({
     setupFiles: './src/setupTests.ts',
     css: true,
     typecheck: { tsconfig: './tsconfig.test.json' },
+    // Vitest's default `include` picks up *.spec.ts everywhere; the Playwright
+    // suite lives in src/tests/e2e/ and must NOT be loaded by vitest (it runs
+    // under @playwright/test, which provides its own globals). Preserve vitest
+    // defaults via configDefaults and extend.
+    exclude: [...configDefaults.exclude, 'src/tests/e2e/**'],
   },
 })
