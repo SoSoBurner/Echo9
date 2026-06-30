@@ -15,8 +15,8 @@ React 19 + Vite 8 + TypeScript narrative game. Client-only, no backend.
 npm run dev          # vite dev server
 npm run build        # scripts/build.mjs wrapper; --report for bundle viz
 npm run test:run     # vitest single-shot
-npm run test:e2e     # playwright (mercyMarginSlice + soakTest)
-npm run test:soak    # SOAK_ITERATIONS=500 for release gate
+npm run test:e2e     # playwright (all e2e specs in src/tests/e2e/)
+npm run test:soak    # playwright soakTest; set env SOAK_ITERATIONS=500 for 500-cycle release gate
 npx oxlint           # lint — NOT ESLint
 npx tsc --noEmit     # typecheck
 ```
