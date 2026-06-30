@@ -5,6 +5,7 @@
  * Role: radio (part of radiogroup in ChoicePanel).
  * Keyboard: arrows handled by radiogroup, Enter/Space to commit.
  */
+import type React from 'react'
 import type { ChoiceNode } from '@schemas/choiceNode.schema'
 
 interface ChoiceCardProps {
@@ -13,6 +14,7 @@ interface ChoiceCardProps {
   selected: boolean
   onSelect: () => void
   onCommit: () => void
+  ref?: React.Ref<HTMLElement>
 }
 
 const METER_SHORT: Record<string, string> = {
@@ -27,6 +29,7 @@ export function ChoiceCard({
   selected,
   onSelect,
   onCommit,
+  ref,
 }: ChoiceCardProps) {
   const deltas = Object.entries(choice.meterDeltas ?? {})
 
@@ -39,6 +42,7 @@ export function ChoiceCard({
 
   return (
     <div
+      ref={ref as React.Ref<HTMLDivElement>}
       role="radio"
       aria-checked={selected}
       tabIndex={selected ? 0 : -1}

@@ -17,10 +17,20 @@ export function useTeletype(
   fullText: string,
   speedMs = 18,
 ): { text: string; done: boolean; skip: () => void } {
-  const prefersReduced =
+  const [prefersReduced, setPrefersReduced] = useState(() =>
     typeof window !== 'undefined'
       ? window.matchMedia(REDUCED_MOTION_QUERY).matches
-      : false
+      : false,
+  )
+
+  // Keep prefersReduced in sync with OS setting changes mid-session
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const mq = window.matchMedia(REDUCED_MOTION_QUERY)
+    const onChange = (e: MediaQueryListEvent) => setPrefersReduced(e.matches)
+    mq.addEventListener('change', onChange)
+    return () => mq.removeEventListener('change', onChange)
+  }, [])
 
   const [revealed, setRevealed] = useState(prefersReduced ? fullText.length : 0)
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)

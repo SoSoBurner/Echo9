@@ -9,7 +9,7 @@
  *
  * For T8 the onCommit callback console.logs the ChoiceId. T9 will wire resolveChoice.
  */
-import { useState, useCallback, useRef, useEffect } from 'react'
+import React, { useState, useCallback, useRef, useEffect } from 'react'
 import type { ChoiceNode } from '@schemas/choiceNode.schema'
 import type { ChoiceId } from '@schemas/gameState.schema'
 import { ChoiceCard } from './ChoiceCard'
@@ -27,11 +27,23 @@ interface ChoicePanelProps {
 export function ChoicePanel({ choices, onCommit, registerKeyboardHandlers }: ChoicePanelProps) {
   const [selectedIndex, setSelectedIndex] = useState(0)
   const groupRef = useRef<HTMLDivElement>(null)
+  const cardRefs = useRef<Array<HTMLElement | null>>([])
+  // Track whether user has interacted via keyboard — prevents focus yank on mount
+  const userInitiated = useRef(false)
+
+  // Focus the card at the given index after React commits
+  function focusCard(index: number) {
+    requestAnimationFrame(() => {
+      cardRefs.current[index]?.focus()
+    })
+  }
 
   const selectIndex = useCallback(
     (index: number) => {
       if (index >= 0 && index < choices.length) {
+        userInitiated.current = true
         setSelectedIndex(index)
+        focusCard(index)
       }
     },
     [choices.length],
@@ -54,23 +66,37 @@ export function ChoicePanel({ choices, onCommit, registerKeyboardHandlers }: Cho
       case 'ArrowDown':
       case 'ArrowRight': {
         e.preventDefault()
-        setSelectedIndex((prev) => Math.min(prev + 1, choices.length - 1))
+        userInitiated.current = true
+        setSelectedIndex((prev) => {
+          const next = (prev + 1) % choices.length
+          focusCard(next)
+          return next
+        })
         break
       }
       case 'ArrowUp':
       case 'ArrowLeft': {
         e.preventDefault()
-        setSelectedIndex((prev) => Math.max(prev - 1, 0))
+        userInitiated.current = true
+        setSelectedIndex((prev) => {
+          const next = (prev - 1 + choices.length) % choices.length
+          focusCard(next)
+          return next
+        })
         break
       }
       case 'Home': {
         e.preventDefault()
+        userInitiated.current = true
         setSelectedIndex(0)
+        focusCard(0)
         break
       }
       case 'End': {
         e.preventDefault()
+        userInitiated.current = true
         setSelectedIndex(choices.length - 1)
+        focusCard(choices.length - 1)
         break
       }
       default:
@@ -92,6 +118,7 @@ export function ChoicePanel({ choices, onCommit, registerKeyboardHandlers }: Cho
       {choices.map((choice, index) => (
         <ChoiceCard
           key={choice.id}
+          ref={(el: HTMLElement | null) => { cardRefs.current[index] = el }}
           choice={choice}
           index={index}
           selected={index === selectedIndex}

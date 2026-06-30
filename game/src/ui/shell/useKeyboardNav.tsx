@@ -33,9 +33,11 @@ export function useKeyboardNav(callbacks: KeyboardNavCallbacks = {}) {
 
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
-      // Ignore when typing in inputs or textareas
+      // Ignore when typing in inputs, textareas, or contenteditable regions
       const tag = (e.target as HTMLElement)?.tagName
       if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return
+      const target = e.target as HTMLElement | null
+      if (target?.isContentEditable) return
 
       switch (e.key) {
         case '1':
