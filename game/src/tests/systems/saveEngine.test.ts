@@ -149,8 +149,8 @@ describe('saveEngine — serialize', () => {
   })
 })
 
-describe('saveEngine — deserialize', () => {
-  const validV1: SaveSlotV1 = {
+function makeValidV1(): SaveSlotV1 {
+  return {
     schemaVersion: 1,
     slotName: 'Slot A',
     savedAt: 1_700_000_000_000,
@@ -159,9 +159,11 @@ describe('saveEngine — deserialize', () => {
     currentPhase: 'INSPECTION',
     ledger: [makeTrace()],
   }
+}
 
+describe('saveEngine — deserialize', () => {
   it('accepts a valid V1 payload and returns the parsed object', () => {
-    const json = JSON.stringify(validV1)
+    const json = JSON.stringify(makeValidV1())
     const parsed = deserialize(json)
     expect(parsed.schemaVersion).toBe(1)
     expect(parsed.slotName).toBe('Slot A')
@@ -177,25 +179,25 @@ describe('saveEngine — deserialize', () => {
   })
 
   it('rejects schemaVersion 0 (no migration registered)', () => {
-    const v0 = JSON.stringify({ ...validV1, schemaVersion: 0 })
+    const v0 = JSON.stringify({ ...makeValidV1(), schemaVersion: 0 })
     expect(() => deserialize(v0)).toThrow(/schema/i)
   })
 
   it('rejects schemaVersion 2 (no migration registered)', () => {
-    const v2 = JSON.stringify({ ...validV1, schemaVersion: 2 })
+    const v2 = JSON.stringify({ ...makeValidV1(), schemaVersion: 2 })
     expect(() => deserialize(v2)).toThrow(/schema/i)
   })
 
   it('rejects a v1 payload that fails Zod validation (missing meter key)', () => {
     const bad = JSON.stringify({
-      ...validV1,
+      ...makeValidV1(),
       meters: { CAPITAL: 1, HUMAN_WELFARE: 1 },
     })
     expect(() => deserialize(bad)).toThrow()
   })
 
   it('rejects a payload missing schemaVersion entirely', () => {
-    const { schemaVersion: _omit, ...rest } = validV1
+    const { schemaVersion: _omit, ...rest } = makeValidV1()
     void _omit
     expect(() => deserialize(JSON.stringify(rest))).toThrow()
   })

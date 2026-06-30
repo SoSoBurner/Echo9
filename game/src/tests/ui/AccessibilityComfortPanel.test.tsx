@@ -89,6 +89,28 @@ describe('AccessibilityComfortPanel', () => {
     expect(onComplete).toHaveBeenCalledTimes(1)
   })
 
+  it('still calls onComplete when localStorage.setItem throws (QuotaExceededError)', () => {
+    const onComplete = vi.fn()
+    const setItemSpy = vi
+      .spyOn(Storage.prototype, 'setItem')
+      .mockImplementation(() => {
+        throw new Error('QuotaExceededError')
+      })
+
+    try {
+      render(
+        React.createElement(AccessibilityComfortPanel, {
+          onComplete,
+        }),
+      )
+
+      fireEvent.click(screen.getByRole('button', { name: /continue/i }))
+      expect(onComplete).toHaveBeenCalledTimes(1)
+    } finally {
+      setItemSpy.mockRestore()
+    }
+  })
+
   it('persists changed selections', () => {
     render(
       React.createElement(AccessibilityComfortPanel, {

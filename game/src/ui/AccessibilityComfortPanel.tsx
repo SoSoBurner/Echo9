@@ -78,7 +78,12 @@ export function AccessibilityComfortPanel({
   const [settings, setSettings] = useState<ComfortSettings>(COMFORT_DEFAULTS)
 
   const handleContinue = useCallback(() => {
-    localStorage.setItem(COMFORT_STORAGE_KEY, JSON.stringify(settings))
+    try {
+      localStorage.setItem(COMFORT_STORAGE_KEY, JSON.stringify(settings))
+    } catch {
+      // QuotaExceededError or blocked storage — proceed with defaults.
+      // BootScreen will re-show the panel on next launch.
+    }
     onComplete()
   }, [settings, onComplete])
 
@@ -156,7 +161,6 @@ export function AccessibilityComfortPanel({
           <button
             type="button"
             onClick={handleContinue}
-            autoFocus
             className="
               w-full sm:w-auto
               px-8 py-3

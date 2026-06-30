@@ -30,6 +30,11 @@ export const CURRENT_SCHEMA_VERSION = 1 as const
  * walks the chain: vN → vN+1 → ... → CURRENT_SCHEMA_VERSION. Empty for V1
  * because there is no prior version to lift from.
  */
+// To add a V2 migration: write `1: (raw) => { ... return v2Shape }` and bump
+// CURRENT_SCHEMA_VERSION to 2. Migration must return an object whose
+// schemaVersion is the NEXT version (so the chain walker advances). The loop
+// guard throws if a migration fails to advance; you do not need to defend
+// against infinite loops manually.
 export const MIGRATION_MAP: Record<number, (raw: unknown) => unknown> = {}
 
 /**
@@ -76,20 +81,24 @@ export function serialize(state: SerializeInput, slotName: string): string {
  *   - non-current schemaVersion with no registered migration,
  *   - V1-shaped payload that fails Zod validation.
  */
+const readVersion = (value: unknown): number => {
+  if (typeof value !== 'object' || value === null) {
+    throw new Error('saveEngine.deserialize: payload missing numeric schemaVersion')
+  }
+  const v = (value as Record<string, unknown>).schemaVersion
+  if (typeof v !== 'number' || !Number.isInteger(v)) {
+    throw new Error(
+      `saveEngine.deserialize: payload missing numeric schemaVersion (got ${String(v)})`,
+    )
+  }
+  return v
+}
+
 export function deserialize(json: string): SaveSlotV1 {
   const raw: unknown = JSON.parse(json)
 
-  if (
-    typeof raw !== 'object' ||
-    raw === null ||
-    !('schemaVersion' in raw) ||
-    typeof (raw as { schemaVersion: unknown }).schemaVersion !== 'number'
-  ) {
-    throw new Error('saveEngine.deserialize: payload missing numeric schemaVersion')
-  }
-
   let current: unknown = raw
-  let version = (raw as { schemaVersion: number }).schemaVersion
+  let version = readVersion(raw)
 
   // Walk the migration chain. Bail out as soon as we reach the current
   // version. Throw if we land at a version with no registered migration.
@@ -102,18 +111,7 @@ export function deserialize(json: string): SaveSlotV1 {
       )
     }
     current = migrate(current)
-    if (
-      typeof current !== 'object' ||
-      current === null ||
-      !('schemaVersion' in current) ||
-      typeof (current as { schemaVersion: unknown }).schemaVersion !== 'number'
-    ) {
-      throw new Error(
-        `saveEngine.deserialize: migration from v${String(version)} ` +
-          `did not return a versioned payload`,
-      )
-    }
-    const nextVersion = (current as { schemaVersion: number }).schemaVersion
+    const nextVersion = readVersion(current)
     if (nextVersion === version) {
       throw new Error(
         `saveEngine.deserialize: migration from v${String(version)} ` +
