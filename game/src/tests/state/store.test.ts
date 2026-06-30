@@ -69,6 +69,12 @@ describe('useGameStore — composed root state', () => {
     expect(typeof useGameStore.getState().setCurrentPrompt).toBe('function')
   })
 
+  it('exposes modulesSlice initial state', () => {
+    expect(useGameStore.getState().installedModule).toBeNull()
+    expect(typeof useGameStore.getState().installModule).toBe('function')
+    expect(typeof useGameStore.getState().uninstallModule).toBe('function')
+  })
+
   it('exposes persistSlice initial state', () => {
     expect(useGameStore.getState().lastSavedAt).toBeNull()
     expect(typeof useGameStore.getState().isHydrated).toBe('boolean')
@@ -85,12 +91,13 @@ describe('useGameStore — persistence partition (§11 guard)', () => {
       scheduledConsequences: [],
       ledger: [],
       currentPromptId: null,
+      installedModule: null,
       lastSavedAt: null,
       isHydrated: false,
     })
   })
 
-  it('persists ONLY meters / scheduledConsequences / ledger / currentPromptId', () => {
+  it('persists ONLY meters / scheduledConsequences / ledger / currentPromptId / installedModule', () => {
     // Mutate every slice — including ones that MUST NOT persist.
     useGameStore.getState().setPhase('INSPECTION')
     useGameStore.getState().applyDelta({ CAPITAL: 7 })
@@ -103,6 +110,7 @@ describe('useGameStore — persistence partition (§11 guard)', () => {
       body: 'persisted trace',
     })
     useGameStore.getState().setCurrentPrompt(fxSilasPromptId('silas-x'))
+    useGameStore.getState().installModule('MOURNER')
     useGameStore.getState().markHydrated()
 
     const raw = localStorage.getItem(PERSIST_KEY)
@@ -116,15 +124,16 @@ describe('useGameStore — persistence partition (§11 guard)', () => {
     expect(parsed.state).toHaveProperty('scheduledConsequences')
     expect(parsed.state).toHaveProperty('ledger')
     expect(parsed.state).toHaveProperty('currentPromptId')
+    expect(parsed.state).toHaveProperty('installedModule')
 
     // Forbidden keys — these MUST NOT leak through partialize.
     expect(parsed.state).not.toHaveProperty('phase')
     expect(parsed.state).not.toHaveProperty('isHydrated')
     expect(parsed.state).not.toHaveProperty('lastSavedAt')
 
-    // Defense-in-depth: shape is exactly the 4 allowed keys, nothing more.
+    // Defense-in-depth: shape is exactly the 5 allowed keys, nothing more.
     expect(Object.keys(parsed.state).sort()).toEqual(
-      ['currentPromptId', 'ledger', 'meters', 'scheduledConsequences'].sort(),
+      ['currentPromptId', 'installedModule', 'ledger', 'meters', 'scheduledConsequences'].sort(),
     )
   })
 })

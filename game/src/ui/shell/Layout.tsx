@@ -20,6 +20,7 @@ import { LeftStatusRail } from '@ui/meters/LeftStatusRail'
 import { CenterDirectivePanel } from '@ui/directive/CenterDirectivePanel'
 import { SilasPromptPanel } from '@ui/silas/SilasPromptPanel'
 import { ResultCard } from '@ui/result/ResultCard'
+import { RightModuleConsole } from '@ui/modules/RightModuleConsole'
 import { useKeyboardNav } from './useKeyboardNav'
 import { resolveChoice } from '@systems/choiceResolver'
 import type { ResultTrace } from '@schemas/resultTrace.schema'
@@ -62,6 +63,9 @@ export function Layout() {
   // Selected choice index for keyboard nav → ChoicePanel bridge
   const choiceSelectRef = useRef<((index: number) => void) | null>(null)
   const choiceCommitRef = useRef<(() => void) | null>(null)
+
+  // Module ability focus bridge (T10 — M key focuses the ability button)
+  const moduleFocusRef = useRef<(() => void) | null>(null)
 
   const [lastTrace, setLastTrace] = useState<ResultTrace | null>(null)
 
@@ -129,6 +133,11 @@ export function Layout() {
     [],
   )
 
+  // Register module-focus callback from RightModuleConsole
+  const registerModuleFocus = useCallback((focusFn: () => void) => {
+    moduleFocusRef.current = focusFn
+  }, [])
+
   useKeyboardNav({
     onChoiceKey: useCallback((index: number) => {
       choiceSelectRef.current?.(index)
@@ -138,6 +147,9 @@ export function Layout() {
     }, []),
     onEscape: useCallback(() => {
       // T-later: pause / close modal
+    }, []),
+    onModuleFocus: useCallback(() => {
+      moduleFocusRef.current?.()
     }, []),
   })
 
@@ -203,8 +215,9 @@ export function Layout() {
           )}
         </div>
 
-        {/* right — Silas panel */}
-        <div style={{ gridArea: 'right' }} className="overflow-y-auto">
+        {/* right — module console (top) + Silas panel (below) share the column */}
+        <div style={{ gridArea: 'right' }} className="overflow-y-auto flex flex-col">
+          <RightModuleConsole registerModuleFocus={registerModuleFocus} />
           <SilasPromptPanel prompt={SILAS_DIRECTIVE_EAST_WILMER} />
         </div>
 

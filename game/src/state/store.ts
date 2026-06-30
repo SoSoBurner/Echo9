@@ -20,6 +20,7 @@ import { createMetersSlice, type MetersSlice } from './metersSlice'
 import { createConsequenceSlice, type ConsequenceSlice } from './consequenceSlice'
 import { createLedgerSlice, type LedgerSlice } from './ledgerSlice'
 import { createSilasSlice, type SilasSlice } from './silasSlice'
+import { createModulesSlice, type ModulesSlice } from './modulesSlice'
 import { createPersistSlice, type PersistSlice } from './persistSlice'
 
 export type RootState =
@@ -28,6 +29,7 @@ export type RootState =
   & ConsequenceSlice
   & LedgerSlice
   & SilasSlice
+  & ModulesSlice
   & PersistSlice
 
 export const PERSIST_KEY = 'echo9:autosave'
@@ -43,6 +45,7 @@ const rootCreator: StateCreator<
   ...createConsequenceSlice(set, get, store),
   ...createLedgerSlice(set, get, store),
   ...createSilasSlice(set, get, store),
+  ...createModulesSlice(set, get, store),
   ...createPersistSlice(set, get, store),
 })
 
@@ -60,6 +63,7 @@ export const useGameStore = create<RootState>()(
           scheduledConsequences: state.scheduledConsequences,
           ledger: state.ledger,
           currentPromptId: state.currentPromptId,
+          installedModule: state.installedModule,
         }),
         onRehydrateStorage: () => (state) => {
           state?.markHydrated()

@@ -26,10 +26,12 @@ export interface KeyboardNavCallbacks {
   onCommit?: () => void
   /** Called on Escape — close modal / pause. */
   onEscape?: () => void
+  /** Called on M — focus the active module ability button (T10). */
+  onModuleFocus?: () => void
 }
 
 export function useKeyboardNav(callbacks: KeyboardNavCallbacks = {}) {
-  const { onChoiceKey, onCommit, onEscape } = callbacks
+  const { onChoiceKey, onCommit, onEscape, onModuleFocus } = callbacks
 
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
@@ -72,7 +74,11 @@ export function useKeyboardNav(callbacks: KeyboardNavCallbacks = {}) {
         }
         case 'm':
         case 'M': {
-          // T10: focus module ability — no-op for T8
+          // T10: focus module ability (does NOT activate — just focuses).
+          // Guard against re-firing when the button is already focused, so
+          // pressing M doesn't fight any in-flight programmatic focus.
+          e.preventDefault()
+          onModuleFocus?.()
           break
         }
         case 'i':
@@ -97,5 +103,5 @@ export function useKeyboardNav(callbacks: KeyboardNavCallbacks = {}) {
 
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [onChoiceKey, onCommit, onEscape])
+  }, [onChoiceKey, onCommit, onEscape, onModuleFocus])
 }

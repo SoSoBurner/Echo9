@@ -18,6 +18,7 @@ import { describe, it, expect } from 'vitest'
 import type { SilasPrompt } from '@schemas/silasPrompt.schema'
 import { Q1_EAST_WILMER_PROMPTS } from '@content/silasPrompts/q1EastWilmer'
 import { INSPECTION_MERCY_MARGIN_PROMPTS } from '@content/silasPrompts/inspectionMercyMargin'
+import { MODULE_ROSTER } from '@content/modules/moduleRoster'
 
 const ALL_SILAS_PROMPTS: readonly SilasPrompt[] = [
   ...Q1_EAST_WILMER_PROMPTS,
@@ -112,5 +113,47 @@ describe('§10 Silas voice lint', () => {
 
   it('registry covers at least the Task-9 prompts (smoke check)', () => {
     expect(ALL_SILAS_PROMPTS.length).toBeGreaterThan(0)
+  })
+})
+
+// ---------------------------------------------------------------------------
+// Module silasFraming lint — same 3 rules applied to MODULE_ROSTER entries.
+// Keeps the owner-voice contract uniform across prompts AND module framings.
+// (Task 10, PLAN.md §14.)
+// ---------------------------------------------------------------------------
+describe('§10 Silas voice lint — MODULE_ROSTER silasFraming', () => {
+  it('roster has all 8 entries (smoke)', () => {
+    expect(MODULE_ROSTER.length).toBe(8)
+  })
+
+  it('every module silasFraming has ≤4 sentences', () => {
+    for (const mod of MODULE_ROSTER) {
+      const count = countSentences(mod.silasFraming)
+      expect(
+        count,
+        `module ${mod.id} silasFraming sentence count`,
+      ).toBeLessThanOrEqual(4)
+    }
+  })
+
+  it('every module silasFraming contains at least one operational detail', () => {
+    for (const mod of MODULE_ROSTER) {
+      expect(
+        hasOperationalDetail(mod.silasFraming),
+        `module ${mod.id} silasFraming lacks any operational detail: ${mod.silasFraming}`,
+      ).toBe(true)
+    }
+  })
+
+  it('no module silasFraming contains a forbidden abstract term', () => {
+    for (const mod of MODULE_ROSTER) {
+      const lowered = mod.silasFraming.toLowerCase()
+      for (const term of FORBIDDEN_TERMS) {
+        expect(
+          lowered.includes(term),
+          `module ${mod.id} silasFraming contains forbidden term "${term}"`,
+        ).toBe(false)
+      }
+    }
   })
 })
