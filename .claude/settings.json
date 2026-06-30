@@ -1,0 +1,43 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash -c 'case \"$CLAUDE_FILE_PATH\" in */PLAN.md) echo \"BLOCKED: PLAN.md is the locked design contract. Re-prompt the user for explicit authorization before editing.\" >&2; exit 2 ;; esac'"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash -c 'case \"$CLAUDE_FILE_PATH\" in *.ts|*.tsx) cd \"$CLAUDE_PROJECT_DIR/game\" && npx oxlint \"$CLAUDE_FILE_PATH\" 2>&1 | tail -20 ; npx tsc --noEmit 2>&1 | tail -20 ;; esac'"
+          }
+        ]
+      }
+    ]
+  },
+  "permissions": {
+    "allow": [
+      "mcp__plugin_chrome-devtools-mcp_chrome-devtools__list_console_messages",
+      "mcp__plugin_chrome-devtools-mcp_chrome-devtools__take_screenshot",
+      "mcp__plugin_chrome-devtools-mcp_chrome-devtools__take_snapshot",
+      "Bash(npx vitest run)",
+      "Bash(npx vitest run *)",
+      "Bash(npx tsc *)",
+      "Bash(npx oxlint *)",
+      "Bash(npm run test:run)",
+      "Bash(npx playwright test)",
+      "Bash(npx playwright test *)",
+      "Bash(npm run lint)",
+      "Bash(npm run typecheck)",
+      "Bash(jq *)"
+    ]
+  }
+}
