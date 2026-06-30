@@ -22,10 +22,12 @@
  *   spec's "soak under throttled CPU" phrasing.
  *
  * Iteration count:
- *   Defaults to 100 (configurable via SOAK_ITERATIONS env var). The PLAN
- *   ideal is 500; 100 is sufficient to expose any per-cycle leak >50KB
- *   while keeping local runtime under ~5 min. Bump to 500 in CI if the
- *   nightly budget allows.
+ *   Defaults to 100 (configurable via SOAK_ITERATIONS env var). PLAN.md
+ *   §13 names 500 as the release gate. 100 is sufficient to expose any
+ *   per-cycle leak >50KB while keeping local runtime under ~5 min.
+ *   Full release-gate run: `SOAK_ITERATIONS=500 npx playwright test soakTest`.
+ *   CI is expected to set the env var directly; wiring that is a release-
+ *   sign-off follow-up tracked separately from this commit.
  */
 import { test, expect, type Page } from '@playwright/test'
 
@@ -104,7 +106,9 @@ test.describe('Soak — repeated boot+choice cycles under CPU throttle', () => {
   test(`heap growth and save serialize stay within budget across ${ITERATIONS} iterations`, async ({
     page,
   }) => {
-    test.setTimeout(10 * 60 * 1000) // 10 min cap
+    // 10 min per-test cap — overrides playwright.config.ts's 120s default
+    // because the soak intentionally runs longer under CPU throttle.
+    test.setTimeout(10 * 60 * 1000)
 
     await installSoakHarness(page)
 
@@ -188,7 +192,12 @@ test.describe('Soak — repeated boot+choice cycles under CPU throttle', () => {
     // -----------------------------------------------------------------------
     if (setItemTimes.length > 0) {
       const sorted = [...setItemTimes].sort((a, b) => a - b)
-      const p95 = sorted[Math.floor(sorted.length * 0.95)] ?? 0
+      // Nearest-rank p95: for n samples the 95th percentile is at
+      // 1-indexed position ceil(0.95 * n), i.e. 0-indexed ceil(0.95*n)-1.
+      // The earlier `floor(0.95*n)` shifted one slot up (returning p96 for
+      // n=100), which silently weakened the 250ms gate.
+      const p95Idx = Math.max(0, Math.ceil(sorted.length * 0.95) - 1)
+      const p95 = sorted[p95Idx] ?? 0
       // eslint-disable-next-line no-console
       console.log(
         `[soak] setItem samples=${setItemTimes.length}  p95=${p95.toFixed(2)}ms  budget=${SAVE_SERIALIZE_BUDGET_MS}ms`,

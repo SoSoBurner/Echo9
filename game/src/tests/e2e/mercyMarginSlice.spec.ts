@@ -77,8 +77,11 @@ test.describe('Mercy Margin slice — §11 traceability spine', () => {
 
     // 3. CenterDirectivePanel mounts. The choices live in a radiogroup; the
     //    '2' key selects choice-reduce-20 (keybind '2' in eastWilmer.choices).
-    //    Verify the directive copy first to anchor the assertion.
-    await expect(page.getByText(/east wilmer/i).first()).toBeVisible()
+    //    Anchor on the heading (role-scoped, stable across copy tweaks) rather
+    //    than getByText, which would match any descendant carrying the phrase.
+    await expect(
+      page.getByRole('heading', { name: /east wilmer/i }),
+    ).toBeVisible()
 
     // 4. Commit choice-reduce-20 via keyboard. Per useKeyboardNav: '2' selects,
     //    Enter commits. The ChoicePanel's radiogroup handles the keyboard
@@ -125,6 +128,12 @@ test.describe('Mercy Margin slice — §11 traceability spine', () => {
     // 9. Spot-check the values match HOOK_NURSE_TURNOVER. If the catalog ever
     //    swaps which hook fires on choice-reduce-20, these assertions fail
     //    loudly — that's the desired tripwire.
+    //
+    //    DELIBERATE COPY LOCK: the final regex pins author-facing prose
+    //    ("two nurses" / "two RNs"). Any rewording — even semantic-preserving
+    //    like "2 nurses" or "a pair of RNs" — breaks this assertion on
+    //    purpose, forcing the author to revisit whether the hook's whatChanged
+    //    field still carries the same trace evidence.
     await expect(dialog).toContainText('choice-reduce-20')
     await expect(dialog).toContainText('task-east-wilmer-01')
     await expect(dialog).toContainText(
