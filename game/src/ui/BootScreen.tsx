@@ -1,7 +1,49 @@
+/**
+ * BootScreen — the BOOT-phase entry surface.
+ *
+ * T14: gated by the accessibility/comfort panel (PLAN.md §10).
+ *   - First launch: render AccessibilityComfortPanel; Initialize is hidden.
+ *   - Replay (localStorage['echo9:comfort'] valid): render the original
+ *     Initialize button directly (§3.3.7 Redundant Entry — never re-prompt).
+ *   - Corrupt or shape-invalid persisted comfort: fall back to the panel.
+ *
+ * `useState` initialiser reads localStorage once on mount. A safeParse
+ * mirrors the defense-in-depth pattern the persist middleware uses for
+ * `flags` and `pendingFiredHooks` in store.ts — invalid storage falls back
+ * to the safe default (show the panel) instead of crashing.
+ */
+import { useState } from 'react'
 import { useGameStore } from '@state/store'
+import { AccessibilityComfortPanel } from './AccessibilityComfortPanel'
+import {
+  ComfortSettingsSchema,
+  COMFORT_STORAGE_KEY,
+} from '@schemas/comfortSettings.schema'
+
+function hasValidPersistedComfort(): boolean {
+  const raw = localStorage.getItem(COMFORT_STORAGE_KEY)
+  if (raw === null) return false
+  try {
+    const parsed: unknown = JSON.parse(raw)
+    return ComfortSettingsSchema.safeParse(parsed).success
+  } catch {
+    return false
+  }
+}
 
 export function BootScreen() {
   const initialize = useGameStore((s) => s.initialize)
+  const [comfortConfigured, setComfortConfigured] = useState<boolean>(
+    hasValidPersistedComfort,
+  )
+
+  if (!comfortConfigured) {
+    return (
+      <AccessibilityComfortPanel
+        onComplete={() => setComfortConfigured(true)}
+      />
+    )
+  }
 
   return (
     <main
