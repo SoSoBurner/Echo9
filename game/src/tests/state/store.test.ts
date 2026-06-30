@@ -277,4 +277,31 @@ describe('useGameStore — rehydration validation (installedModule)', () => {
 
     expect(useGameStore.getState().installedModule).toBe('DEFENDER')
   })
+
+  it('falls back to currentState.pendingFiredHooks when persisted value is not an array', async () => {
+    // Step 1: prime in-memory state to a known-empty queue (auto-write fires).
+    useGameStore.setState({ pendingFiredHooks: [] })
+
+    // Step 2: corrupt localStorage — a stray non-array value where the queue
+    // should live. Without the defensive guard in merge(), the panel would
+    // crash on first render trying to read pendingFiredHooks[0].
+    const tampered = {
+      state: {
+        meters: { CAPITAL: 0, HUMAN_WELFARE: 0, OWNER_CONTROL: 0 },
+        scheduledConsequences: [],
+        ledger: [],
+        currentPromptId: null,
+        installedModule: null,
+        flags: [],
+        capitalDeployedThisQuarter: false,
+        pendingFiredHooks: 'not-an-array',
+      },
+      version: 0,
+    }
+    localStorage.setItem(PERSIST_KEY, JSON.stringify(tampered))
+
+    await useGameStore.persist.rehydrate()
+
+    expect(useGameStore.getState().pendingFiredHooks).toEqual([])
+  })
 })

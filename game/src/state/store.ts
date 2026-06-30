@@ -18,6 +18,10 @@ import { devtools, persist, createJSONStorage } from 'zustand/middleware'
 import { immer } from 'zustand/middleware/immer'
 import { enableMapSet } from 'immer'
 import { ModuleIdSchema } from '@schemas/gameState.schema'
+import {
+  ConsequenceHookSchema,
+  type ConsequenceHook,
+} from '@schemas/consequenceHook.schema'
 
 // Immer ships Map/Set as an opt-in plugin. `flagsSlice` mutates a `Set`
 // inside its producer, which throws "plugin for 'MapSet' has not been
@@ -105,16 +109,33 @@ export const useGameStore = create<RootState>()(
           // `flags` on disk is an Array (partialize converts Set → Array because
           // JSON cannot serialise Set). Convert it back to a Set BEFORE the
           // spread so engines that call `flags.has(...)` synchronously after
-          // rehydrate see the expected runtime shape. We strip `flags` from
-          // `persisted` first so the bare spread doesn't propagate the Array.
+          // rehydrate see the expected runtime shape. `pendingFiredHooks` gets
+          // mirror treatment: corrupted localStorage (e.g. a stray string)
+          // would otherwise crash ConsequenceReturnPanel on first render.
+          // Both fields are stripped from the bare spread so the spread does
+          // not propagate the un-validated values.
           const persisted = (persistedState ?? {}) as Partial<
-            Omit<RootState, 'flags'>
-          > & { flags?: unknown }
-          const { flags: persistedFlags, ...persistedRest } = persisted
+            Omit<RootState, 'flags' | 'pendingFiredHooks'>
+          > & { flags?: unknown; pendingFiredHooks?: unknown }
+          const {
+            flags: persistedFlags,
+            pendingFiredHooks: persistedHooks,
+            ...persistedRest
+          } = persisted
           const flagsSet: Set<string> = Array.isArray(persistedFlags)
             ? new Set(persistedFlags.filter((f): f is string => typeof f === 'string'))
             : currentState.flags
-          const merged: RootState = { ...currentState, ...persistedRest, flags: flagsSet }
+          const safeHooks: ConsequenceHook[] = Array.isArray(persistedHooks)
+            ? persistedHooks.filter((h): h is ConsequenceHook =>
+                ConsequenceHookSchema.safeParse(h).success,
+              )
+            : currentState.pendingFiredHooks
+          const merged: RootState = {
+            ...currentState,
+            ...persistedRest,
+            flags: flagsSet,
+            pendingFiredHooks: safeHooks,
+          }
           if (
             merged.installedModule !== null &&
             merged.installedModule !== undefined &&

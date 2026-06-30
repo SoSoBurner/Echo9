@@ -98,6 +98,12 @@ export function Layout() {
   const meterHumanWelfare = useGameStore((s) => s.meters.HUMAN_WELFARE)
   const meterOwnerControl = useGameStore((s) => s.meters.OWNER_CONTROL)
   const pendingCount = useGameStore((s) => s.pendingFiredHooks.length)
+  // Narrow selector: subscribe to length only (not the array reference) so
+  // the dep change fires exactly when a hook is scheduled or removed. Needed
+  // because a choice resolver can call scheduleHook() without any concurrent
+  // phase/meter/flag change — without this dep, evaluateAndEnqueue would not
+  // run and the §11 invariant would silently leak.
+  const scheduledCount = useGameStore((s) => s.scheduledConsequences.length)
   const evaluateAndEnqueue = useGameStore((s) => s.evaluateAndEnqueue)
   // Auto-open when threshold first crossed and not yet shown this session.
   // (T11 intentional: simple one-shot open per cross — quarter rollover
@@ -256,6 +262,7 @@ export function Layout() {
     meterHumanWelfare,
     meterOwnerControl,
     flags,
+    scheduledCount,
     evaluateAndEnqueue,
   ])
 

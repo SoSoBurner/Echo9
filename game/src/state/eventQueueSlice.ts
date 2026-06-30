@@ -97,10 +97,13 @@ export const createEventQueueSlice: StateCreator<
     const { fired } = evaluate(evalState)
     if (fired.length === 0) return
 
-    // For each fired hook: materialize → trace → ledger → remove → enqueue.
-    // All three slice mutations land via the existing slice actions so any
-    // future cross-cutting middleware (devtools, undo) sees a coherent
-    // sequence of named actions rather than one opaque bulk write.
+    // Trace append is intentionally a separate slice action — the ledger is
+    // a cosmetic player-facing audit log; losing a trace entry on a mid-
+    // sequence crash is acceptable. The queue is NOT: removing a hook from
+    // `scheduledConsequences` without also pushing it onto `pendingFiredHooks`
+    // would leak the §11 invariant (a delayed consequence vanishing without
+    // ever surfacing). So the remove+push pair below MUST happen in a single
+    // atomic immer producer.
     for (const hook of fired) {
       const { playerExplanation } = materialize(hook)
       live.appendTrace({
@@ -110,11 +113,17 @@ export const createEventQueueSlice: StateCreator<
         timestamp: Date.now(),
         body: playerExplanation,
       })
-      live.removeHook(hook.id)
     }
-    // Single set() for the queue avoids N intermediate re-renders.
+    // Atomic: remove-from-scheduled and push-to-pending land in ONE set()
+    // so the §11 invariant cannot leak between dispatches. If the React tree
+    // throws between the two halves of a split mutation, the hook would be
+    // gone from scheduledConsequences but absent from pendingFiredHooks too.
     set((state) => {
-      for (const hook of fired) state.pendingFiredHooks.push(hook)
+      for (const hook of fired) {
+        const idx = state.scheduledConsequences.findIndex((h) => h.id === hook.id)
+        if (idx !== -1) state.scheduledConsequences.splice(idx, 1)
+        state.pendingFiredHooks.push(hook)
+      }
     })
   },
 })

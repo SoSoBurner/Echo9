@@ -114,77 +114,71 @@ export function ConsequenceReturnPanel({
     [onClose],
   )
 
-  // Don't render fields if the queue is empty — the panel is meaningless
-  // without a hook. (When `open` flips false, we still render the <dialog>
-  // shell so the close effect can fire its dlg.close().)
-  if (!open || !hook) {
-    return (
-      <dialog
-        ref={dialogRef}
-        aria-labelledby="consequence-return-title"
-        className={[
-          'p-0 m-auto bg-background text-fg-primary border border-silas-accent',
-          'min-w-[480px] max-w-[640px]',
-          '[&::backdrop]:bg-black/70',
-        ].join(' ')}
-      />
-    )
-  }
+  // Single <dialog> element always mounts (matches InspectionPanel pattern).
+  // The body is conditionally rendered so the heading with id
+  // `consequence-return-title` only exists while `hook` is present — but the
+  // dialog itself never unmounts, so the close-effect can fire `dlg.close()`
+  // on transitions, and we never have a broken aria-labelledby pointing at a
+  // missing id. When the body is absent we drop `aria-labelledby` entirely
+  // rather than pointing at a non-existent node (WCAG 2.2 AA).
+  const showBody = open && Boolean(hook)
 
   return (
     <dialog
       ref={dialogRef}
-      aria-labelledby="consequence-return-title"
-      onClick={handleDialogClick}
+      aria-labelledby={showBody ? 'consequence-return-title' : undefined}
+      onClick={showBody ? handleDialogClick : undefined}
       className={[
         'p-0 m-auto bg-background text-fg-primary border border-silas-accent',
         'min-w-[480px] max-w-[640px]',
         '[&::backdrop]:bg-black/70',
       ].join(' ')}
     >
-      <div className="p-6 space-y-4">
-        <header className="flex items-baseline justify-between">
-          <h2
-            id="consequence-return-title"
-            ref={headingRef}
-            tabIndex={-1}
-            className="text-silas-accent text-xs font-mono uppercase tracking-widest focus:outline-none"
-          >
-            Consequence Returns
-          </h2>
-          <span className="text-fg-secondary text-xs font-mono">
-            Echo
-          </span>
-        </header>
+      {showBody && hook && (
+        <div className="p-6 space-y-4">
+          <header className="flex items-baseline justify-between">
+            <h2
+              id="consequence-return-title"
+              ref={headingRef}
+              tabIndex={-1}
+              className="text-silas-accent text-xs font-mono uppercase tracking-widest focus:outline-none"
+            >
+              Consequence Returns
+            </h2>
+            <span className="text-fg-secondary text-xs font-mono">
+              Echo
+            </span>
+          </header>
 
-        <dl className="space-y-3 text-sm leading-relaxed">
-          <Field label="WHY NOW:" value={hook.whyNow} />
-          <Field label="WHAT CHANGED:" value={hook.whatChanged} />
-          <Field label="TRACE:" value={hook.traceHint} />
-          <Field label="LEDGER:" value={hook.ledgerEntry} />
-          <Field label="SOURCE TASK:" value={hook.sourceTaskId} />
-          <Field label="SOURCE CHOICE:" value={hook.sourceChoiceId} />
-          <Field
-            label="REVEAL:"
-            value={serializeCondition(hook.revealCondition)}
-          />
-        </dl>
+          <dl className="space-y-3 text-sm leading-relaxed">
+            <Field label="WHY NOW:" value={hook.whyNow} />
+            <Field label="WHAT CHANGED:" value={hook.whatChanged} />
+            <Field label="TRACE:" value={hook.traceHint} />
+            <Field label="LEDGER:" value={hook.ledgerEntry} />
+            <Field label="SOURCE TASK:" value={hook.sourceTaskId} />
+            <Field label="SOURCE CHOICE:" value={hook.sourceChoiceId} />
+            <Field
+              label="REVEAL:"
+              value={serializeCondition(hook.revealCondition)}
+            />
+          </dl>
 
-        <div className="flex justify-end pt-2">
-          <button
-            type="button"
-            onClick={handleAcknowledge}
-            className={[
-              'px-4 py-2 text-xs font-mono uppercase tracking-widest',
-              'border border-null-accent text-null-accent',
-              'hover:bg-null-accent hover:text-background',
-              'focus:outline-none focus:ring-2 focus:ring-null-accent',
-            ].join(' ')}
-          >
-            Acknowledge
-          </button>
+          <div className="flex justify-end pt-2">
+            <button
+              type="button"
+              onClick={handleAcknowledge}
+              className={[
+                'px-4 py-2 text-xs font-mono uppercase tracking-widest',
+                'border border-null-accent text-null-accent',
+                'hover:bg-null-accent hover:text-background',
+                'focus:outline-none focus:ring-2 focus:ring-null-accent',
+              ].join(' ')}
+            >
+              Acknowledge
+            </button>
+          </div>
         </div>
-      </div>
+      )}
     </dialog>
   )
 }
