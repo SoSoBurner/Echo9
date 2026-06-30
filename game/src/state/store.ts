@@ -6,15 +6,16 @@
  * `partialize`-filtered state into localStorage; devtools wraps the outside so
  * Redux DevTools sees the final composed actions.
  *
- * Persistence partition rule (CRITICAL): `partialize` ONLY ships the four
- * gameplay slices (meters, scheduledConsequences, ledger, currentPromptId).
- * It MUST NOT ship `phase` (transient runtime cursor) or `isHydrated /
- * lastSavedAt` (derived metadata). `store.test.ts` enforces this — widening
- * `partialize` without updating the guard test will fail CI.
+ * Persistence partition rule (CRITICAL): `partialize` ONLY ships the five
+ * gameplay slices (meters, scheduledConsequences, ledger, currentPromptId,
+ * installedModule). It MUST NOT ship `phase` (transient runtime cursor) or
+ * `isHydrated / lastSavedAt` (derived metadata). `store.test.ts` enforces
+ * this — widening `partialize` without updating the guard test will fail CI.
  */
 import { create, type StateCreator } from 'zustand'
 import { devtools, persist, createJSONStorage } from 'zustand/middleware'
 import { immer } from 'zustand/middleware/immer'
+import { ModuleIdSchema } from '@schemas/gameState.schema'
 import { createBootSlice, type BootSlice } from './bootSlice'
 import { createMetersSlice, type MetersSlice } from './metersSlice'
 import { createConsequenceSlice, type ConsequenceSlice } from './consequenceSlice'
@@ -65,6 +66,23 @@ export const useGameStore = create<RootState>()(
           currentPromptId: state.currentPromptId,
           installedModule: state.installedModule,
         }),
+        // Defense against tampered / stale localStorage: an invalid
+        // installedModule would crash MODULE_ABILITY_DISPATCH[id] on first use.
+        // Validation runs in `merge` (pre-set) rather than `onRehydrateStorage`
+        // (post-set) so the corrected value is observable to getState() callers
+        // immediately after `persist.rehydrate()` resolves.
+        merge: (persistedState, currentState) => {
+          const persisted = (persistedState ?? {}) as Partial<RootState>
+          const merged = { ...currentState, ...persisted }
+          if (
+            merged.installedModule !== null &&
+            merged.installedModule !== undefined &&
+            !ModuleIdSchema.safeParse(merged.installedModule).success
+          ) {
+            merged.installedModule = null
+          }
+          return merged
+        },
         onRehydrateStorage: () => (state) => {
           state?.markHydrated()
         },

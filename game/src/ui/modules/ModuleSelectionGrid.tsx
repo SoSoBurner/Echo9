@@ -90,11 +90,17 @@ export function ModuleSelectionGrid() {
         break
       }
       case 'Home': {
-        nextIndex = 0
+        // WAI-ARIA APG grid pattern: Home = first cell of current row;
+        // Ctrl+Home (or Cmd+Home on macOS) = grid-global first cell.
+        nextIndex = (e.ctrlKey || e.metaKey) ? 0 : rcToIndex(row, 0)
         break
       }
       case 'End': {
-        nextIndex = MODULE_ROSTER.length - 1
+        // WAI-ARIA APG grid pattern: End = last cell of current row;
+        // Ctrl+End (or Cmd+End on macOS) = grid-global last cell.
+        nextIndex = (e.ctrlKey || e.metaKey)
+          ? MODULE_ROSTER.length - 1
+          : rcToIndex(row, GRID_COLS - 1)
         break
       }
       default:
@@ -164,10 +170,10 @@ export function ModuleSelectionGrid() {
     <div
       role="grid"
       aria-label="Select a personality module"
-      className="grid grid-cols-2 gap-2 px-3 py-3"
+      className="grid grid-cols-4 gap-2 px-3 py-3"
       onKeyDown={handleGridKeyDown}
     >
-      <p className="col-span-2 text-fg-secondary text-xs uppercase tracking-widest mb-1">
+      <p className="col-span-4 text-fg-secondary text-xs uppercase tracking-widest mb-1">
         Install a Module
       </p>
       {Array.from({ length: GRID_ROWS }, (_, rowIdx) => (
@@ -201,8 +207,6 @@ export function ModuleSelectionGrid() {
                 ].join(' ')}
               >
                 <span
-                  role="button"
-                  aria-label={`Install ${mod.name}`}
                   className="text-fg-primary text-xs font-mono uppercase tracking-widest"
                 >
                   {mod.name}

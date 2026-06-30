@@ -54,6 +54,7 @@ export function ModuleAbilityButton({ moduleId, ref }: ModuleAbilityButtonProps)
 
   const handleUse = useCallback(() => {
     const handler = MODULE_ABILITY_DISPATCH[moduleId]
+    if (!handler) return
     const ctx: AbilityCtx = { now: Date.now(), rng: Math.random }
     const result = handler(ctx)
 

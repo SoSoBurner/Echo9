@@ -137,3 +137,57 @@ describe('useGameStore — persistence partition (§11 guard)', () => {
     )
   })
 })
+
+describe('useGameStore — rehydration validation (installedModule)', () => {
+  beforeEach(() => {
+    localStorage.removeItem(PERSIST_KEY)
+  })
+
+  // Note: order matters. The persist middleware auto-writes to localStorage on
+  // every setState, so any setState calls MUST happen BEFORE we seed the
+  // localStorage fixture — otherwise our seed gets clobbered before rehydrate
+  // can read it.
+
+  it('resets installedModule to null when the persisted value is not a valid ModuleId', async () => {
+    // Step 1: prime in-memory state first (this triggers an auto-write).
+    useGameStore.setState({ installedModule: 'MOURNER' })
+
+    // Step 2: NOW overwrite localStorage with the tampered fixture.
+    const tampered = {
+      state: {
+        meters: { CAPITAL: 0, HUMAN_WELFARE: 0, OWNER_CONTROL: 0 },
+        scheduledConsequences: [],
+        ledger: [],
+        currentPromptId: null,
+        installedModule: 'NOT_A_REAL_MODULE',
+      },
+      version: 0,
+    }
+    localStorage.setItem(PERSIST_KEY, JSON.stringify(tampered))
+
+    // Step 3: rehydrate — merge() should catch the invalid id and null it.
+    await useGameStore.persist.rehydrate()
+
+    expect(useGameStore.getState().installedModule).toBeNull()
+  })
+
+  it('preserves installedModule when the persisted value IS a valid ModuleId', async () => {
+    useGameStore.setState({ installedModule: null })
+
+    const valid = {
+      state: {
+        meters: { CAPITAL: 0, HUMAN_WELFARE: 0, OWNER_CONTROL: 0 },
+        scheduledConsequences: [],
+        ledger: [],
+        currentPromptId: null,
+        installedModule: 'DEFENDER',
+      },
+      version: 0,
+    }
+    localStorage.setItem(PERSIST_KEY, JSON.stringify(valid))
+
+    await useGameStore.persist.rehydrate()
+
+    expect(useGameStore.getState().installedModule).toBe('DEFENDER')
+  })
+})
