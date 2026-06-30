@@ -4,12 +4,38 @@ import { configDefaults } from 'vitest/config'
 import { fileURLToPath } from 'node:url'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
+import { visualizer } from 'rollup-plugin-visualizer'
 
 // Path aliases mirror tsconfig.app.json (PLAN.md §11)
 const r = (p: string) => fileURLToPath(new URL(p, import.meta.url))
 
+// T16: only emit dist/stats.html when --report is passed.
+// The npm `build` script routes through scripts/build.mjs, which strips
+// `--report` from argv (vite 8 rejects unknown CLI flags) and sets
+// BUILD_REPORT=1. Falls back to checking argv directly so `vite build --report`
+// also works for ad-hoc invocations once that flag is consumed elsewhere.
+const REPORT =
+  process.env['BUILD_REPORT'] === '1' ||
+  process.env['npm_config_report'] === 'true' ||
+  process.argv.includes('--report')
+
 export default defineConfig({
-  plugins: [react(), tailwindcss()],
+  plugins: [
+    react(),
+    tailwindcss(),
+    ...(REPORT
+      ? [
+          visualizer({
+            filename: 'dist/stats.html',
+            template: 'treemap',
+            gzipSize: true,
+            brotliSize: true,
+            // Don't auto-open; CI environments have no browser.
+            open: false,
+          }),
+        ]
+      : []),
+  ],
   resolve: {
     alias: {
       '@state':   r('./src/state'),

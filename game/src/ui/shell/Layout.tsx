@@ -168,7 +168,17 @@ export function Layout() {
       }
 
       // 4. Run the pure resolver — throws on missing hook id (content bug).
+      //    T16: dev-only timing wrap. recordChoiceMs is a no-op in prod
+      //    (importer is tree-shaken via the import.meta.env.DEV guard
+      //    around the dynamic import below).
+      const t0 = import.meta.env.DEV ? performance.now() : 0
       const { trace, scheduled } = resolveChoice(snapshot, choice, hookCatalog, ctx)
+      if (import.meta.env.DEV) {
+        const dt = performance.now() - t0
+        void import('@ui/debug/devMetrics').then(({ recordChoiceMs }) => {
+          recordChoiceMs(dt)
+        })
+      }
 
       // 5. Commit results to the store via the existing slice actions.
       applyDelta(choice.meterDeltas)
