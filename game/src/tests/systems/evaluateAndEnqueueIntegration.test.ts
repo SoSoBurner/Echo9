@@ -18,35 +18,11 @@
  */
 import { describe, it, expect, beforeEach } from 'vitest'
 import { useGameStore } from '@state/store'
-import type { ConsequenceHook } from '@schemas/consequenceHook.schema'
-import { fxTaskId, fxChoiceId, fxConsequenceId } from '@tests/schemas/fixtures'
 import { resetStore } from '@tests/state/testHelpers'
-
-function phaseHook(idSuffix: string): ConsequenceHook {
-  return {
-    id: fxConsequenceId(`cons-int-${idSuffix}`),
-    sourceTaskId: fxTaskId(),
-    sourceChoiceId: fxChoiceId(),
-    traceHint: `hint-${idSuffix}`,
-    ledgerEntry: `entry-${idSuffix}`,
-    revealCondition: { type: 'PHASE', phase: 'CONSEQUENCE_RETURN' },
-    whyNow: `why-${idSuffix}`,
-    whatChanged: `what-${idSuffix}`,
-  }
-}
-
-function neverHook(idSuffix: string): ConsequenceHook {
-  return {
-    id: fxConsequenceId(`cons-int-${idSuffix}`),
-    sourceTaskId: fxTaskId(),
-    sourceChoiceId: fxChoiceId(),
-    traceHint: `hint-${idSuffix}`,
-    ledgerEntry: `entry-${idSuffix}`,
-    revealCondition: { type: 'NEVER' },
-    whyNow: `why-${idSuffix}`,
-    whatChanged: `what-${idSuffix}`,
-  }
-}
+import {
+  makePhaseHook as phaseHook,
+  makeNeverHook as neverHook,
+} from '@tests/systems/fixtures/hookFixtures'
 
 describe('evaluateAndEnqueue — integration', () => {
   beforeEach(() => {
@@ -111,5 +87,39 @@ describe('evaluateAndEnqueue — integration', () => {
     const s = useGameStore.getState()
     expect(s.pendingFiredHooks).toHaveLength(1)
     expect(s.ledger).toHaveLength(1)
+  })
+})
+
+/**
+ * ackFirstPending — drain flow.
+ *
+ * Seeds pendingFiredHooks directly via setState so the drain semantics are
+ * exercised in isolation from evaluateAndEnqueue's schedule → fire pipeline.
+ * The queue is FIFO; ackFirstPending() must shift only the head and leave the
+ * tail untouched. Calling on an empty queue must be a no-op — the panel dispatch
+ * path may hit ack after the last hook is already gone (e.g. rapid double-tap).
+ */
+describe('ackFirstPending — drain flow', () => {
+  beforeEach(() => {
+    resetStore()
+  })
+
+  it('ackFirstPending drains head only; tail intact', () => {
+    const h1 = phaseHook('drain-1')
+    const h2 = phaseHook('drain-2')
+    const h3 = phaseHook('drain-3')
+    useGameStore.setState({ pendingFiredHooks: [h1, h2, h3] })
+
+    useGameStore.getState().ackFirstPending()
+
+    const remaining = useGameStore.getState().pendingFiredHooks
+    expect(remaining.map((h) => h.id)).toEqual([h2.id, h3.id])
+  })
+
+  it('ackFirstPending on empty queue is a no-op', () => {
+    useGameStore.setState({ pendingFiredHooks: [] })
+
+    expect(() => useGameStore.getState().ackFirstPending()).not.toThrow()
+    expect(useGameStore.getState().pendingFiredHooks).toEqual([])
   })
 })

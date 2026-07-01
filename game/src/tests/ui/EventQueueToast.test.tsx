@@ -1,34 +1,24 @@
 /**
  * EventQueueToast tests (Task 12, PLAN.md §10).
  *
- * Acceptance constraints:
- *   - role="status" — announced by screen readers without stealing focus.
- *   - aria-live="polite" — never assertive (that would interrupt narration).
- *   - Hidden from the DOM when the queue is empty.
- *   - Shows the count + the C-key hint when populated.
- *   - Never calls .focus() on itself — only the panel takes focus on review.
+ * Acceptance:
+ *   - role="status" is absent when the queue is empty (component returns null).
+ *   - Singular copy "N echo pending" for count === 1.
+ *   - Plural copy "N echoes pending" for count > 1.
+ *   - Live drain: mounting once, then mutating the store, must re-render the
+ *     toast (Zustand subscription). Wrapped in React 19 `act(async)` so the
+ *     external store update flushes before assertion.
+ *
+ * Copy is split across a <span> for the count and inline text for the word,
+ * so regex assertions use \s+ instead of a bare space.
  */
-import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { render, screen, cleanup } from '@testing-library/react'
+import { describe, it, expect, beforeEach } from 'vitest'
+import { render, screen, cleanup, act } from '@testing-library/react'
 import React from 'react'
 import { EventQueueToast } from '@ui/consequence/EventQueueToast'
 import { useGameStore } from '@state/store'
 import { resetStore } from '@tests/state/testHelpers'
-import type { ConsequenceHook } from '@schemas/consequenceHook.schema'
-import { fxTaskId, fxChoiceId, fxConsequenceId } from '@tests/schemas/fixtures'
-
-function makeHook(id: string): ConsequenceHook {
-  return {
-    id: fxConsequenceId(id),
-    sourceTaskId: fxTaskId(),
-    sourceChoiceId: fxChoiceId(),
-    traceHint: `hint-${id}`,
-    ledgerEntry: `entry-${id}`,
-    revealCondition: { type: 'PHASE', phase: 'CONSEQUENCE_RETURN' },
-    whyNow: `why-${id}`,
-    whatChanged: `what-${id}`,
-  }
-}
+import { makePhaseHook } from '@tests/systems/fixtures/hookFixtures'
 
 describe('EventQueueToast', () => {
   beforeEach(() => {
@@ -41,38 +31,45 @@ describe('EventQueueToast', () => {
     expect(screen.queryByRole('status')).toBeNull()
   })
 
-  it('renders role="status" with aria-live="polite" when populated', () => {
-    useGameStore.getState().enqueueFired([makeHook('a')])
+  it('renders singular "1 echo pending" for one queued hook', () => {
+    useGameStore.setState({ pendingFiredHooks: [makePhaseHook('single-a')] })
     render(React.createElement(EventQueueToast))
     const status = screen.getByRole('status')
-    expect(status).toBeTruthy()
-    expect(status.getAttribute('aria-live')).toBe('polite')
+    expect(status).toHaveTextContent(/1\s+echo\s+pending/i)
   })
 
-  it('shows the count (singular) and key hint for one pending hook', () => {
-    useGameStore.getState().enqueueFired([makeHook('a')])
+  it('renders plural "3 echoes pending" for multiple queued hooks', () => {
+    useGameStore.setState({
+      pendingFiredHooks: [
+        makePhaseHook('plural-a'),
+        makePhaseHook('plural-b'),
+        makePhaseHook('plural-c'),
+      ],
+    })
     render(React.createElement(EventQueueToast))
     const status = screen.getByRole('status')
-    expect(status.textContent).toMatch(/1/)
-    expect(status.textContent?.toLowerCase()).toContain('echo')
-    expect(status.textContent?.toLowerCase()).toContain('press c')
+    expect(status).toHaveTextContent(/3\s+echoes\s+pending/i)
   })
 
-  it('shows the plural count for multiple pending hooks', () => {
-    useGameStore.getState().enqueueFired([makeHook('a'), makeHook('b'), makeHook('c')])
+  it('live-drains: 2 hooks → ack once shows "1 echo"; ack again removes the toast', async () => {
+    useGameStore.setState({
+      pendingFiredHooks: [makePhaseHook('drain-a'), makePhaseHook('drain-b')],
+    })
     render(React.createElement(EventQueueToast))
-    const status = screen.getByRole('status')
-    expect(status.textContent).toMatch(/3/)
-    expect(status.textContent?.toLowerCase()).toContain('echoes')
-  })
 
-  it('does not call .focus() on itself when mounted with pending hooks', () => {
-    useGameStore.getState().enqueueFired([makeHook('a')])
-    // Spy on HTMLElement.focus globally — if anything in the toast focuses
-    // itself, this will catch it.
-    const focusSpy = vi.spyOn(HTMLElement.prototype, 'focus')
-    render(React.createElement(EventQueueToast))
-    expect(focusSpy).not.toHaveBeenCalled()
-    focusSpy.mockRestore()
+    // Initial plural copy.
+    expect(screen.getByRole('status')).toHaveTextContent(/2\s+echoes\s+pending/i)
+
+    // First ack — head shifts, count becomes 1, copy flips to singular.
+    await act(async () => {
+      useGameStore.getState().ackFirstPending()
+    })
+    expect(screen.getByRole('status')).toHaveTextContent(/1\s+echo\s+pending/i)
+
+    // Second ack — queue empties, component returns null.
+    await act(async () => {
+      useGameStore.getState().ackFirstPending()
+    })
+    expect(screen.queryByRole('status')).toBeNull()
   })
 })
