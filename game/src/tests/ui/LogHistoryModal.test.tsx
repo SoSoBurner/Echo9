@@ -187,12 +187,15 @@ describe('LogHistoryModal (inside LogDock)', () => {
       fireEvent.click(screen.getByRole('button', { name: /view all/i }))
     })
 
-    // findByRole retries with a 1000ms default — outlasts the vitest
-    // dynamic-import + Suspense-commit chain even on slower workers.
+    // findByRole retries until the timeout — under full-suite worker
+    // load the vitest dynamic-import + Suspense-commit chain can exceed
+    // the 1000ms default, so we give it 5000ms to survive contention.
     // The virtualized path has aria-label "Full log history (virtualized)".
-    const list = await screen.findByRole('list', {
-      name: /full log history/i,
-    })
+    const list = await screen.findByRole(
+      'list',
+      { name: /full log history/i },
+      { timeout: 5000 },
+    )
 
     const dlg = document.querySelector('dialog') as HTMLDialogElement
     expect(dlg).toBeTruthy()
