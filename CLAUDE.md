@@ -38,6 +38,22 @@ Baselines in `game/docs/perf-baseline.md`. Re-verify on any state/render change.
 
 Default to **superpowers:subagent-driven-development**: implementer → spec-reviewer → code-quality-reviewer → fix loop. Spec gate runs before code quality.
 
+## Dispatch heuristics — when to reach for which agent/skill
+
+| Trigger | Reach for | Why |
+|---|---|---|
+| Task touches ≥3 files with distinct owners (panel + slice + toast) | `agent-teams:parallel-feature-development` + fan-out `team-implementer` per owner | Solo SDD serializes what should run in parallel. |
+| UI/dialog/focus/live-region change | `a11y-architect` (design) or `.claude/agents/a11y-reviewer` (review) | Comfort pillar is first-class; generic reviewer misses WCAG 2.2 AA. |
+| New Zod schema or branded ID | `type-design-analyzer` before merge | Encapsulation + invariant expression grading matches Echo9's schema surface. |
+| Resolver / persist / catch-block change | `silent-failure-hunter` | Suppressed errors hide §11 invariant leaks. |
+| ≥2 review dimensions apply (a11y + types + content) | `.claude/skills/parallel-review-fanout` | Dispatches all applicable reviewers in one fan-out instead of serial gates. |
+| Content file added/changed under `game/src/content/` | `.claude/agents/content-schema-reviewer` + `.claude/skills/traceability-invariant` | Zod parse + cross-reference integrity + §11 round-trip. |
+| Test additions ≥5 files or ≥30 cases | `pr-test-analyzer` | Behavioural coverage audit (not line coverage). |
+| Before claiming "done" | `superpowers:verification-before-completion` | Reconciles claim against git + tests. |
+| State/render/persist change | `.claude/skills/perf-baseline-check` | §13 budget gate. |
+| API question about React 19 / Zustand 5 / Zod 4 / Tailwind v4 | `context7` MCP | Bleeding-edge majors — training data is stale. |
+| E2E flake or Playwright layout drift | `chrome-devtools-mcp` (screenshot/console) + `playwright` MCP | Live browser state beats guessing. |
+
 ## Gotchas
 
 - Never `Read` a `local_agent` task `.output` file — it is a JSONL transcript symlink that will overflow context. Use the Agent tool result.
