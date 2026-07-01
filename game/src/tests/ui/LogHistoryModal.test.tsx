@@ -187,20 +187,15 @@ describe('LogHistoryModal (inside LogDock)', () => {
       fireEvent.click(screen.getByRole('button', { name: /view all/i }))
     })
 
-    // Drain pending microtasks/macrotasks until the lazy chunk resolves
-    // and React commits the resolved children. The Suspense fallback
-    // text disappearing is our signal.
-    for (let i = 0; i < 10; i++) {
-      const stillLoading = document.body.textContent?.includes('Loading history')
-      if (!stillLoading) break
-      await act(async () => {
-        await new Promise((r) => setTimeout(r, 0))
-      })
-    }
+    // findByRole retries with a 1000ms default — outlasts the vitest
+    // dynamic-import + Suspense-commit chain even on slower workers.
+    // The virtualized path has aria-label "Full log history (virtualized)".
+    const list = await screen.findByRole('list', {
+      name: /full log history/i,
+    })
 
     const dlg = document.querySelector('dialog') as HTMLDialogElement
     expect(dlg).toBeTruthy()
-    const list = dlg.querySelector('[role="list"]')
     expect(list).toBeTruthy()
     const items = dlg.querySelectorAll('[role="listitem"]')
     // At least the overscan window should render some rows.
