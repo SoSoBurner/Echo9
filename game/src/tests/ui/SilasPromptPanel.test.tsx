@@ -21,6 +21,10 @@ import { makeSilasPromptId } from '@schemas/gameState.schema'
  * Install a window.matchMedia stub. `reduce` = true makes the
  * `(prefers-reduced-motion: reduce)` query match, which useTeletype treats as
  * an instant-reveal signal.
+ *
+ * Uses `vi.stubGlobal` so the stub is torn down by `vi.unstubAllGlobals()` in
+ * afterEach — otherwise the stub leaks to sibling test files sharing this
+ * vitest worker.
  */
 function installMatchMedia(reduce: boolean): void {
   const stub = (query: string): MediaQueryList => ({
@@ -33,11 +37,7 @@ function installMatchMedia(reduce: boolean): void {
     removeEventListener: () => {},
     dispatchEvent: () => false,
   })
-  Object.defineProperty(window, 'matchMedia', {
-    writable: true,
-    configurable: true,
-    value: vi.fn().mockImplementation(stub),
-  })
+  vi.stubGlobal('matchMedia', vi.fn().mockImplementation(stub))
 }
 
 const SAMPLE_PROMPT: SilasPrompt = {
@@ -52,6 +52,7 @@ describe('SilasPromptPanel', () => {
   })
 
   afterEach(() => {
+    vi.unstubAllGlobals()
     cleanup()
   })
 
@@ -76,7 +77,7 @@ describe('SilasPromptPanel', () => {
     )
 
     // Full body appears verbatim on first paint (no teletype interval).
-    expect(screen.getByText(new RegExp(SAMPLE_PROMPT.body))).toBeTruthy()
+    expect(screen.getByText(SAMPLE_PROMPT.body)).toBeInTheDocument()
 
     // The animated cursor and the "Press Enter to skip" hint are gated by
     // !done. Under reduced motion, done is true from the first render, so
