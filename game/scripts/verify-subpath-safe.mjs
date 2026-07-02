@@ -13,6 +13,12 @@
  *
  *   Subpath fixture STRICTLY 404s requests outside the mount so it accurately
  *   simulates itch.io / GitHub Pages / any prefix-hosted deploy.
+ *   The file:// leg launches Chromium with --allow-file-access-from-files
+ *   so ES-module CORS is not enforced. This tests bundle correctness on
+ *   file://; users double-clicking the built HTML on stock Chrome/Edge
+ *   will hit stricter CORS regardless of vite config — that's a browser
+ *   policy issue, not a bundle issue. Real itch.io serving is HTTP, so
+ *   http-subpath is the authoritative gate for the deploy target.
  *
  * Usage: node scripts/verify-subpath-safe.mjs
  * Precondition: dist/ must exist (run `npm run build` first).
@@ -90,7 +96,19 @@ async function boots(page, url, label) {
 }
 
 async function main() {
-  const browser = await chromium.launch({ headless: true })
+  // --allow-file-access-from-files: needed so the file:// leg can fetch its
+  // ES-module <script type="module"> and CSS. Chromium blocks null-origin
+  // (file://) cross-origin loads by default — that's a browser security
+  // policy, not a vite base issue. In the wild, users who double-click
+  // dist/index.html on stock Chrome/Edge will hit the same block; the itch.io
+  // upload path (Task 5 zip) is served over HTTP so this only affects local
+  // smoke-tests. The verifier still gates that the assets are AT the correct
+  // relative path — CORS blocks with the flag off would show 404-style errors
+  // on absolute paths pre-fix vs the current relative-path fetches.
+  const browser = await chromium.launch({
+    headless: true,
+    args: ['--allow-file-access-from-files'],
+  })
   const results = {}
 
   // 1. file://
