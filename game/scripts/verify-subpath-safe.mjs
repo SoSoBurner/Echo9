@@ -75,7 +75,10 @@ async function boots(page, url, label) {
   try {
     await page.goto(url, { waitUntil: 'load', timeout: 8000 })
   } catch (e) {
-    console.log(`[${label}] nav error: ${e.message}`)
+    // Push nav errors into the errors array so the summary log reflects the
+    // real cause instead of showing "0 errors + no root children" — a
+    // silently-swallowed nav timeout looks identical to a mystery blank page.
+    errors.push('NAV_ERR: ' + e.message)
   }
   await new Promise((r) => setTimeout(r, 1500))
   const hasRoot = await page.evaluate(() => !!document.getElementById('root')?.children.length)
