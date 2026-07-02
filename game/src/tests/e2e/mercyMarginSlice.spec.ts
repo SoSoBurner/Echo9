@@ -18,15 +18,13 @@
  *                 → assert all 7 §11 field labels + values render
  *                 → Acknowledge → queue drains, toast hides
  *
- * SCOPE DEVIATION FROM PLAN.md §14 (acknowledged 2026-06-30):
- *   PLAN.md says the spine should also walk "module install → inspection
- *   → consequence return". The INSPECTION phase has no production UI trigger
- *   in the current slice — `setPhase` is only called from tests
- *   (`src/state/bootSlice.ts:20,34`). The slice DOES expose module install
- *   (RightModuleConsole → ModuleSelectionGrid → Confirm) and the consequence
- *   return panel, both verified above. The inspection-phase E2E is left as a
- *   follow-up `test.fixme` below so the spec surfaces the gap rather than
- *   silently passing without coverage.
+ * INSPECTION-phase coverage lives in a sibling spec:
+ *   inspectionPhase.spec.ts walks the auto-advance production trigger
+ *   (Layout.tsx handleChoiceCommit calls startInspection + setPhase when
+ *   OWNER_CONTROL crosses downward through 40 — automation-backlog Task 7).
+ *   Splitting the inspection walk out of this file keeps the spine spec
+ *   focused on the §11 traceability contract and lets the inspection spec
+ *   own its own seed-arithmetic docblock.
  */
 import { test, expect, type Page } from '@playwright/test'
 
@@ -190,27 +188,4 @@ test.describe('Mercy Margin slice — §11 traceability spine', () => {
     ).toBeVisible()
   })
 
-  // -------------------------------------------------------------------------
-  // GAP: INSPECTION-phase walk
-  //
-  // The slice's INSPECTION panel cannot be entered through user actions —
-  // `setPhase('INSPECTION')` is called only from unit tests
-  // (`src/state/bootSlice.ts:20,34`). T11's inspection engine and panel are
-  // unit-tested at the engine + render level; the missing piece is a
-  // production UI hook (button or directive consequence) that advances the
-  // phase. Adding that hook is design work outside Task 15's scope.
-  //
-  // When the hook lands, replace `test.fixme` with the walk:
-  //   1. Trigger the inspection-phase entry (TBD by design)
-  //   2. Answer each scene's posture radiogroup
-  //   3. Assert the inspection traces append to the ledger
-  //   4. Verify the §11 fields render for any hooks fired by the inspection
-  // -------------------------------------------------------------------------
-  test.fixme(
-    'inspection phase walk — blocked on production UI trigger for setPhase("INSPECTION")',
-    async () => {
-      // Intentionally empty. The `fixme` marker keeps this in the suite as a
-      // permanent reminder that the spine is partial.
-    },
-  )
 })

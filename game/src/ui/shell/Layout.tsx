@@ -77,6 +77,8 @@ export function Layout() {
   const scheduleHook = useGameStore((s) => s.scheduleHook)
   const setFlag = useGameStore((s) => s.setFlag)
   const advanceInspection = useGameStore((s) => s.advanceInspection)
+  const startInspection = useGameStore((s) => s.startInspection)
+  const setPhase = useGameStore((s) => s.setPhase)
   const markCapitalDeployed = useGameStore((s) => s.markCapitalDeployed)
 
   // INSPECTION panel state — cursor + flags drive both the open-condition
@@ -189,8 +191,30 @@ export function Layout() {
 
       // 6. Trigger the result panel.
       setLastTrace(trace)
+
+      // 7. Auto-advance to INSPECTION on the "just-crossed" downward transition
+      //    of OWNER_CONTROL through 40 (PLAN.md §7: "At <40, Silas suspects
+      //    deviation"). The semantic must be a threshold crossing rather than
+      //    a static below-threshold check — meters start at 0, so a naive
+      //    `nextOC < 40` would fire on turn 1 before the player has done
+      //    anything Silas could suspect. `prev >= 40 && next < 40` captures
+      //    the design intent of a drop through the line.
+      //
+      //    Read `phase` and `currentInspectionSceneIndex` from live state (not
+      //    the render-time selectors) so back-to-back commits during a single
+      //    render pass never re-trigger startInspection on stale values.
+      const prevOC = snapshot.meters.OWNER_CONTROL
+      const deltaOC = choice.meterDeltas.OWNER_CONTROL ?? 0
+      const nextOC = prevOC + deltaOC
+      if (prevOC >= 40 && nextOC < 40) {
+        const live = useGameStore.getState()
+        if (live.phase !== 'INSPECTION' && live.currentInspectionSceneIndex === null) {
+          startInspection()
+          setPhase('INSPECTION')
+        }
+      }
     },
-    [hookCatalog, applyDelta, appendTrace, scheduleHook],
+    [hookCatalog, applyDelta, appendTrace, scheduleHook, startInspection, setPhase],
   )
 
   // -------------------------------------------------------------------------
