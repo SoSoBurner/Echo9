@@ -54,6 +54,27 @@ Default to **superpowers:subagent-driven-development**: implementer → spec-rev
 | API question about React 19 / Zustand 5 / Zod 4 / Tailwind v4 | `context7` MCP | Bleeding-edge majors — training data is stale. |
 | E2E flake or Playwright layout drift | `chrome-devtools-mcp` (screenshot/console) + `playwright` MCP | Live browser state beats guessing. |
 
+## Testing skill cadence — when each skill fires
+
+| Skill | Cadence | Trigger |
+|---|---|---|
+| `verification-before-completion` | Per-task | Before any "done" claim; ALWAYS. |
+| `traceability-invariant` | Per-content-change | Every commit touching `game/src/content/**` or the resolver/queue slices. |
+| `perf-baseline-check` | Per-feature | Every state/render/persist change; must re-diff baseline. |
+| `content-schema-reviewer` | Per-content-change | Automatic via review-fanout when content diffs. |
+| `a11y-reviewer` | Per-UI-change | Every `game/src/ui/**` diff touching dialog/focus/aria. |
+| `parallel-review-fanout` | Per-feature | Diff spans ≥2 dimensions (UI + schema + content). |
+| `mechanics-review` | Per-feature | Every new mechanic (module, inspection scene, capital card). |
+| `fun-review` | Per Kleenex session | Monthly. After every solo Kleenex playtest. |
+| `feedback-loop-review` | Per new loop | Every time a new meter cascade / module effect / inspection outcome lands. |
+| `tutorial-review` | Per-quarter of content | Before every Q_N ships; onboarding is quarter-scoped. |
+| `polish-review` | Pre-RC only | Once before each release candidate; not per-feature. |
+| `design-discovery` | Every 4th Deep session | Or when a self-playtest surfaces "the game seems to want X." |
+| `playtest-plan` | Per protocol update | When the Kleenex/Deep protocol needs a new rubric or method. |
+| `playtesting-strategy` | Semi-annually | Or when Kleenex+Deep are missing something (e.g., balance testing). |
+| `e2e-testing-patterns` | On flake | When flakes appear in `docs/test-flakes.md`. |
+| `playwright-expert` | On new E2E infra | Adding cross-browser, visual regression, or new fixtures. |
+
 ## Gotchas
 
 - Never `Read` a `local_agent` task `.output` file — it is a JSONL transcript symlink that will overflow context. Use the Agent tool result.
