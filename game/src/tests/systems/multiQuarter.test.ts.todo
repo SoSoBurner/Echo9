@@ -1,0 +1,54 @@
+/**
+ * multiQuarter.test.ts.todo — PLACEHOLDER, activate when Q2 content lands
+ * (Testing plan Task 8; PLAN.md §7 threshold cascade + §8 one-shot resets).
+ *
+ * Vitest's default config excludes files that don't end in `.test.ts` /
+ * `.spec.ts`, so the `.todo` suffix keeps this scaffold out of CI while
+ * pinning the QUESTIONS the multi-quarter suite must answer. Rename to
+ * `multiQuarter.test.ts` and implement each `it` with real assertions
+ * once Q2 TaskNodes ship.
+ *
+ * Why every `it` matters:
+ *   1. Ledger continuity — a Q1 → Q2 transition that drops traces would
+ *      silently break the §11 traceability invariant for retrospective UI.
+ *   2. Capital one-shot — `capitalDeployedThisQuarter` is a persisted flag;
+ *      forgetting to reset on quarter rollover converts the once-per-quarter
+ *      counterplay into a permanent lockout.
+ *   3. Cross-quarter revealCondition — the schema already permits
+ *      `revealCondition.phase === 'Q2'` etc.; without this test we cannot
+ *      prove a Q1-scheduled hook actually fires when Q2 opens.
+ *   4. Consumed-hook idempotency — even if a bug lets `phase` reverse,
+ *      already-fired hooks must not re-fire. Defensive pinning.
+ *   5. Cascade preservation — if OC crossed the inspection threshold in Q1,
+ *      the phase transition must not unhit that threshold on Q2 entry.
+ */
+import { describe, it } from 'vitest'
+
+describe.skip('Multi-quarter content boundaries', () => {
+  it('quarter transition Q1 → Q2 preserves ledger', () => {
+    // Given a full Q1 playthrough with N ledger entries,
+    // when phase advances to Q2 opening,
+    // then ledger.length === N (all traces retained).
+  })
+
+  it('capitalDeployedThisQuarter resets on Q2 entry', () => {
+    // Given Q1 deploy fired capitalDeployedThisQuarter=true,
+    // when phase advances to Q2,
+    // then capitalDeployedThisQuarter === false (one-shot resets).
+  })
+
+  it('Q1 hook scheduled with revealCondition.phase=Q2 fires on transition', () => {
+    // Given a hook scheduled in Q1 with revealCondition={type:PHASE, phase:Q2},
+    // when phase advances to Q2,
+    // then hook appears in pendingFiredHooks.
+  })
+
+  it('Q1 → Q2 → Q1 (impossible) does not re-fire consumed hooks', () => {
+    // Traceability: consumed hooks stay consumed even if a bug lets phase
+    // reverse. Defensive assertion.
+  })
+
+  it('cross-quarter meter cascade preserved', () => {
+    // If OC hit inspection threshold in Q1, phase-transition doesn't unhit it.
+  })
+})
