@@ -20,6 +20,11 @@ const REPORT =
   process.argv.includes('--report')
 
 export default defineConfig({
+  // Emit RELATIVE asset URLs (./assets/...) instead of root-absolute (/assets/...).
+  // Required for: file:// double-click, itch.io subpath hosting, any static host
+  // that serves this bundle from a subdirectory. Verified by
+  // scripts/verify-subpath-safe.mjs — do not remove without updating that gate.
+  base: './',
   plugins: [
     react(),
     tailwindcss(),
