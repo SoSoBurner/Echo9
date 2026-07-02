@@ -61,6 +61,8 @@ export function ConsequenceReturnPanel({
 }: ConsequenceReturnPanelProps) {
   const dialogRef = useRef<HTMLDialogElement>(null)
   const headingRef = useRef<HTMLHeadingElement>(null)
+  // Snapshot the opener so keyboard-only entry (C key) returns focus deterministically.
+  const openerRef = useRef<HTMLElement | null>(null)
   const ackFirstPending = useGameStore((s) => s.ackFirstPending)
   // Reading the first pending hook directly here means the panel re-renders
   // when the queue head changes (e.g. ack pops, next hook becomes head).
@@ -76,10 +78,13 @@ export function ConsequenceReturnPanel({
     const dlg = dialogRef.current
     if (!dlg) return
     if (open && !dlg.open) {
+      openerRef.current = document.activeElement as HTMLElement | null
       dlg.showModal()
       headingRef.current?.focus()
     } else if (!open && dlg.open) {
       dlg.close()
+      openerRef.current?.focus()
+      openerRef.current = null
     }
   }, [open])
 
