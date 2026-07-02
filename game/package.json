@@ -12,7 +12,8 @@
     "test:run": "vitest run",
     "test:ui": "vitest --ui",
     "test:e2e": "node scripts/run-e2e.mjs",
-    "test:soak": "playwright test soakTest"
+    "test:soak": "playwright test soakTest",
+    "verify:subpath": "npm run build && node scripts/verify-subpath-safe.mjs"
   },
   "dependencies": {
     "@tanstack/react-virtual": "^3.14.5",
