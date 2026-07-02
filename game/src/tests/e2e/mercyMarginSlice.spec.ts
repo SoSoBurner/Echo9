@@ -188,4 +188,54 @@ test.describe('Mercy Margin slice — §11 traceability spine', () => {
     ).toBeVisible()
   })
 
+  // -------------------------------------------------------------------------
+  // Beat-telemetry sanity — runs a compact spine walk, then reads
+  // window.__ECHO9_BEATS__ to prove the dev/test binding installed by
+  // BeatTelemetry.ts (automation-backlog Task 11) records each spine
+  // milestone once. The console.log emits a JSON block into the CI log so
+  // the author can eyeball pacing regressions run-over-run — this is the
+  // PLAN.md §17 "first consequence return ≤ minute 40" tripwire in
+  // machine-readable form.
+  //
+  // The >=5 lower bound is defensive against a future beat call site
+  // being deleted; the walk here should always hit 6 beats (bootStart,
+  // firstChoiceCommit, firstResultCard, firstEchoFired,
+  // firstConsequenceReturnOpened, firstAcknowledge). moduleInstall and
+  // inspectionEntered are exercised by the sibling specs.
+  // -------------------------------------------------------------------------
+  test('beat telemetry recorded for spine walk', async ({ page }) => {
+    await freshSession(page)
+    await page.goto('/')
+
+    await page.getByRole('button', { name: /continue/i }).click()
+    await page.getByRole('button', { name: /initialize/i }).click()
+    await page.keyboard.press('2')
+    await page.keyboard.press('Enter')
+    await expect(
+      page.getByRole('heading', { name: /^result$/i, level: 2 }),
+    ).toBeVisible()
+    await page.keyboard.press('c')
+    const dialog = page.getByRole('dialog', { name: /consequence returns/i })
+    await expect(dialog).toBeVisible()
+    await dialog.getByRole('button', { name: /acknowledge/i }).click()
+    await expect(dialog).toBeHidden()
+
+    interface BeatEvent {
+      name: string
+      tSinceBoot_ms: number
+    }
+    const beats = await page.evaluate<BeatEvent[]>(() => {
+      const w = window as unknown as {
+        __ECHO9_BEATS__?: { getBeats: () => ReadonlyArray<BeatEvent> }
+      }
+      if (!w.__ECHO9_BEATS__) {
+        throw new Error('Beat telemetry binding not exposed on window')
+      }
+      return [...w.__ECHO9_BEATS__.getBeats()]
+    })
+    // eslint-disable-next-line no-console
+    console.log('[beats]', JSON.stringify(beats, null, 2))
+    expect(beats.length).toBeGreaterThanOrEqual(5)
+  })
+
 })
