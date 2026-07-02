@@ -11,6 +11,9 @@
  * the test that would have caught the base:'/' bug — automated tests all hit
  * Vite dev/preview at '/', so subpath serving was untested.
  *
+ *   Subpath fixture STRICTLY 404s requests outside the mount so it accurately
+ *   simulates itch.io / GitHub Pages / any prefix-hosted deploy.
+ *
  * Usage: node scripts/verify-subpath-safe.mjs
  * Precondition: dist/ must exist (run `npm run build` first).
  */
@@ -30,13 +33,24 @@ const MIME = {
 }
 
 async function startServer(mountPath) {
-  // mountPath = '' for root, '/game' for subpath. Requests to /game/foo.js
-  // resolve to dist/foo.js.
   const server = createServer(async (req, res) => {
-    let urlPath = new URL(req.url, 'http://x').pathname
-    if (mountPath && urlPath.startsWith(mountPath)) urlPath = urlPath.slice(mountPath.length)
-    if (urlPath === '' || urlPath === '/') urlPath = '/index.html'
-    const filePath = join(DIST, urlPath)
+    const urlPath = new URL(req.url, 'http://x').pathname
+    // For subpath mode: any request outside the mount is a real 404 in the
+    // wild (itch.io serves /html/ID/ — a request to /foo.js goes to itch.io's
+    // root, not your game). Simulate that: refuse to serve anything that
+    // isn't under the mount.
+    let relativePath
+    if (mountPath === '') {
+      relativePath = urlPath
+    } else {
+      if (!urlPath.startsWith(mountPath + '/') && urlPath !== mountPath) {
+        res.statusCode = 404
+        res.end('not found (outside mount)')
+        return
+      }
+      relativePath = urlPath.slice(mountPath.length) || '/'
+    }
+    let filePath = join(DIST, relativePath === '/' ? '/index.html' : relativePath)
     try {
       await stat(filePath)
       const body = await readFile(filePath)
