@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Echo9 — Launcher</title>
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; }
+  body {
+    display: grid;
+    place-items: center;
+    background: #0a0e14;
+    color: #d8d8d8;
+    font: 15px/1.55 ui-monospace, "SFMono-Regular", "Cascadia Mono", Consolas, monospace;
+    padding: 2rem;
+  }
+  main { max-width: 36rem; text-align: center; }
+  h1 {
+    font-size: 1.5rem;
+    font-weight: 400;
+    letter-spacing: 0.04em;
+    margin: 0 0 1.25rem;
+    color: #e8e8e8;
+  }
+  p { margin: 1rem 0; color: #8a8a8a; }
+  code, kbd {
+    background: #12181f;
+    padding: 0.15rem 0.5rem;
+    border-radius: 3px;
+    color: #e8e8e8;
+    font-size: 0.9rem;
+  }
+  .cta {
+    display: inline-block;
+    padding: 0.9rem 2.25rem;
+    margin: 0.5rem 0 1rem;
+    background: #1e2a3a;
+    color: #7ec8f7;
+    text-decoration: none;
+    border: 1px solid #2d3f52;
+    border-radius: 4px;
+    font-size: 1.05rem;
+    letter-spacing: 0.03em;
+  }
+  .cta:hover, .cta:focus-visible { background: #2a3a4d; outline: 2px solid #7ec8f7; outline-offset: 2px; }
+  hr { border: 0; border-top: 1px solid #1e2a3a; margin: 1.75rem 0; }
+  .hint { font-size: 0.85rem; color: #6a6a6a; }
+  #stateChecking, #stateNoServer { display: none; }
+  body.checking #stateChecking { display: block; }
+  body.no-server #stateNoServer { display: block; }
+</style>
+</head>
+<body class="checking">
+<main>
+  <section id="stateChecking">
+    <h1>Launching Echo9…</h1>
+    <p class="hint">Checking for a running server on <code>localhost:4173</code>…</p>
+  </section>
+
+  <section id="stateNoServer">
+    <h1>Start the game server</h1>
+    <p>Chrome can't run the game bundle directly from disk — its security policy blocks JavaScript modules loaded over <code>file://</code>. You need to serve the game over HTTP first.</p>
+
+    <p><strong>Double-click <code>play.bat</code></strong> in this folder.</p>
+    <p class="hint">(It builds the game, starts a local server on <code>localhost:4173</code>, and opens your browser automatically.)</p>
+
+    <hr>
+
+    <p class="hint">Prefer the terminal?</p>
+    <p><code>cd game &amp;&amp; npm run play</code></p>
+
+    <hr>
+
+    <p class="hint">Server already running? <a class="cta" href="http://localhost:4173/">Play Echo9</a></p>
+  </section>
+</main>
+
+<script>
+  // Probe localhost:4173. If it's reachable, redirect there so the game runs
+  // over HTTP (where Chrome allows ES modules). If not, fall through to the
+  // "start the server" landing.
+  //
+  // mode:'no-cors' means we get an opaque response — that's fine, we only
+  // need to know the network layer succeeded. A real error means the port
+  // is closed / server not running.
+  (function () {
+    var controller = new AbortController()
+    var timer = setTimeout(function () { controller.abort() }, 800)
+
+    fetch('http://localhost:4173/', { mode: 'no-cors', signal: controller.signal })
+      .then(function () {
+        clearTimeout(timer)
+        location.href = 'http://localhost:4173/'
+      })
+      .catch(function () {
+        clearTimeout(timer)
+        document.body.classList.remove('checking')
+        document.body.classList.add('no-server')
+      })
+  })()
+</script>
+</body>
+</html>
