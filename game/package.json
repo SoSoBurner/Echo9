@@ -11,7 +11,7 @@
     "test": "vitest",
     "test:run": "vitest run",
     "test:ui": "vitest --ui",
-    "test:e2e": "playwright test",
+    "test:e2e": "node scripts/run-e2e.mjs",
     "test:soak": "playwright test soakTest"
   },
   "dependencies": {

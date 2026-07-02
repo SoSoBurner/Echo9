@@ -1,10 +1,12 @@
 /**
  * Playwright configuration for Echo 9 end-to-end tests (Task 15, PLAN.md §14).
  *
- * Scope: chromium only. The vertical slice ships to itch.io and Steam later;
- * cross-browser is not in the budget for the slice. Chromium is sufficient to
- * exercise the React 19 + Zustand + native <dialog> stack and the soak gate
- * relies on `performance.memory` which is chromium-specific anyway.
+ * Scope: chromium by default. Cross-browser is a pre-ship gate rather than
+ * a per-commit cost — set `RELEASE_GATE=1` to enable Firefox + WebKit
+ * alongside chromium (see automation-backlog Task 9). Chromium alone is
+ * sufficient for the daily loop because the soak spec relies on
+ * `performance.memory` (chromium-only) and the spine spec exercises the
+ * React 19 + Zustand + native <dialog> stack that all three engines share.
  *
  * The webServer auto-starts `npm run dev` (Vite) so a developer can run
  * `npm run test:e2e` without remembering to start the server in another shell.
@@ -15,8 +17,16 @@
  * from vitest's discovery. Without that exclusion, vitest would attempt to
  * load these specs in jsdom, where `@playwright/test`'s `test`/`expect`
  * globals do not resolve and the suite would crash on import.
+ *
+ * NOTE on the flakes reporter (automation-backlog Task 10): the CI reporter
+ * list emits a `json` stream to `test-results/flakes.json`. The companion
+ * `scripts/analyze-flakes.mjs` post-processor scans that file for
+ * `retry > 0 && status === 'passed'` — the signature of a flake that hid
+ * behind a retry — and appends the offender to `docs/test-flakes.md`.
  */
 import { defineConfig, devices } from '@playwright/test'
+
+const RELEASE_GATE = Boolean(process.env['RELEASE_GATE'])
 
 export default defineConfig({
   testDir: './src/tests/e2e',
@@ -31,19 +41,22 @@ export default defineConfig({
   // CI gate: refuse to land if .only got committed.
   forbidOnly: Boolean(process.env['CI']),
   retries: process.env['CI'] ? 1 : 0,
-  reporter: process.env['CI'] ? [['github'], ['list']] : 'list',
+  reporter: process.env['CI']
+    ? [['github'], ['list'], ['json', { outputFile: 'test-results/flakes.json' }]]
+    : 'list',
   use: {
     baseURL: 'http://localhost:5173',
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
   },
-  projects: [
-    {
-      name: 'chromium',
-      use: { ...devices['Desktop Chrome'] },
-    },
-  ],
+  projects: RELEASE_GATE
+    ? [
+        { name: 'chromium', use: { ...devices['Desktop Chrome'] } },
+        { name: 'firefox', use: { ...devices['Desktop Firefox'] } },
+        { name: 'webkit', use: { ...devices['Desktop Safari'] } },
+      ]
+    : [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
   webServer: {
     command: 'npm run dev',
     port: 5173,

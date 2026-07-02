@@ -103,6 +103,14 @@ async function installSoakHarness(page: Page): Promise<void> {
 }
 
 test.describe('Soak — repeated boot+choice cycles under CPU throttle', () => {
+  // Soak relies on `performance.memory` (chromium-only) and CDP CPU throttling
+  // (chromium-only). Skip under RELEASE_GATE cross-browser runs so Firefox
+  // and WebKit projects don't fail on a chromium-specific measurement gap.
+  test.skip(
+    ({ browserName }) => browserName !== 'chromium',
+    'Soak requires performance.memory + CDP CPU throttling (chromium-only)',
+  )
+
   test(`heap growth and save serialize stay within budget across ${ITERATIONS} iterations`, async ({
     page,
   }) => {
