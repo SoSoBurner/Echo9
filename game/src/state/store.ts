@@ -100,6 +100,7 @@ export const useGameStore = create<RootState>()(
           // between fire and ack.
           pendingFiredHooks: state.pendingFiredHooks,
         }),
+
         // Defense against tampered / stale localStorage: an invalid
         // installedModule would crash MODULE_ABILITY_DISPATCH[id] on first use.
         // Validation runs in `merge` (pre-set) rather than `onRehydrateStorage`
@@ -153,3 +154,14 @@ export const useGameStore = create<RootState>()(
     { name: 'echo9-store' },
   ),
 )
+
+/**
+ * Dev/test-only escape hatch for Playwright specs that need to short-circuit
+ * UI paths still under construction (e.g., capital deploy trigger pending
+ * Task 7). Prod builds tree-shake this branch — vitest confirms via
+ * `store.test.ts` (the partialize guard proves the persisted shape is stable
+ * regardless of this binding).
+ */
+if (import.meta.env.DEV || import.meta.env.MODE === 'test') {
+  ;(window as unknown as { __ECHO9_STORE__: typeof useGameStore }).__ECHO9_STORE__ = useGameStore
+}
