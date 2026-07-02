@@ -81,3 +81,4 @@ Default to **superpowers:subagent-driven-development**: implementer → spec-rev
 - Don't push to `origin/main` without explicit user request.
 - Don't run npm/npx from `Echo9/` — it has no package.json. Always `cd game/` (or use absolute paths).
 - No database, no backend — don't recommend DB mocks or migrations.
+- `vite.config.ts` must keep `base: './'`. Vite's default (`/`) breaks file:// double-click, itch.io subpath hosting, and any static host that serves from a subdirectory. Guarded by `npm run verify:subpath` (Playwright 3-way boot) and `src/tests/subpath/subpathAssetPaths.test.ts` (static dist scan).

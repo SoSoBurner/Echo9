@@ -12,6 +12,7 @@ The gate is stricter than the daily/weekly cadence in `docs/review-cadence.md`. 
 4. `npx playwright test` (chromium only) — all pass.
 5. Invoke `traceability-invariant` skill — verdict CLEAR.
 6. Invoke `perf-baseline-check` skill — no regressions past §13 hard tripwires.
+6.5. `cd game && npm run verify:subpath` — dist/ boots under file://, http-root, and http-subpath. Guards Vite `base: './'` regressions that would break itch.io / GitHub Pages / any prefix-hosted deploy.
 
 ## Phase 2 — Cross-browser
 
