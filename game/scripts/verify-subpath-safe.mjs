@@ -12,13 +12,9 @@
  * Vite dev/preview at '/', so subpath serving was untested.
  *
  *   Subpath fixture STRICTLY 404s requests outside the mount so it accurately
- *   simulates itch.io / GitHub Pages / any prefix-hosted deploy.
- *   The file:// leg launches Chromium with --allow-file-access-from-files
- *   so ES-module CORS is not enforced. This tests bundle correctness on
- *   file://; users double-clicking the built HTML on stock Chrome/Edge
- *   will hit stricter CORS regardless of vite config — that's a browser
- *   policy issue, not a bundle issue. Real itch.io serving is HTTP, so
- *   http-subpath is the authoritative gate for the deploy target.
+ *   simulates itch.io / GitHub Pages / any prefix-hosted deploy. See the
+ *   `--allow-file-access-from-files` note at the chromium.launch call below
+ *   for why the file:// leg needs that flag and what it does/doesn't gate.
  *
  * Usage: node scripts/verify-subpath-safe.mjs
  * Precondition: dist/ must exist (run `npm run build` first).
