@@ -19,6 +19,7 @@ import {
   ComfortSettingsSchema,
   COMFORT_STORAGE_KEY,
 } from '@schemas/comfortSettings.schema'
+import { markBoot } from '@ui/debug/BeatTelemetry'
 
 function hasValidPersistedComfort(): boolean {
   const raw = localStorage.getItem(COMFORT_STORAGE_KEY)
@@ -68,7 +69,10 @@ export function BootScreen() {
         <div className="pt-4">
           <button
             type="button"
-            onClick={initialize}
+            onClick={() => {
+              markBoot()
+              initialize()
+            }}
             autoFocus
             className="
               w-full sm:w-auto

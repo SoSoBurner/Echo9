@@ -20,6 +20,7 @@ import type { ModuleId } from '@schemas/gameState.schema'
 import type { ModuleNode } from '@schemas/moduleNode.schema'
 import { useGameStore } from '@state/store'
 import { MODULE_ROSTER } from '@content/modules/moduleRoster'
+import { markBeat } from '@ui/debug/BeatTelemetry'
 
 // Grid shape: 2 rows × 4 cols, ordered as MODULE_ROSTER.
 const GRID_COLS = 4
@@ -57,6 +58,7 @@ export function ModuleSelectionGrid() {
 
   const confirmInstall = useCallback(
     (id: ModuleId) => {
+      markBeat('moduleInstall')
       installModule(id)
       // Grid unmounts after install — no need to clear pendingModule.
     },

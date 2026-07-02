@@ -6,6 +6,7 @@
  */
 import { useEffect, useRef } from 'react'
 import type { ResultTrace } from '@schemas/resultTrace.schema'
+import { markBeat } from '@ui/debug/BeatTelemetry'
 
 interface ResultCardProps {
   trace: ResultTrace
@@ -16,6 +17,7 @@ export function ResultCard({ trace }: ResultCardProps) {
 
   // Move focus to heading on mount (tabIndex=-1 heading)
   useEffect(() => {
+    markBeat('firstResultCard')
     headingRef.current?.focus()
   }, [])
 

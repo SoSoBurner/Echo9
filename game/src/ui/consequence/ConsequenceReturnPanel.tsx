@@ -28,6 +28,7 @@ import type {
   RevealCondition,
 } from '@schemas/consequenceHook.schema'
 import { useGameStore } from '@state/store'
+import { markBeat } from '@ui/debug/BeatTelemetry'
 
 interface ConsequenceReturnPanelProps {
   /** Controlled open-state; Layout owns this via local useState. */
@@ -80,6 +81,7 @@ export function ConsequenceReturnPanel({
     if (open && !dlg.open) {
       openerRef.current = document.activeElement as HTMLElement | null
       dlg.showModal()
+      markBeat('firstConsequenceReturnOpened')
       headingRef.current?.focus()
     } else if (!open && dlg.open) {
       dlg.close()
@@ -103,6 +105,7 @@ export function ConsequenceReturnPanel({
   }, [onClose])
 
   const handleAcknowledge = useCallback(() => {
+    markBeat('firstAcknowledge')
     ackFirstPending()
     onClose()
   }, [ackFirstPending, onClose])

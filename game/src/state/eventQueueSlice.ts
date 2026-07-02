@@ -34,6 +34,7 @@ import {
   type EvalState,
 } from '@systems/consequenceEngine'
 import { makeTraceId, type TraceId } from '@schemas/gameState.schema'
+import { markBeat } from '@ui/debug/BeatTelemetry'
 import type { RootState } from './store'
 
 export type EventQueueSlice = {
@@ -96,6 +97,7 @@ export const createEventQueueSlice: StateCreator<
     }
     const { fired } = evaluate(evalState)
     if (fired.length === 0) return
+    markBeat('firstEchoFired')
 
     // Trace append is intentionally a separate slice action — the ledger is
     // a cosmetic player-facing audit log; losing a trace entry on a mid-

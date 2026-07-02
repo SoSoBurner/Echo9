@@ -27,6 +27,7 @@ import { ConsequenceReturnPanel } from '@ui/consequence/ConsequenceReturnPanel'
 import { EventQueueToast } from '@ui/consequence/EventQueueToast'
 import { LogDock } from '@ui/log/LogDock'
 import { useKeyboardNav } from './useKeyboardNav'
+import { markBeat } from '@ui/debug/BeatTelemetry'
 import { resolveChoice } from '@systems/choiceResolver'
 import { resolveInspection } from '@systems/inspectionEngine'
 import { resolveCapital } from '@systems/capitalResolver'
@@ -143,6 +144,7 @@ export function Layout() {
 
   const handleChoiceCommit = useCallback(
     (id: ChoiceId) => {
+      markBeat('firstChoiceCommit')
       // 1. Resolve the ChoiceNode by id.
       const choice = EAST_WILMER_CHOICES.find((c) => c.id === id)
       if (!choice) {
@@ -211,6 +213,7 @@ export function Layout() {
         if (live.phase !== 'INSPECTION' && live.currentInspectionSceneIndex === null) {
           startInspection()
           setPhase('INSPECTION')
+          markBeat('inspectionEntered')
         }
       }
     },

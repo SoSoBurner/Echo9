@@ -26,6 +26,7 @@ import {
   getDevMetricsSnapshot,
   subscribeDevMetrics,
 } from './devMetrics'
+import { getBeats } from './BeatTelemetry'
 
 const BUDGETS = {
   choiceP95Ms: 16,
@@ -181,6 +182,46 @@ export function DevHUD(): React.JSX.Element | null {
         budget="0"
       />
       <Row label="FPS" value={fmtFps(snap.fps)} state={fpsState} budget="≥50" />
+      <BeatsSection />
+    </div>
+  )
+}
+
+/**
+ * Spine-beat pacing readout — one row per beat with the delta from the
+ * previous beat. Rendered inside DevHUD so it re-renders alongside the
+ * devMetrics snapshot; beats are a module-scope append-only log so the
+ * next FPS tick (every frame in dev) picks up any new entry within ~16ms.
+ * `import.meta.env.DEV` guard lets the whole section tree-shake from prod.
+ */
+function BeatsSection(): React.JSX.Element | null {
+  if (!import.meta.env.DEV) return null
+  const arr = getBeats()
+  if (arr.length === 0) return null
+  return (
+    <div
+      aria-label="spine beats"
+      style={{ marginTop: 6, paddingTop: 6, borderTop: '1px solid rgba(255,255,255,0.12)' }}
+    >
+      <div style={{ opacity: 0.7, marginBottom: 2 }}>BEATS</div>
+      {arr.map((b, i) => {
+        const prev = i === 0 ? 0 : arr[i - 1]?.tSinceBoot_ms ?? 0
+        const delta = b.tSinceBoot_ms - prev
+        return (
+          <div
+            key={b.name}
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              gap: 12,
+              fontVariantNumeric: 'tabular-nums',
+            }}
+          >
+            <span style={{ opacity: 0.7 }}>{b.name}</span>
+            <span style={{ color: '#a8e6a8' }}>+{Math.round(delta)}ms</span>
+          </div>
+        )
+      })}
     </div>
   )
 }
