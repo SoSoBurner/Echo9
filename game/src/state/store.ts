@@ -39,6 +39,7 @@ import { createFlagsSlice, type FlagsSlice } from './flagsSlice'
 import { createInspectionSlice, type InspectionSlice } from './inspectionSlice'
 import { createCapitalSlice, type CapitalSlice } from './capitalSlice'
 import { createEventQueueSlice, type EventQueueSlice } from './eventQueueSlice'
+import { createEndOfContentSlice, type EndOfContentSlice } from './endOfContentSlice'
 
 export type RootState =
   & BootSlice
@@ -52,6 +53,7 @@ export type RootState =
   & InspectionSlice
   & CapitalSlice
   & EventQueueSlice
+  & EndOfContentSlice
 
 export const PERSIST_KEY = 'echo9:autosave'
 
@@ -72,6 +74,7 @@ const rootCreator: StateCreator<
   ...createInspectionSlice(set, get, store),
   ...createCapitalSlice(set, get, store),
   ...createEventQueueSlice(set, get, store),
+  ...createEndOfContentSlice(set, get, store),
 })
 
 export const useGameStore = create<RootState>()(
