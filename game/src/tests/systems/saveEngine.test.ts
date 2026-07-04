@@ -73,7 +73,7 @@ function makeRootStateLike(): RootState {
     // Fields below are intentionally not narrowed in saveEngine. They are
     // present on RootState but MUST NOT appear in the serialized output.
     currentPromptId: null,
-    installedModule: null,
+    installedModules: {},
     flags: new Set<string>(['SILAS_OVERRIDE_AVAILABLE']),
     currentInspectionSceneIndex: null,
     capitalDeployedThisQuarter: true,
@@ -111,6 +111,7 @@ describe('saveEngine — serialize', () => {
     // Defense: forbidden RootState fields MUST NOT leak.
     expect(parsed).not.toHaveProperty('flags')
     expect(parsed).not.toHaveProperty('installedModule')
+    expect(parsed).not.toHaveProperty('installedModules')
     expect(parsed).not.toHaveProperty('currentPromptId')
     expect(parsed).not.toHaveProperty('capitalDeployedThisQuarter')
     expect(parsed).not.toHaveProperty('pendingFiredHooks')

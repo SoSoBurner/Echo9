@@ -9,7 +9,7 @@
  *
  * Why the narrow projection (only 7 SaveSlot fields):
  *   RootState carries fields that SaveSlotV1Schema does NOT declare (flags,
- *   installedModule, currentPromptId, capitalDeployedThisQuarter,
+ *   installedModules, currentPromptId, capitalDeployedThisQuarter,
  *   pendingFiredHooks). Widening the schema would invalidate the existing
  *   saveSlot.schema.test.ts and is out of scope for T14. If a future task
  *   needs broader state in saves, that is a V2 migration — bump the schema

@@ -8,20 +8,28 @@
  *
  * Persistence partition rule (CRITICAL): `partialize` ONLY ships the eight
  * gameplay slots (meters, scheduledConsequences, ledger, currentPromptId,
- * installedModule, flags, capitalDeployedThisQuarter, pendingFiredHooks). It
+ * installedModules, flags, capitalDeployedThisQuarter, pendingFiredHooks). It
  * MUST NOT ship `phase` (transient runtime cursor) or `isHydrated /
  * lastSavedAt` (derived metadata). `store.test.ts` enforces this — widening
  * `partialize` without updating the guard test will fail CI.
+ *
+ * Persist version history (B3):
+ *   v0 → v1: legacy `installedModule: ModuleId | null` slot was replaced by
+ *   `installedModules: Partial<Record<ModuleId, { rank: 1|2|3 }>>`. The
+ *   `migrate` hook below rewrites the shape at boot time; every subsequent
+ *   version bump adds a new arm to that hook. Do NOT delete old arms — a
+ *   player who reloads after a long absence still boots via them.
  */
 import { create, type StateCreator } from 'zustand'
 import { devtools, persist, createJSONStorage } from 'zustand/middleware'
 import { immer } from 'zustand/middleware/immer'
 import { enableMapSet } from 'immer'
-import { ModuleIdSchema } from '@schemas/gameState.schema'
+import { ModuleIdSchema, type ModuleId } from '@schemas/gameState.schema'
 import {
   ConsequenceHookSchema,
   type ConsequenceHook,
 } from '@schemas/consequenceHook.schema'
+import type { InstalledModuleEntry } from './modulesSlice'
 
 // Immer ships Map/Set as an opt-in plugin. `flagsSlice` mutates a `Set`
 // inside its producer, which throws "plugin for 'MapSet' has not been
@@ -57,6 +65,19 @@ export type RootState =
 
 export const PERSIST_KEY = 'echo9:autosave'
 
+/**
+ * Bumped in B3 (0 → 1) for the modulesSlice shape change:
+ *   installedModule: ModuleId | null
+ *   →
+ *   installedModules: Partial<Record<ModuleId, { rank: 1|2|3 }>>
+ *
+ * Every future shape change must bump this number and register a new arm in
+ * the `migrate` callback below. Zustand persist walks the migration chain
+ * automatically — the `migrate` function receives `persistedState` alongside
+ * the on-disk `version` and returns a state at the current version.
+ */
+export const PERSIST_VERSION = 1 as const
+
 const rootCreator: StateCreator<
   RootState,
   [['zustand/immer', never]],
@@ -83,6 +104,7 @@ export const useGameStore = create<RootState>()(
       immer(rootCreator),
       {
         name: PERSIST_KEY,
+        version: PERSIST_VERSION,
         storage: createJSONStorage(() => localStorage),
         // Only ship gameplay state. NEVER widen this without updating the
         // guard test in src/tests/state/store.test.ts.
@@ -94,7 +116,7 @@ export const useGameStore = create<RootState>()(
           scheduledConsequences: state.scheduledConsequences,
           ledger: state.ledger,
           currentPromptId: state.currentPromptId,
-          installedModule: state.installedModule,
+          installedModules: state.installedModules,
           flags: Array.from(state.flags),
           capitalDeployedThisQuarter: state.capitalDeployedThisQuarter,
           // T12: pending consequences must survive reload — without this,
@@ -104,11 +126,43 @@ export const useGameStore = create<RootState>()(
           pendingFiredHooks: state.pendingFiredHooks,
         }),
 
-        // Defense against tampered / stale localStorage: an invalid
-        // installedModule would crash MODULE_ABILITY_DISPATCH[id] on first use.
-        // Validation runs in `merge` (pre-set) rather than `onRehydrateStorage`
-        // (post-set) so the corrected value is observable to getState() callers
-        // immediately after `persist.rehydrate()` resolves.
+        // Migration chain. v0 → v1 rewrites `installedModule: ModuleId | null`
+        // into `installedModules: Partial<Record<ModuleId, { rank: 1|2|3 }>>`.
+        // Every future shape change adds a new arm here and bumps
+        // PERSIST_VERSION. Do NOT delete old arms — a player who reloads after
+        // a long absence still boots via them.
+        //
+        // NOTE: migrate runs BEFORE merge; whatever we return is passed to
+        // merge as `persistedState`. So merge continues to validate the new
+        // `installedModules` map shape; migrate is only responsible for the
+        // one-time shape rewrite.
+        migrate: (persistedState, version) => {
+          const raw = (persistedState ?? {}) as Record<string, unknown>
+          let state = raw
+          if (version < 1) {
+            const { installedModule, ...rest } = state as {
+              installedModule?: unknown
+            } & Record<string, unknown>
+            const installedModules: Partial<
+              Record<ModuleId, InstalledModuleEntry>
+            > = {}
+            if (
+              typeof installedModule === 'string' &&
+              ModuleIdSchema.safeParse(installedModule).success
+            ) {
+              installedModules[installedModule as ModuleId] = { rank: 1 }
+            }
+            state = { ...rest, installedModules }
+          }
+          return state
+        },
+
+        // Defense against tampered / stale localStorage: an invalid entry in
+        // `installedModules` would crash MODULE_ABILITY_DISPATCH[id] on first
+        // use. Validation runs in `merge` (pre-set) rather than
+        // `onRehydrateStorage` (post-set) so the corrected value is observable
+        // to getState() callers immediately after `persist.rehydrate()`
+        // resolves.
         merge: (persistedState, currentState) => {
           // `flags` on disk is an Array (partialize converts Set → Array because
           // JSON cannot serialise Set). Convert it back to a Set BEFORE the
@@ -120,10 +174,15 @@ export const useGameStore = create<RootState>()(
           // not propagate the un-validated values.
           const persisted = (persistedState ?? {}) as Partial<
             Omit<RootState, 'flags' | 'pendingFiredHooks'>
-          > & { flags?: unknown; pendingFiredHooks?: unknown }
+          > & {
+            flags?: unknown
+            pendingFiredHooks?: unknown
+            installedModules?: unknown
+          }
           const {
             flags: persistedFlags,
             pendingFiredHooks: persistedHooks,
+            installedModules: persistedModules,
             ...persistedRest
           } = persisted
           const flagsSet: Set<string> = Array.isArray(persistedFlags)
@@ -134,18 +193,41 @@ export const useGameStore = create<RootState>()(
                 ConsequenceHookSchema.safeParse(h).success,
               )
             : currentState.pendingFiredHooks
+          // Validate the installedModules map key-by-key. Any key that isn't a
+          // known ModuleId is dropped; any entry whose rank isn't 1|2|3 is
+          // dropped. A non-object value falls back to currentState's map.
+          const safeModules: Partial<
+            Record<ModuleId, InstalledModuleEntry>
+          > = {}
+          if (
+            persistedModules !== null &&
+            typeof persistedModules === 'object' &&
+            !Array.isArray(persistedModules)
+          ) {
+            for (const [key, value] of Object.entries(
+              persistedModules as Record<string, unknown>,
+            )) {
+              if (!ModuleIdSchema.safeParse(key).success) continue
+              if (
+                value === null ||
+                typeof value !== 'object' ||
+                Array.isArray(value)
+              ) continue
+              const rank = (value as { rank?: unknown }).rank
+              if (rank !== 1 && rank !== 2 && rank !== 3) continue
+              safeModules[key as ModuleId] = { rank }
+            }
+          } else if (persistedModules === undefined) {
+            // No installedModules key in the persisted blob — keep the
+            // currentState default (empty map).
+            Object.assign(safeModules, currentState.installedModules)
+          }
           const merged: RootState = {
             ...currentState,
             ...persistedRest,
             flags: flagsSet,
             pendingFiredHooks: safeHooks,
-          }
-          if (
-            merged.installedModule !== null &&
-            merged.installedModule !== undefined &&
-            !ModuleIdSchema.safeParse(merged.installedModule).success
-          ) {
-            merged.installedModule = null
+            installedModules: safeModules,
           }
           return merged
         },

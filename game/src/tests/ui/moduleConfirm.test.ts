@@ -3,7 +3,7 @@
  *
  * The grid renders 8 gridcells. A single click on a cell opens the confirm
  * panel — it does NOT install. Only clicking "Confirm install" should
- * actually mutate `installedModule` in the store. This guards against future
+ * actually mutate `installedModules` in the store. This guards against future
  * refactors that try to streamline the install flow into a single click.
  */
 import { describe, it, expect, beforeEach } from 'vitest'
@@ -36,7 +36,7 @@ describe('ModuleSelectionGrid — explicit-confirmation install (§14)', () => {
     expect(confirmButton).toBeTruthy()
 
     // No install fired from the single click.
-    expect(useGameStore.getState().installedModule).toBeNull()
+    expect(useGameStore.getState().installedModules).toEqual({})
   })
 
   it('cancel returns to the grid without installing', () => {
@@ -46,7 +46,7 @@ describe('ModuleSelectionGrid — explicit-confirmation install (§14)', () => {
 
     // Grid is back; install never fired.
     expect(screen.getAllByRole('gridcell').length).toBe(8)
-    expect(useGameStore.getState().installedModule).toBeNull()
+    expect(useGameStore.getState().installedModules).toEqual({})
   })
 
   it('clicking Confirm install actually installs the module', () => {
@@ -54,7 +54,9 @@ describe('ModuleSelectionGrid — explicit-confirmation install (§14)', () => {
     fireEvent.click(screen.getAllByRole('gridcell')[0]!)
     fireEvent.click(screen.getByRole('button', { name: /confirm install/i }))
 
-    // First module in MODULE_ROSTER is MOURNER.
-    expect(useGameStore.getState().installedModule).toBe('MOURNER')
+    // First module in MODULE_ROSTER is MOURNER; installed at rank 1.
+    expect(useGameStore.getState().installedModules).toEqual({
+      MOURNER: { rank: 1 },
+    })
   })
 })

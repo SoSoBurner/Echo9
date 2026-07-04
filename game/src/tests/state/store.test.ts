@@ -9,7 +9,7 @@
  *      should fail CI.
  */
 import { describe, it, expect, beforeEach } from 'vitest'
-import { useGameStore, PERSIST_KEY } from '@state/store'
+import { useGameStore, PERSIST_KEY, PERSIST_VERSION } from '@state/store'
 import type { ConsequenceHook } from '@schemas/consequenceHook.schema'
 import {
   fxTaskId,
@@ -70,9 +70,12 @@ describe('useGameStore — composed root state', () => {
   })
 
   it('exposes modulesSlice initial state', () => {
-    expect(useGameStore.getState().installedModule).toBeNull()
+    // B3: installedModules is a map, not a single slot; uninstallModule no
+    // longer exists (single-slot semantics deprecated).
+    expect(useGameStore.getState().installedModules).toEqual({})
     expect(typeof useGameStore.getState().installModule).toBe('function')
-    expect(typeof useGameStore.getState().uninstallModule).toBe('function')
+    expect(typeof useGameStore.getState().promoteModule).toBe('function')
+    expect(typeof useGameStore.getState().useModuleAbility).toBe('function')
   })
 
   it('exposes persistSlice initial state', () => {
@@ -119,7 +122,7 @@ describe('useGameStore — persistence partition (§11 guard)', () => {
       scheduledConsequences: [],
       ledger: [],
       currentPromptId: null,
-      installedModule: null,
+      installedModules: {},
       lastSavedAt: null,
       isHydrated: false,
       flags: new Set<string>(),
@@ -160,7 +163,8 @@ describe('useGameStore — persistence partition (§11 guard)', () => {
     expect(parsed.state).toHaveProperty('scheduledConsequences')
     expect(parsed.state).toHaveProperty('ledger')
     expect(parsed.state).toHaveProperty('currentPromptId')
-    expect(parsed.state).toHaveProperty('installedModule')
+    expect(parsed.state).toHaveProperty('installedModules')
+    expect(parsed.state).not.toHaveProperty('installedModule')
     expect(parsed.state).toHaveProperty('flags')
     expect(parsed.state).toHaveProperty('capitalDeployedThisQuarter')
     expect(parsed.state).toHaveProperty('pendingFiredHooks')
@@ -185,7 +189,7 @@ describe('useGameStore — persistence partition (§11 guard)', () => {
         'capitalDeployedThisQuarter',
         'currentPromptId',
         'flags',
-        'installedModule',
+        'installedModules',
         'ledger',
         'meters',
         'pendingFiredHooks',
@@ -225,7 +229,7 @@ describe('useGameStore — persistence partition (§11 guard)', () => {
   })
 })
 
-describe('useGameStore — rehydration validation (installedModule)', () => {
+describe('useGameStore — rehydration validation (installedModules)', () => {
   beforeEach(() => {
     localStorage.removeItem(PERSIST_KEY)
   })
@@ -234,12 +238,17 @@ describe('useGameStore — rehydration validation (installedModule)', () => {
   // every setState, so any setState calls MUST happen BEFORE we seed the
   // localStorage fixture — otherwise our seed gets clobbered before rehydrate
   // can read it.
+  //
+  // B3: The v0 → v1 migration hook rewrites legacy `installedModule` blobs into
+  // the `installedModules` map BEFORE merge() runs, so these tests exercise the
+  // full migrate → merge chain. A tampered legacy id is dropped by the migrate
+  // arm (only valid ModuleIds are lifted). merge() then key-validates the map.
 
-  it('resets installedModule to null when the persisted value is not a valid ModuleId', async () => {
+  it('drops an invalid legacy ModuleId during migration (empty installedModules)', async () => {
     // Step 1: prime in-memory state first (this triggers an auto-write).
-    useGameStore.setState({ installedModule: 'MOURNER' })
+    useGameStore.setState({ installedModules: { MOURNER: { rank: 1 } } })
 
-    // Step 2: NOW overwrite localStorage with the tampered fixture.
+    // Step 2: NOW overwrite localStorage with the tampered v0 fixture.
     const tampered = {
       state: {
         meters: { CAPITAL: 0, HUMAN_WELFARE: 0, OWNER_CONTROL: 0 },
@@ -252,14 +261,14 @@ describe('useGameStore — rehydration validation (installedModule)', () => {
     }
     localStorage.setItem(PERSIST_KEY, JSON.stringify(tampered))
 
-    // Step 3: rehydrate — merge() should catch the invalid id and null it.
+    // Step 3: rehydrate — migrate drops the bogus id; merge sees empty map.
     await useGameStore.persist.rehydrate()
 
-    expect(useGameStore.getState().installedModule).toBeNull()
+    expect(useGameStore.getState().installedModules).toEqual({})
   })
 
-  it('preserves installedModule when the persisted value IS a valid ModuleId', async () => {
-    useGameStore.setState({ installedModule: null })
+  it('lifts a valid legacy ModuleId into installedModules at rank 1', async () => {
+    useGameStore.setState({ installedModules: {} })
 
     const valid = {
       state: {
@@ -275,7 +284,38 @@ describe('useGameStore — rehydration validation (installedModule)', () => {
 
     await useGameStore.persist.rehydrate()
 
-    expect(useGameStore.getState().installedModule).toBe('DEFENDER')
+    expect(useGameStore.getState().installedModules).toEqual({
+      DEFENDER: { rank: 1 },
+    })
+  })
+
+  it('drops installedModules entries whose rank is not 1|2|3', async () => {
+    useGameStore.setState({ installedModules: {} })
+
+    const tampered = {
+      state: {
+        meters: { CAPITAL: 0, HUMAN_WELFARE: 0, OWNER_CONTROL: 0 },
+        scheduledConsequences: [],
+        ledger: [],
+        currentPromptId: null,
+        installedModules: {
+          MOURNER: { rank: 1 },
+          DEFENDER: { rank: 99 }, // invalid — must be dropped
+          NOT_A_MODULE: { rank: 1 }, // invalid key — must be dropped
+        },
+        flags: [],
+        capitalDeployedThisQuarter: false,
+        pendingFiredHooks: [],
+      },
+      version: PERSIST_VERSION,
+    }
+    localStorage.setItem(PERSIST_KEY, JSON.stringify(tampered))
+
+    await useGameStore.persist.rehydrate()
+
+    expect(useGameStore.getState().installedModules).toEqual({
+      MOURNER: { rank: 1 },
+    })
   })
 
   it('falls back to currentState.pendingFiredHooks when persisted value is not an array', async () => {
@@ -291,12 +331,12 @@ describe('useGameStore — rehydration validation (installedModule)', () => {
         scheduledConsequences: [],
         ledger: [],
         currentPromptId: null,
-        installedModule: null,
+        installedModules: {},
         flags: [],
         capitalDeployedThisQuarter: false,
         pendingFiredHooks: 'not-an-array',
       },
-      version: 0,
+      version: PERSIST_VERSION,
     }
     localStorage.setItem(PERSIST_KEY, JSON.stringify(tampered))
 

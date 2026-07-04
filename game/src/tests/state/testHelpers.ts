@@ -17,7 +17,7 @@ export function resetStore(): void {
     ledger: [],
     currentPromptId: null,
     silasApproval: 100,
-    installedModule: null,
+    installedModules: {},
     lastSavedAt: null,
     isHydrated: false,
     flags: new Set<string>(),
