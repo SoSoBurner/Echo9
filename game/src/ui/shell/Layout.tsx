@@ -19,6 +19,7 @@ import { TopBar } from '@ui/topbar/TopBar'
 import { LeftStatusRail } from '@ui/meters/LeftStatusRail'
 import { PriorityTasksPanel } from '@ui/priority/PriorityTasksPanel'
 import { FinancialOverviewPanel } from '@ui/financial/FinancialOverviewPanel'
+import { HumanImpactPanel } from '@ui/humanImpact/HumanImpactPanel'
 import { CenterDirectivePanel } from '@ui/directive/CenterDirectivePanel'
 import { SilasPromptPanel } from '@ui/silas/SilasPromptPanel'
 import { ResultCard } from '@ui/result/ResultCard'
@@ -404,6 +405,7 @@ export function Layout() {
         <div style={{ gridArea: 'left' }} className="overflow-y-auto">
           <PriorityTasksPanel />
           <FinancialOverviewPanel />
+          <HumanImpactPanel />
           <LeftStatusRail />
         </div>
 
