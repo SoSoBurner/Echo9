@@ -35,6 +35,7 @@ import {
 } from '@systems/consequenceEngine'
 import { makeTraceId, type TraceId } from '@schemas/gameState.schema'
 import { markBeat } from '@ui/debug/BeatTelemetry'
+import { END_OF_CONTENT_HOOK_ID } from '@content/contentBoundary.manifest'
 import type { RootState } from './store'
 
 export type EventQueueSlice = {
@@ -42,7 +43,11 @@ export type EventQueueSlice = {
   pendingFiredHooks: ConsequenceHook[]
   /** Append fired hooks to the queue. */
   enqueueFired: (hooks: ConsequenceHook[]) => void
-  /** Remove the head of the queue (called by the panel's Acknowledge button). */
+  /**
+   * Remove the head of the queue (called by the panel's Acknowledge button).
+   * If the acked hook is the content-boundary terminal, flips endOfContentSeen
+   * via markEndOfContentSeen().
+   */
   ackFirstPending: () => void
   /** Empty the queue entirely (testing / quarter-rollover utility). */
   clearPending: () => void
@@ -78,10 +83,21 @@ export const createEventQueueSlice: StateCreator<
     set((state) => {
       for (const h of hooks) state.pendingFiredHooks.push(h)
     }),
-  ackFirstPending: () =>
+  ackFirstPending: () => {
+    const head = get().pendingFiredHooks[0]
+    if (!head) return
+    const queueLenBefore = get().pendingFiredHooks.length
     set((state) => {
       state.pendingFiredHooks.shift()
-    }),
+    })
+    // Terminal-hook detection: when acking the LAST pending hook AND that hook
+    // is the shipped demo's end-of-content boundary, flip the flag through the
+    // slice action so its dedicated localStorage key updates atomically with
+    // the state mutation.
+    if (head.id === END_OF_CONTENT_HOOK_ID && queueLenBefore === 1) {
+      get().markEndOfContentSeen()
+    }
+  },
   clearPending: () =>
     set((state) => {
       state.pendingFiredHooks = []
