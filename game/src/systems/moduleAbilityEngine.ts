@@ -1,137 +1,114 @@
 /**
- * moduleAbilityEngine — pure dispatch for the 8 installable modules (§6).
+ * moduleAbilityEngine — rank-aware dispatch for the 8 installable modules (§6).
  *
- * Each ModuleId maps to one AbilityHandler. Handlers are pure functions of an
- * injected AbilityCtx ({ now, rng }) — no Date.now / Math.random inside —
- * matching the §13 resolver-purity contract so:
- *   - seeded replay works (deterministic given same ctx),
- *   - unit tests need no mocks,
- *   - the consequence engine can re-run handlers in dry-run mode in T11+.
+ * B4 replaced the old hardcoded `Record<ModuleId, AbilityHandler>` switch with
+ * a lookup into `ALL_MODULE_ABILITIES` (B2 registry) by `(moduleId, rank)`.
+ * The registry is now the SINGLE SOURCE OF TRUTH for every module's verb,
+ * cost, meterDeltas, flagsSet, and hookIdsScheduled at each rank. Adding a
+ * new (moduleId, rank) pair means editing the registry — never this file.
  *
- * Exhaustiveness: MODULE_ABILITY_DISPATCH is typed `Record<ModuleId, ...>`,
- * so adding a new ModuleId to the enum without a handler is a compile error.
- * moduleDispatch.test.ts catches runtime drift if that type ever weakens.
+ * Purity contract (unchanged from B3):
+ *   The engine is a pure function of `(moduleId, rank, ctx)`. `ctx` injects
+ *   `now` and `rng` so seeded replay works, unit tests need no mocks, and the
+ *   consequence engine can re-run in dry-run mode.
  *
- * Meter / flag semantics follow PLAN.md §8 ("one verb, one meter, one risk"):
- *   MOURNER     +HUMAN_WELFARE, -OWNER_CONTROL
- *   DEFENDER    +CAPITAL,       -HUMAN_WELFARE
- *   SENTINEL    +OWNER_CONTROL, -HUMAN_WELFARE
- *   FORECASTER  no meter cost,  flag FORECAST_PREVIEWED (T11+ reacts)
- *   COMMANDER   -OWNER_CONTROL, flag SILAS_OVERRIDE_AVAILABLE
- *   SPARK       +CAPITAL high-variance (rng-driven)
- *   DRAINED_ONE -HUMAN_WELFARE, revealsHiddenTrace=true
- *   CHAMPION    high-swing OWNER_CONTROL (rng-driven sign)
+ * Miss semantics:
+ *   `findModuleAbility` throws when no registry entry matches — this is a
+ *   content bug (24 entries expected; moduleAbilities registry test enforces
+ *   the complete 8x3 grid). Callers should not need to handle it at runtime.
+ *
+ * Callers:
+ *   - `modulesSlice.useModuleAbility` reads `installedModules[id].rank` and
+ *     invokes `runModuleAbility(id, rank, ctx)`.
+ *   - `ModuleAbilityButton` invokes `runModuleAbility` on click and fans the
+ *     result into meters/flags/queue slices.
+ *
+ * B5 (badges + promote button UI) will consume `unlocksAtRank` / `gating` off
+ * the same registry to disable un-unlocked verbs — no engine change required.
  */
-import type { ModuleId, MeterKey } from '@schemas/gameState.schema'
-import { SILAS_OVERRIDE_AVAILABLE, FORECAST_PREVIEWED } from '@systems/gameFlags'
+import type { ModuleId, MeterKey, ConsequenceId } from '@schemas/gameState.schema'
+import type { Rank } from '@schemas/moduleAbility.schema'
+import type { ModuleAbility } from '@schemas/moduleAbility.schema'
+import { ALL_MODULE_ABILITIES } from '@content/moduleAbilities'
 
-export type AbilityResult = {
-  meterDeltas: Partial<Record<MeterKey, number>>
-  flagsAdded: readonly string[]
-  flagsRemoved: readonly string[]
-  revealsHiddenTrace: boolean
-  /** Single-line, present-tense, factual entry written to the ledger. */
-  ledgerEntry: string
-}
+// ---------------------------------------------------------------------------
+// Public types
+// ---------------------------------------------------------------------------
 
 export type AbilityCtx = {
   /** Injected timestamp (replaces Date.now()) for deterministic replay. */
   now: number
-  /** Injected RNG in [0, 1) — only Spark and Champion read this. */
+  /** Injected RNG in [0, 1) — reserved for high-variance modules (§8). */
   rng: () => number
 }
 
-export type AbilityHandler = (ctx: AbilityCtx) => AbilityResult
-
-// ---------------------------------------------------------------------------
-// Handlers — one per ModuleId.
-// ---------------------------------------------------------------------------
-
-const mourner: AbilityHandler = () => ({
-  meterDeltas: { HUMAN_WELFARE: +3, OWNER_CONTROL: -2 },
-  flagsAdded: [],
-  flagsRemoved: [],
-  revealsHiddenTrace: false,
-  ledgerEntry: 'Mourner module spoke. Welfare rose; owner control declined.',
-})
-
-const defender: AbilityHandler = () => ({
-  meterDeltas: { CAPITAL: +3, HUMAN_WELFARE: -2 },
-  flagsAdded: [],
-  flagsRemoved: [],
-  revealsHiddenTrace: false,
-  ledgerEntry: 'Defender module protected the asset. Capital up; welfare down.',
-})
-
-const sentinel: AbilityHandler = () => ({
-  meterDeltas: { OWNER_CONTROL: +3, HUMAN_WELFARE: -1 },
-  flagsAdded: [],
-  flagsRemoved: [],
-  revealsHiddenTrace: false,
-  ledgerEntry: 'Sentinel module flagged early. Owner control up; welfare cost paid.',
-})
-
-const forecaster: AbilityHandler = () => ({
-  meterDeltas: {},
-  flagsAdded: [FORECAST_PREVIEWED],
-  flagsRemoved: [],
-  revealsHiddenTrace: false,
-  ledgerEntry: 'Forecaster module previewed a likely consequence.',
-})
-
-const commander: AbilityHandler = () => ({
-  meterDeltas: { OWNER_CONTROL: -3 },
-  flagsAdded: [SILAS_OVERRIDE_AVAILABLE],
-  flagsRemoved: [],
-  revealsHiddenTrace: false,
-  ledgerEntry: 'Commander module armed one directive override. Owner control declined.',
-})
-
-const spark: AbilityHandler = (ctx) => {
-  // High-variance capital deployment: 0..1 → -2..+8 swing.
-  const swing = Math.round(ctx.rng() * 10) - 2
-  return {
-    meterDeltas: { CAPITAL: swing },
-    flagsAdded: [],
-    flagsRemoved: [],
-    revealsHiddenTrace: false,
-    ledgerEntry: `Spark module forced a capital deployment. Capital changed by ${swing}.`,
-  }
-}
-
-const drainedOne: AbilityHandler = () => ({
-  meterDeltas: { HUMAN_WELFARE: -2 },
-  flagsAdded: [],
-  flagsRemoved: [],
-  revealsHiddenTrace: true,
-  ledgerEntry: 'Drained One module surfaced a hidden trace. Welfare cost paid.',
-})
-
-const champion: AbilityHandler = (ctx) => {
-  // High-swing owner-control move: half the time praise (+4), half threat (-4).
-  const sign = ctx.rng() < 0.5 ? -1 : +1
-  const delta = sign * 4
-  return {
-    meterDeltas: { OWNER_CONTROL: delta },
-    flagsAdded: [],
-    flagsRemoved: [],
-    revealsHiddenTrace: false,
-    ledgerEntry: `Champion module triggered a rare ${sign > 0 ? 'praise' : 'threat'} swing. Owner control changed by ${delta}.`,
-  }
+/**
+ * Result shape emitted by `runModuleAbility`. Fields mirror the registry
+ * `ability.*` payload so callers can fan out into their respective slices:
+ *   - `meterDeltas` → `applyDelta(...)`
+ *   - `flagsSet`    → `setFlag(name)` per entry
+ *   - `hookIdsScheduled` → `scheduleConsequence(...)` per entry
+ *
+ * `verb` and `cost` are surfaced so UI callers (ModuleAbilityButton) can label
+ * the button and check affordability without a second registry lookup.
+ */
+export type AbilityResult = {
+  /** Player-visible verb from the registry, e.g. "READ SHARPER". */
+  verb: string
+  /** Capital / action-point cost the caller must deduct. */
+  cost: number
+  /** Meter changes to apply. Keys are always valid MeterKey values. */
+  meterDeltas: Partial<Record<MeterKey, number>>
+  /** Flag names to raise via flagsSlice.setFlag. */
+  flagsSet: readonly string[]
+  /** Consequence hooks to schedule onto the queue. */
+  hookIdsScheduled: readonly ConsequenceId[]
 }
 
 // ---------------------------------------------------------------------------
-// Dispatch table — `Record<ModuleId, AbilityHandler>` enforces exhaustiveness
-// at compile time. Adding a ModuleId without a handler here is a TS error.
+// Registry lookup
 // ---------------------------------------------------------------------------
 
-export const MODULE_ABILITY_DISPATCH: Record<ModuleId, AbilityHandler> = {
-  MOURNER: mourner,
-  DEFENDER: defender,
-  SENTINEL: sentinel,
-  FORECASTER: forecaster,
-  COMMANDER: commander,
-  SPARK: spark,
-  DRAINED_ONE: drainedOne,
-  CHAMPION: champion,
+/**
+ * Resolves `(moduleId, rank)` to the registry entry. Throws (content bug) if
+ * no entry matches. Linear scan is fine at Stage 1 (24 entries); if that ever
+ * gets hot we can memoise into a Map keyed by `${moduleId}:${rank}`.
+ */
+export function findModuleAbility(
+  moduleId: ModuleId,
+  rank: Rank,
+): ModuleAbility {
+  const entry = ALL_MODULE_ABILITIES.find(
+    (a) => a.moduleId === moduleId && a.rank === rank,
+  )
+  if (!entry) {
+    throw new Error(
+      `moduleAbilityEngine: no ability registered for (${moduleId}, r${rank}) — content bug`,
+    )
+  }
+  return entry
+}
+
+/**
+ * Runs the ability for `(moduleId, rank)` and returns a fresh `AbilityResult`.
+ * The `ctx` param is accepted (and typed) so callers can wire deterministic
+ * clock/rng today; Stage 1 stubs don't read from it, but future high-variance
+ * abilities will (Spark / Champion in later balance passes).
+ *
+ * The returned `meterDeltas` object is a shallow clone of the registry entry
+ * so callers can mutate freely without corrupting the registry.
+ */
+export function runModuleAbility(
+  moduleId: ModuleId,
+  rank: Rank,
+  _ctx: AbilityCtx,
+): AbilityResult {
+  const entry = findModuleAbility(moduleId, rank)
+  return {
+    verb: entry.ability.verb,
+    cost: entry.ability.cost,
+    meterDeltas: { ...entry.ability.meterDeltas },
+    flagsSet: entry.ability.flagsSet,
+    hookIdsScheduled: entry.ability.hookIdsScheduled,
+  }
 }

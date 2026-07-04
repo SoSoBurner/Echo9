@@ -2,16 +2,18 @@
  * ModuleAbilityButton — renders the "Use {moduleName}" action for the
  * currently installed module (§6, Task 10).
  *
- * On activation:
- *   1. Calls MODULE_ABILITY_DISPATCH[id]({ now, rng }) to compute an
- *      AbilityResult — handlers are pure given ctx so this is replay-safe.
- *   2. Dispatches applyDelta(result.meterDeltas) to update the 3 meters.
- *   3. Dispatches appendTrace(...) with a synthetic ResultTrace whose
- *      sourceTaskId / sourceChoiceId mark it as a module-action trace.
+ * On activation (B4 refactor — registry-driven):
+ *   1. Reads the installed rank from `installedModules[id]`.
+ *   2. Calls `runModuleAbility(id, rank, ctx)` to look up the registry entry
+ *      (single source of truth) — handlers are pure given ctx so this is
+ *      replay-safe.
+ *   3. Dispatches applyDelta(result.meterDeltas) to update the meters.
+ *   4. Raises any `result.flagsSet` via setFlag (was dev-console.debug pre-B4).
+ *   5. Dispatches appendTrace(...) with a synthetic ResultTrace built from the
+ *      registry `verb` — the ledger entry now reads directly from content.
  *
- * Flags (result.flagsAdded / flagsRemoved) are observed via console.debug for
- * now — T11+ wires a real flags slice and the consequence engine reacts to
- * FORECAST_PREVIEWED / SILAS_OVERRIDE_AVAILABLE.
+ * `hookIdsScheduled` is left inert until the resolver-side wiring lands in
+ * later T-tasks; treating it here would double-fire once the queue picks up.
  *
  * Accessibility:
  *   - role="button" via native <button>.
@@ -27,7 +29,7 @@ import { makeTaskId, makeChoiceId, makeTraceId } from '@schemas/gameState.schema
 import type { ResultTrace } from '@schemas/resultTrace.schema'
 import { useGameStore } from '@state/store'
 import {
-  MODULE_ABILITY_DISPATCH,
+  runModuleAbility,
   type AbilityCtx,
 } from '@systems/moduleAbilityEngine'
 import { MODULE_ROSTER } from '@content/modules/moduleRoster'
@@ -49,40 +51,38 @@ function freshTraceIdString(): string {
 export function ModuleAbilityButton({ moduleId, ref }: ModuleAbilityButtonProps) {
   const applyDelta = useGameStore((s) => s.applyDelta)
   const appendTrace = useGameStore((s) => s.appendTrace)
+  const setFlag = useGameStore((s) => s.setFlag)
+  const installedModules = useGameStore((s) => s.installedModules)
 
   const mod = MODULE_ROSTER.find((m) => m.id === moduleId)
 
   const handleUse = useCallback(() => {
-    const handler = MODULE_ABILITY_DISPATCH[moduleId]
-    if (!handler) return
+    const installed = installedModules[moduleId]
+    if (!installed) return
     const ctx: AbilityCtx = { now: Date.now(), rng: Math.random }
-    const result = handler(ctx)
+    const result = runModuleAbility(moduleId, installed.rank, ctx)
 
     // 1. Meter side-effects (no-op when meterDeltas is {}).
-    applyDelta(result.meterDeltas)
+    if (Object.keys(result.meterDeltas).length > 0) {
+      applyDelta(result.meterDeltas)
+    }
 
-    // 2. Ledger entry — synthetic ids mark this as a module-action trace.
+    // 2. Flags — registry-authored `flagsSet` entries raised via flagsSlice.
+    for (const flag of result.flagsSet) {
+      setFlag(flag)
+    }
+
+    // 3. Ledger entry — synthetic ids mark this as a module-action trace.
+    // Body reads from the registry `verb`; content owns the wording.
     const trace: ResultTrace = {
       id: makeTraceId(freshTraceIdString()),
       sourceTaskId: makeTaskId('module-action'),
       sourceChoiceId: makeChoiceId(`module-${moduleId.toLowerCase()}`),
       timestamp: ctx.now,
-      body: result.ledgerEntry,
+      body: `${mod?.name ?? moduleId} — ${result.verb}`,
     }
     appendTrace(trace)
-
-    // 3. T11+: wire flags slice. For now, surface flag intent in dev so the
-    // path is observable without adding state we don't yet read.
-    if (import.meta.env.DEV && (result.flagsAdded.length || result.flagsRemoved.length)) {
-      console.debug(
-        '[ModuleAbilityButton] flags',
-        { added: result.flagsAdded, removed: result.flagsRemoved },
-      )
-    }
-    if (import.meta.env.DEV && result.revealsHiddenTrace) {
-      console.debug('[ModuleAbilityButton] revealsHiddenTrace=true (T11+ wires reveal)')
-    }
-  }, [moduleId, applyDelta, appendTrace])
+  }, [moduleId, installedModules, applyDelta, appendTrace, setFlag, mod])
 
   if (!mod) return null
 

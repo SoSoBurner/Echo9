@@ -158,8 +158,9 @@ export const useGameStore = create<RootState>()(
         },
 
         // Defense against tampered / stale localStorage: an invalid entry in
-        // `installedModules` would crash MODULE_ABILITY_DISPATCH[id] on first
-        // use. Validation runs in `merge` (pre-set) rather than
+        // `installedModules` would crash the runModuleAbility(id, rank, ctx)
+        // registry lookup on first use. Validation runs in `merge` (pre-set)
+        // rather than
         // `onRehydrateStorage` (post-set) so the corrected value is observable
         // to getState() callers immediately after `persist.rehydrate()`
         // resolves.

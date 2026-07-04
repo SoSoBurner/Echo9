@@ -24,14 +24,18 @@
  *                         id is not installed or is already at 3. Stage 2 will
  *                         widen the cap when Rank 4/5 abilities ship — search
  *                         for `STAGE_1_MAX_RANK` when that lands.
- *   useModuleAbility(id): dispatches the module's rank-appropriate ability via
- *                         moduleAbilityEngine. B3 stubs this — it reads the
- *                         installed rank and returns without side effects if
- *                         the module isn't installed. B4 will wire the real
- *                         rank-aware dispatch (verb/cost/meter deltas).
+ *   useModuleAbility(id): reads the installed rank from `installedModules[id]`,
+ *                         invokes `runModuleAbility(id, rank, ctx)` (B4), and
+ *                         fans out `meterDeltas` (via applyDelta), `flagsSet`
+ *                         (via setFlag per entry), and `hookIdsScheduled` (into
+ *                         the queue slice, once wired). No-op if the module is
+ *                         not installed — the UI hides the button in that case,
+ *                         so a stray call from a test or a promoted-then-reset
+ *                         race should silently short-circuit rather than throw.
  */
 import type { StateCreator } from 'zustand'
 import type { ModuleId } from '@schemas/gameState.schema'
+import { runModuleAbility } from '@systems/moduleAbilityEngine'
 import type { RootState } from './store'
 
 // Stage 1 rank ceiling. Stage 2 will bump this to 5 when Rank 4/5 abilities
@@ -72,13 +76,31 @@ export const createModulesSlice: StateCreator<
     }),
 
   useModuleAbility: (id) => {
-    // B3 stub: read the installed rank and no-op if the module isn't present.
-    // B4 will replace this body with a rank-aware dispatch that reads
-    // ALL_MODULE_ABILITIES[(id, rank)] and applies meterDeltas / flagsSet /
-    // hookIdsScheduled through the appropriate slices.
-    const entry = get().installedModules[id]
+    // Read the installed rank; no-op if the module isn't present. The UI hides
+    // the button when a module isn't installed, so this branch protects
+    // programmatic callers (tests, stray keyboard shortcuts, race between
+    // uninstall and click) from throwing.
+    const state = get()
+    const entry = state.installedModules[id]
     if (!entry) return
-    // TODO(B4): dispatch via moduleAbilityEngine using entry.rank.
-    void entry
+
+    // Deterministic ctx: engine handlers are pure, `now` and `rng` are here
+    // so future high-variance abilities (Spark, Champion) can read them
+    // without reaching for Date.now / Math.random directly.
+    const result = runModuleAbility(id, entry.rank, {
+      now: Date.now(),
+      rng: Math.random,
+    })
+
+    // Fan-out: meters → applyDelta; flags → setFlag per entry. hookIdsScheduled
+    // is left inert at Stage 1 — the queue-side wiring lands with the resolver
+    // in later T-tasks; treating it as a fan-out target here would double-fire
+    // once the resolver picks it up.
+    if (Object.keys(result.meterDeltas).length > 0) {
+      state.applyDelta(result.meterDeltas)
+    }
+    for (const flag of result.flagsSet) {
+      state.setFlag(flag)
+    }
   },
 })
