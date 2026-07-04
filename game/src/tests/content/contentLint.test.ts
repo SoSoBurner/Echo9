@@ -15,11 +15,11 @@
  *    is NEVER (silence-as-horror, Pillar 3).
  */
 import { describe, it, expect } from 'vitest'
-import { EAST_WILMER_CHOICES } from '@content/choices/eastWilmer.choices'
+import { EAST_WILMER_CHOICES } from '@content/choices/q1/week1-mercy-margin.choices'
 import {
   mercyMarginTask,
   LENORA_PORTAL_MESSAGE,
-} from '@content/tasks/mercyMargin.task'
+} from '@content/tasks/q1/week1-mercy-margin.task'
 import { ALL_CONSEQUENCE_MODULES } from '@content/index'
 
 describe('content lint — East Wilmer choices', () => {

@@ -18,7 +18,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { render, screen, fireEvent, cleanup } from '@testing-library/react'
 import React from 'react'
 import { PriorityTasksPanel } from '@ui/priority/PriorityTasksPanel'
-import { mercyMarginTask } from '@content/tasks/mercyMargin.task'
+import { mercyMarginTask } from '@content/tasks/q1/week1-mercy-margin.task'
 
 describe('PriorityTasksPanel', () => {
   beforeEach(() => {

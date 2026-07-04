@@ -18,7 +18,7 @@
  *     ownership-safe (created by Track A).
  */
 import type { RootState } from '@state/store'
-import { mercyMarginTask } from '@content/tasks/mercyMargin.task'
+import { mercyMarginTask } from '@content/tasks/q1/week1-mercy-margin.task'
 
 export interface ActiveTask {
   /** Stable identifier — used as React key and for aria-current selection. */

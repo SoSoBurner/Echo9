@@ -62,8 +62,8 @@ import {
   mercyMarginTask,
   LENORA_PORTAL_MESSAGE,
   MERCY_MARGIN_NULL_TEXT,
-} from '@content/tasks/mercyMargin.task'
-import { EAST_WILMER_CHOICES } from '@content/choices/eastWilmer.choices'
+} from '@content/tasks/q1/week1-mercy-margin.task'
+import { EAST_WILMER_CHOICES } from '@content/choices/q1/week1-mercy-margin.choices'
 import { SILAS_DIRECTIVE_EAST_WILMER } from '@content/silasPrompts/q1EastWilmer'
 import { ALL_CONSEQUENCE_MODULES } from '@content/index'
 import { Q1_INSPECTION_SCENES } from '@content/inspections/q1Inspection.scene'

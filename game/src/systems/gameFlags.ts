@@ -42,3 +42,18 @@ export const SENTINEL_ARMED = 'SENTINEL_ARMED' as const
 export const SPARK_DEPLOYED = 'SPARK_DEPLOYED' as const
 export const DRAINED_ONE_YIELDED = 'DRAINED_ONE_YIELDED' as const
 export const CHAMPION_DEFIED = 'CHAMPION_DEFIED' as const
+
+/**
+ * Q1 directive-week resolution flags (Sprint C2 onward).
+ *
+ * Set when the player commits ANY choice on the given week's directive. The
+ * flag is agnostic to which choice was picked — it just records "this week
+ * happened." Downstream systems read these to:
+ *   - E1 tutorial disclosure state machine advances panel maturity per week.
+ *   - directiveSchedule.ts uses them to gate week-N+1 availability.
+ *   - Later inspections read them to weight postures ("you already chose
+ *     something for East Wilmer — Silas remembers").
+ *
+ * Additive-only, like the module signal flags. Never cleared mid-run.
+ */
+export const Q1_WEEK1_RESOLVED = 'Q1_WEEK1_RESOLVED' as const

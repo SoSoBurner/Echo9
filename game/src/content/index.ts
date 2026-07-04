@@ -4,7 +4,7 @@
 
 import type { ConsequenceHook } from '@schemas/consequenceHook.schema'
 import type { ResultTrace } from '@schemas/resultTrace.schema'
-import { MERCY_MARGIN_HOOKS } from '@content/consequences/mercyMargin.consequences'
+import { MERCY_MARGIN_HOOKS } from '@content/consequences/q1/week1-mercy-margin.consequences'
 
 // ---------------------------------------------------------------------------
 // Hook registry (§11 — every delayed consequence has the 7 mandatory fields)
