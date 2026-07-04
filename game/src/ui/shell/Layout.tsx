@@ -20,6 +20,7 @@ import { LeftStatusRail } from '@ui/meters/LeftStatusRail'
 import { PriorityTasksPanel } from '@ui/priority/PriorityTasksPanel'
 import { FinancialOverviewPanel } from '@ui/financial/FinancialOverviewPanel'
 import { HumanImpactPanel } from '@ui/humanImpact/HumanImpactPanel'
+import { InnerChorusPanel } from '@ui/innerChorus/InnerChorusPanel'
 import { CenterDirectivePanel } from '@ui/directive/CenterDirectivePanel'
 import { SilasPromptPanel } from '@ui/silas/SilasPromptPanel'
 import { ResultCard } from '@ui/result/ResultCard'
@@ -406,6 +407,7 @@ export function Layout() {
           <PriorityTasksPanel />
           <FinancialOverviewPanel />
           <HumanImpactPanel />
+          <InnerChorusPanel />
           <LeftStatusRail />
         </div>
 
