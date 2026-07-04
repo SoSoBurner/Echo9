@@ -18,6 +18,7 @@ import { useGameStore } from '@state/store'
 import { TopBar } from '@ui/topbar/TopBar'
 import { LeftStatusRail } from '@ui/meters/LeftStatusRail'
 import { PriorityTasksPanel } from '@ui/priority/PriorityTasksPanel'
+import { FinancialOverviewPanel } from '@ui/financial/FinancialOverviewPanel'
 import { CenterDirectivePanel } from '@ui/directive/CenterDirectivePanel'
 import { SilasPromptPanel } from '@ui/silas/SilasPromptPanel'
 import { ResultCard } from '@ui/result/ResultCard'
@@ -399,9 +400,10 @@ export function Layout() {
           <TopBar />
         </div>
 
-        {/* left — priority tasks (top) + status rail with meters (below) */}
+        {/* left — priority tasks (top) + financial overview + status rail (bottom) */}
         <div style={{ gridArea: 'left' }} className="overflow-y-auto">
           <PriorityTasksPanel />
+          <FinancialOverviewPanel />
           <LeftStatusRail />
         </div>
 
