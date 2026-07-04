@@ -114,9 +114,12 @@ test.describe('Soak — repeated boot+choice cycles under CPU throttle', () => {
   test(`heap growth and save serialize stay within budget across ${ITERATIONS} iterations`, async ({
     page,
   }) => {
-    // 10 min per-test cap — overrides playwright.config.ts's 120s default
-    // because the soak intentionally runs longer under CPU throttle.
-    test.setTimeout(10 * 60 * 1000)
+    // Scale timeout with ITERATIONS. Under 4× CPU throttle each iteration
+    // averages ~4s, but late iterations run slower under sustained load
+    // (GC pressure, handle churn). Budget 6s/iter with a 10 min floor —
+    // 100 iter → 10 min, 500 iter → 50 min. The soak's PURPOSE is to detect
+    // leak-induced slowdown; the timeout must not be the bottleneck.
+    test.setTimeout(Math.max(10 * 60, ITERATIONS * 6) * 1000)
 
     await installSoakHarness(page)
 
