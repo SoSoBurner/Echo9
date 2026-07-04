@@ -23,6 +23,7 @@ export type BeatName =
   | 'firstAcknowledge'
   | 'moduleInstall'
   | 'inspectionEntered'
+  | 'endOfContentShown'
 
 interface BeatEvent { name: BeatName; tSinceBoot_ms: number }
 
