@@ -38,6 +38,19 @@ Baselines in `game/docs/perf-baseline.md`. Re-verify on any state/render change.
 
 Default to **superpowers:subagent-driven-development**: implementer → spec-reviewer → code-quality-reviewer → fix loop. Spec gate runs before code quality.
 
+## Plan header standard
+
+Every plan file — whether written under `docs/superpowers/plans/`, `C:\Users\CEO\.claude\plans\`, or elsewhere — MUST open with these four sections, in order, above the standard `**Goal:** / **Architecture:** / **Tech Stack:**` block:
+
+1. **What this is** — plain-English deliverable (what the user will have when this lands).
+2. **What we're doing** — the tasks/tracks/sprints structure (the shape of the work).
+3. **Why we're doing it** — motivation, constraint, or higher-level goal being served.
+4. **Layman explanation** — one paragraph a non-developer stakeholder could nod along to.
+
+**Exemplar:** `C:\Users\CEO\.claude\plans\make-sure-you-review-glittery-matsumoto.md` (the Stage-1 vertical slice ship plan).
+
+Rationale: plans are read cold by future-you, fresh subagents, and human stakeholders. The four-section header serves all three audiences before the engineering handoff begins. Never omit a section — if a section feels redundant, the plan is probably too narrow to warrant a plan file at all.
+
 ## Dispatch heuristics — when to reach for which agent/skill
 
 | Trigger | Reach for | Why |
