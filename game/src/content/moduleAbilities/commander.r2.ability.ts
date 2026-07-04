@@ -1,7 +1,10 @@
 /**
- * COMMANDER — rank 2 "Clearer Read" ability stub (Task B2).
+ * COMMANDER — rank 2 "Sharper Direct" (Task B5).
+ *
+ * OC -2 to arm a firmer override; same SILAS_OVERRIDE_AVAILABLE flag.
  */
 import type { ModuleAbility } from '@schemas/moduleAbility.schema'
+import { SILAS_OVERRIDE_AVAILABLE } from '@systems/gameFlags'
 
 export const COMMANDER_R2_ABILITY: ModuleAbility = {
   moduleId: 'COMMANDER',
@@ -9,8 +12,8 @@ export const COMMANDER_R2_ABILITY: ModuleAbility = {
   ability: {
     verb: 'DIRECT SHARPER',
     cost: 1,
-    meterDeltas: { HUMAN_WELFARE: 2 },
-    flagsSet: [],
+    meterDeltas: { OWNER_CONTROL: -2 },
+    flagsSet: [SILAS_OVERRIDE_AVAILABLE],
     hookIdsScheduled: [],
   },
   unlocksAtRank: 2,

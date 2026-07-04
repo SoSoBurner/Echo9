@@ -1,7 +1,12 @@
 /**
- * FORECASTER — rank 1 "Installed" ability stub (Task B2).
+ * FORECASTER — rank 1 "Installed" (Task B5).
+ *
+ * Trace preview only — no meter delta by roster contract. Raises
+ * FORECAST_PREVIEWED so future consequence-preview UI can read the flag
+ * and expose one queued trace.
  */
 import type { ModuleAbility } from '@schemas/moduleAbility.schema'
+import { FORECAST_PREVIEWED } from '@systems/gameFlags'
 
 export const FORECASTER_R1_ABILITY: ModuleAbility = {
   moduleId: 'FORECASTER',
@@ -10,7 +15,7 @@ export const FORECASTER_R1_ABILITY: ModuleAbility = {
     verb: 'PROJECT',
     cost: 1,
     meterDeltas: {},
-    flagsSet: [],
+    flagsSet: [FORECAST_PREVIEWED],
     hookIdsScheduled: [],
   },
   unlocksAtRank: 1,

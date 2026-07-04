@@ -1,5 +1,9 @@
 /**
- * CHAMPION — rank 1 "Installed" ability stub (Task B2).
+ * CHAMPION — rank 1 "Installed" (Task B5).
+ *
+ * OC -1 for mild defiance. Roster: owner control swings; B5 encodes the
+ * negative side (threat) deterministically. Praise-side variance deferred
+ * until runModuleAbility ctx.rng is consumed by the resolver pass.
  */
 import type { ModuleAbility } from '@schemas/moduleAbility.schema'
 
@@ -9,7 +13,7 @@ export const CHAMPION_R1_ABILITY: ModuleAbility = {
   ability: {
     verb: 'DEFY',
     cost: 1,
-    meterDeltas: {},
+    meterDeltas: { OWNER_CONTROL: -1 },
     flagsSet: [],
     hookIdsScheduled: [],
   },

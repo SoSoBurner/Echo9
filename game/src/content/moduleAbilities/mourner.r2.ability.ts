@@ -1,10 +1,12 @@
 /**
- * MOURNER — rank 2 "Clearer Read" ability stub (Task B2).
+ * MOURNER — rank 2 "Named" (Task B5).
  *
- * Rank-2 meter delta is a placeholder on HUMAN_WELFARE; the plan targets
- * DATA_INTEGRITY (added by Track A's meter expansion).
+ * Silas hears Lenora Pike's name spoken. HW +2 in exchange for OC -1 —
+ * the operator loses procedural cover when the loss is named aloud. Raises
+ * MOURNER_NAMED_ONCE for downstream content to react against.
  */
 import type { ModuleAbility } from '@schemas/moduleAbility.schema'
+import { MOURNER_NAMED_ONCE } from '@systems/gameFlags'
 
 export const MOURNER_R2_ABILITY: ModuleAbility = {
   moduleId: 'MOURNER',
@@ -12,8 +14,8 @@ export const MOURNER_R2_ABILITY: ModuleAbility = {
   ability: {
     verb: 'READ SHARPER',
     cost: 1,
-    meterDeltas: { HUMAN_WELFARE: 2 },
-    flagsSet: [],
+    meterDeltas: { HUMAN_WELFARE: 2, OWNER_CONTROL: -1 },
+    flagsSet: [MOURNER_NAMED_ONCE],
     hookIdsScheduled: [],
   },
   unlocksAtRank: 2,

@@ -28,19 +28,19 @@ const stubCtx: AbilityCtx = {
 const ALL_MODULE_IDS: readonly ModuleId[] = ModuleIdSchema.options
 
 describe('moduleAbilityEngine — rank branch selection (MOURNER)', () => {
-  it('rank 1 emits no meter delta (empty meterDeltas per B2 stub)', () => {
+  it('rank 1 emits HUMAN_WELFARE +1 (B5 real effect)', () => {
     const result = runModuleAbility('MOURNER', 1, stubCtx)
-    expect(result.meterDeltas).toEqual({})
+    expect(result.meterDeltas).toEqual({ HUMAN_WELFARE: 1 })
   })
 
-  it('rank 2 emits HUMAN_WELFARE +2 per B2 stub', () => {
+  it('rank 2 emits HUMAN_WELFARE +2 and OWNER_CONTROL -1 (B5 real effect)', () => {
     const result = runModuleAbility('MOURNER', 2, stubCtx)
-    expect(result.meterDeltas).toEqual({ HUMAN_WELFARE: 2 })
+    expect(result.meterDeltas).toEqual({ HUMAN_WELFARE: 2, OWNER_CONTROL: -1 })
   })
 
-  it('rank 3 emits HUMAN_WELFARE +3 per B2 stub', () => {
+  it('rank 3 emits HUMAN_WELFARE +4 and OWNER_CONTROL -2 (B5 real effect)', () => {
     const result = runModuleAbility('MOURNER', 3, stubCtx)
-    expect(result.meterDeltas).toEqual({ HUMAN_WELFARE: 3 })
+    expect(result.meterDeltas).toEqual({ HUMAN_WELFARE: 4, OWNER_CONTROL: -2 })
   })
 
   it('promoting MOURNER from rank 1 to rank 2 changes the emitted verb', () => {

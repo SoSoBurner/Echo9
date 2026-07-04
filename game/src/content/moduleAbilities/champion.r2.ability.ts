@@ -1,7 +1,12 @@
 /**
- * CHAMPION — rank 2 "Clearer Read" ability stub (Task B2).
+ * CHAMPION — rank 2 "Sharper Defy" (Task B5).
+ *
+ * OC -2. Raises CHAMPION_DEFIED so future content can key off the operator
+ * having provoked the owner. Prior B2 stub touched HW — fixed per roster
+ * ("owner control swings").
  */
 import type { ModuleAbility } from '@schemas/moduleAbility.schema'
+import { CHAMPION_DEFIED } from '@systems/gameFlags'
 
 export const CHAMPION_R2_ABILITY: ModuleAbility = {
   moduleId: 'CHAMPION',
@@ -9,8 +14,8 @@ export const CHAMPION_R2_ABILITY: ModuleAbility = {
   ability: {
     verb: 'DEFY SHARPER',
     cost: 1,
-    meterDeltas: { HUMAN_WELFARE: 2 },
-    flagsSet: [],
+    meterDeltas: { OWNER_CONTROL: -2 },
+    flagsSet: [CHAMPION_DEFIED],
     hookIdsScheduled: [],
   },
   unlocksAtRank: 2,

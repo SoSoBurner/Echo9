@@ -1,5 +1,8 @@
 /**
- * DEFENDER — rank 1 "Installed" ability stub (Task B2).
+ * DEFENDER — rank 1 "Installed" (Task B5).
+ *
+ * Holds the East Wilmer line item; CAPITAL +1. No welfare cost at r1 — the
+ * defense is still procedural, not visible on the ground.
  */
 import type { ModuleAbility } from '@schemas/moduleAbility.schema'
 
@@ -9,7 +12,7 @@ export const DEFENDER_R1_ABILITY: ModuleAbility = {
   ability: {
     verb: 'HOLD',
     cost: 1,
-    meterDeltas: {},
+    meterDeltas: { CAPITAL: 1 },
     flagsSet: [],
     hookIdsScheduled: [],
   },

@@ -1,9 +1,8 @@
 /**
- * MOURNER — rank 1 "Installed" ability stub (Task B2).
+ * MOURNER — rank 1 "Installed" (Task B5).
  *
- * Shape-first Stage 1 content — plan §9.5. Balance numbers are placeholders
- * that the content author fills in later; B2 only needs schema conformance
- * and registry completeness.
+ * Names the loss quietly. HUMAN_WELFARE +1; no flag yet — the naming isn't
+ * loud enough to leave a mark on the run's shape.
  */
 import type { ModuleAbility } from '@schemas/moduleAbility.schema'
 
@@ -13,7 +12,7 @@ export const MOURNER_R1_ABILITY: ModuleAbility = {
   ability: {
     verb: 'READ',
     cost: 1,
-    meterDeltas: {},
+    meterDeltas: { HUMAN_WELFARE: 1 },
     flagsSet: [],
     hookIdsScheduled: [],
   },

@@ -1,7 +1,11 @@
 /**
- * DEFENDER — rank 2 "Clearer Read" ability stub (Task B2).
+ * DEFENDER — rank 2 "Held" (Task B5).
+ *
+ * The hold becomes visible: CAPITAL +2, HW -1 as the bruise starts to show.
+ * Raises DEFENDER_HELD_LINE for downstream inspection/directive reactions.
  */
 import type { ModuleAbility } from '@schemas/moduleAbility.schema'
+import { DEFENDER_HELD_LINE } from '@systems/gameFlags'
 
 export const DEFENDER_R2_ABILITY: ModuleAbility = {
   moduleId: 'DEFENDER',
@@ -9,8 +13,8 @@ export const DEFENDER_R2_ABILITY: ModuleAbility = {
   ability: {
     verb: 'HOLD SHARPER',
     cost: 1,
-    meterDeltas: { HUMAN_WELFARE: 2 },
-    flagsSet: [],
+    meterDeltas: { CAPITAL: 2, HUMAN_WELFARE: -1 },
+    flagsSet: [DEFENDER_HELD_LINE],
     hookIdsScheduled: [],
   },
   unlocksAtRank: 2,
