@@ -33,6 +33,16 @@ The gate is stricter than the daily/weekly cadence in `docs/review-cadence.md`. 
 15. `mechanics-review` skill against every mechanic introduced since previous RC.
 16. `feedback-loop-review` skill against every loop touched since previous RC.
 
+### End-of-content boundary check
+
+- Play to the manifest's terminal hook (`END_OF_CONTENT_HOOK_ID` in `game/src/content/contentBoundary.manifest.ts`).
+- Acknowledge it. Overlay MUST appear.
+- Escape MUST NOT dismiss.
+- Body copy MUST read exactly: "Thank you for playing and look forward to future releases of this demo type language."
+- Close browser without Replay. Reopen. Overlay reappears.
+- Replay. Verify both `echo9:autosave` and `echo9:endOfContentSeen` are gone from localStorage. Fresh boot has no overlay.
+- If Q_next is shipping: verify updating `game/src/content/contentBoundary.manifest.ts` to Q_next's terminal hook takes ≤1 line of code and 0 UI touches.
+
 ## Phase 5 — Ship-gate signal check
 
 17. Answer honestly: does this build convincingly earn ≥10 unsolicited comments mentioning the **trace ledger** or **character silence**? If NO, do not ship — return to `design-discovery` skill and identify what's missing.
