@@ -37,6 +37,7 @@ import {
   type ChoiceId,
 } from '@schemas/gameState.schema'
 import { SILAS_OVERRIDE_AVAILABLE } from '@systems/gameFlags'
+import { INSPECTION_MITIGATIONS } from '@content/inspections/inspectionMitigations'
 
 // ---------------------------------------------------------------------------
 // InspectionState — narrow input slice the engine reads.
@@ -73,6 +74,7 @@ export type InspectionDebugEvent =
   | { type: 'METER_DELTA'; meter: MeterKey; from: number; to: number; delta: number }
   | { type: 'TRACE_WRITTEN'; traceId: TraceId }
   | { type: 'POSTURE_RESOLVED'; postureId: string; category: InspectionPosture['category'] }
+  | { type: 'MITIGATION_APPLIED'; flag: string; sceneId: string; postureId: string; adjustment: Partial<Record<MeterKey, number>> }
 
 // ---------------------------------------------------------------------------
 // resolveInspection — apply a posture choice for one InspectionScene.
@@ -130,12 +132,44 @@ export function resolveInspection(
   }
   debugEvents.push({ type: 'POSTURE_RESOLVED', postureId, category })
 
-  // 3. Apply meter deltas — produce a fresh meters object, never mutate.
+  // 3. Fold module-signal mitigations (Sprint B6) into the effective deltas.
+  //    Character-driven consequences: when an installed module's signal flag
+  //    is set on state.flags, its (sceneId, postureId, adjustment) row from
+  //    INSPECTION_MITIGATIONS adds on top of the base delta for this posture.
+  //    Additive, stacking — never overwrites, never short-circuits.
+  const effectiveDeltas: Partial<Record<MeterKey, number>> = { ...posture.meterDeltas }
+  for (const mitigation of INSPECTION_MITIGATIONS) {
+    if (mitigation.sceneId !== scene.id) continue
+    if (mitigation.postureId !== postureId) continue
+    if (!state.flags.has(mitigation.flag)) continue
+    for (const [key, adj] of Object.entries(mitigation.adjustment)) {
+      if (adj === undefined) continue
+      const parsed = MeterKeySchema.safeParse(key)
+      if (!parsed.success) {
+        throw new Error(
+          `resolveInspection: mitigation for flag "${mitigation.flag}" contains ` +
+          `unknown meter key "${key}". Scene id: "${scene.id}", Posture id: "${postureId}".`,
+        )
+      }
+      const meterKey = parsed.data
+      const prev = effectiveDeltas[meterKey] ?? 0
+      effectiveDeltas[meterKey] = prev + adj
+    }
+    debugEvents.push({
+      type: 'MITIGATION_APPLIED',
+      flag: mitigation.flag,
+      sceneId: mitigation.sceneId,
+      postureId: mitigation.postureId,
+      adjustment: mitigation.adjustment,
+    })
+  }
+
+  // 4. Apply effective deltas — produce a fresh meters object, never mutate.
   //    Same MeterKey validation pattern as resolveChoice: validate the key
   //    before indexing so a JSON-loaded posture with a typo throws loudly
   //    instead of silently producing NaN arithmetic downstream.
   const nextMeters: Record<MeterKey, number> = { ...state.meters }
-  for (const [key, delta] of Object.entries(posture.meterDeltas)) {
+  for (const [key, delta] of Object.entries(effectiveDeltas)) {
     if (delta === undefined) continue
     const parsed = MeterKeySchema.safeParse(key)
     if (!parsed.success) {
@@ -151,12 +185,12 @@ export function resolveInspection(
     debugEvents.push({ type: 'METER_DELTA', meter: meterKey, from, to, delta })
   }
 
-  // 4. Posture hooks — InspectionPosture has no scheduledConsequenceIds field
+  // 5. Posture hooks — InspectionPosture has no scheduledConsequenceIds field
   //    today. The empty array preserves the uniform engine return shape so
   //    store wrappers can fan-out trace/meterDeltas/scheduled identically.
   const scheduled: ConsequenceHook[] = []
 
-  // 5. Build the trace. Body is `${category} — ${posture.label}` so the
+  // 6. Build the trace. Body is `${category} — ${posture.label}` so the
   //    ledger view can render the category prefix while preserving the
   //    posture's own short label.
   const trace: ResultTrace = {
@@ -168,7 +202,7 @@ export function resolveInspection(
   }
   debugEvents.push({ type: 'TRACE_WRITTEN', traceId: ctx.traceId })
 
-  // 6. Compose nextState — append, never replace.
+  // 7. Compose nextState — append, never replace.
   const nextState: InspectionState = {
     meters: nextMeters,
     scheduledConsequences: [...state.scheduledConsequences, ...scheduled],
@@ -180,7 +214,7 @@ export function resolveInspection(
     nextState,
     trace,
     scheduled,
-    meterDeltas: posture.meterDeltas,
+    meterDeltas: effectiveDeltas,
     debugEvents,
   }
 }
