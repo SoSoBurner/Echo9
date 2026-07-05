@@ -27,7 +27,8 @@
  */
 import type { TaskId } from '@schemas/gameState.schema'
 import { mercyMarginTask } from '@content/tasks/q1/week1-mercy-margin.task'
-import { Q1_WEEK1_RESOLVED } from '@systems/gameFlags'
+import { queueTriageFollowupTask } from '@content/tasks/q1/week2-queue-triage-followup.task'
+import { Q1_WEEK1_RESOLVED, Q1_WEEK2_RESOLVED } from '@systems/gameFlags'
 
 /**
  * Q1 covers weeks 1–12. Narrow numeric union keeps typos out of the schedule
@@ -64,5 +65,11 @@ export const Q1_SEQUENCE: readonly Q1DirectiveEntry[] = [
     slug: 'mercy-margin',
     taskId: mercyMarginTask.id,
     resolutionFlag: Q1_WEEK1_RESOLVED,
+  },
+  {
+    week: 2,
+    slug: 'queue-triage-followup',
+    taskId: queueTriageFollowupTask.id,
+    resolutionFlag: Q1_WEEK2_RESOLVED,
   },
 ]

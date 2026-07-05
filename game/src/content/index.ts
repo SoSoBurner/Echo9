@@ -5,6 +5,7 @@
 import type { ConsequenceHook } from '@schemas/consequenceHook.schema'
 import type { ResultTrace } from '@schemas/resultTrace.schema'
 import { MERCY_MARGIN_HOOKS } from '@content/consequences/q1/week1-mercy-margin.consequences'
+import { QUEUE_TRIAGE_HOOKS } from '@content/consequences/q1/week2-queue-triage-followup.consequences'
 
 // ---------------------------------------------------------------------------
 // Hook registry (§11 — every delayed consequence has the 7 mandatory fields)
@@ -12,6 +13,7 @@ import { MERCY_MARGIN_HOOKS } from '@content/consequences/q1/week1-mercy-margin.
 
 export const ALL_CONSEQUENCE_MODULES: readonly ConsequenceHook[] = [
   ...MERCY_MARGIN_HOOKS,
+  ...QUEUE_TRIAGE_HOOKS,
 ]
 
 // ---------------------------------------------------------------------------

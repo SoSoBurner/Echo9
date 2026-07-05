@@ -20,6 +20,8 @@ import {
   mercyMarginTask,
   LENORA_PORTAL_MESSAGE,
 } from '@content/tasks/q1/week1-mercy-margin.task'
+import { QUEUE_TRIAGE_CHOICES } from '@content/choices/q1/week2-queue-triage-followup.choices'
+import { queueTriageFollowupTask } from '@content/tasks/q1/week2-queue-triage-followup.task'
 import { ALL_CONSEQUENCE_MODULES } from '@content/index'
 
 describe('content lint — East Wilmer choices', () => {
@@ -43,16 +45,25 @@ describe('content lint — East Wilmer choices', () => {
 
 describe('content lint — id integrity', () => {
   it('every taskId/choiceId referenced is also defined (no dangling ids)', () => {
-    const knownTaskIds = new Set<string>([mercyMarginTask.id])
-    const knownChoiceIds = new Set<string>(EAST_WILMER_CHOICES.map((c) => c.id))
+    const knownTaskIds = new Set<string>([
+      mercyMarginTask.id,
+      queueTriageFollowupTask.id,
+    ])
+    const knownChoiceIds = new Set<string>([
+      ...EAST_WILMER_CHOICES.map((c) => c.id),
+      ...QUEUE_TRIAGE_CHOICES.map((c) => c.id),
+    ])
 
     // Task → choice ids must all be defined.
     for (const cid of mercyMarginTask.choiceIds) {
       expect(knownChoiceIds.has(cid), `task references missing choiceId "${cid}"`).toBe(true)
     }
+    for (const cid of queueTriageFollowupTask.choiceIds) {
+      expect(knownChoiceIds.has(cid), `task references missing choiceId "${cid}"`).toBe(true)
+    }
 
     // Each choice's taskId must be defined.
-    for (const choice of EAST_WILMER_CHOICES) {
+    for (const choice of [...EAST_WILMER_CHOICES, ...QUEUE_TRIAGE_CHOICES]) {
       expect(
         knownTaskIds.has(choice.taskId),
         `choice ${choice.id} taskId "${choice.taskId}" is not defined`,

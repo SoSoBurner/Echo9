@@ -18,11 +18,13 @@ import { describe, it, expect } from 'vitest'
 import type { SilasPrompt } from '@schemas/silasPrompt.schema'
 import { Q1_EAST_WILMER_PROMPTS } from '@content/silasPrompts/q1EastWilmer'
 import { INSPECTION_MERCY_MARGIN_PROMPTS } from '@content/silasPrompts/inspectionMercyMargin'
+import { Q1_QUEUE_TRIAGE_PROMPTS } from '@content/silasPrompts/q1QueueTriage'
 import { MODULE_ROSTER } from '@content/modules/moduleRoster'
 
 const ALL_SILAS_PROMPTS: readonly SilasPrompt[] = [
   ...Q1_EAST_WILMER_PROMPTS,
   ...INSPECTION_MERCY_MARGIN_PROMPTS,
+  ...Q1_QUEUE_TRIAGE_PROMPTS,
 ]
 
 // Forbidden abstract-jargon — all checks case-insensitive.
