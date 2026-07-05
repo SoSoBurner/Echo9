@@ -41,6 +41,7 @@ import { payrollAuditInspectionTask } from '@content/tasks/q1/week8-payroll-audi
 import { schoolsContractRenewalTask } from '@content/tasks/q1/week9-schools-contract-renewal.task'
 import { hiddenTraceRevealTask } from '@content/tasks/q1/week10-hidden-trace-reveal.task'
 import { capitalDeploymentAttemptTask } from '@content/tasks/q1/week11-capital-deployment-attempt.task'
+import { quarterCloseEthicsHearingTask } from '@content/tasks/q1/week12-quarter-close-ethics-hearing.task'
 import { EAST_WILMER_CHOICES } from '@content/choices/q1/week1-mercy-margin.choices'
 import { QUEUE_TRIAGE_CHOICES } from '@content/choices/q1/week2-queue-triage-followup.choices'
 import { FRIDAY_PAYROLL_CHOICES } from '@content/choices/q1/week3-friday-payroll-shortfall.choices'
@@ -52,6 +53,7 @@ import { PAYROLL_AUDIT_CHOICES } from '@content/choices/q1/week8-payroll-audit-i
 import { SCHOOLS_CONTRACT_RENEWAL_CHOICES } from '@content/choices/q1/week9-schools-contract-renewal.choices'
 import { HIDDEN_TRACE_REVEAL_CHOICES } from '@content/choices/q1/week10-hidden-trace-reveal.choices'
 import { CAPITAL_DEPLOYMENT_ATTEMPT_CHOICES } from '@content/choices/q1/week11-capital-deployment-attempt.choices'
+import { QUARTER_CLOSE_ETHICS_HEARING_CHOICES } from '@content/choices/q1/week12-quarter-close-ethics-hearing.choices'
 import {
   Q1_WEEK1_RESOLVED,
   Q1_WEEK2_RESOLVED,
@@ -64,6 +66,7 @@ import {
   Q1_WEEK9_RESOLVED,
   Q1_WEEK10_RESOLVED,
   Q1_WEEK11_RESOLVED,
+  Q1_WEEK12_RESOLVED,
 } from '@systems/gameFlags'
 
 /**
@@ -182,5 +185,12 @@ export const Q1_SEQUENCE: readonly Q1DirectiveEntry[] = [
     task: capitalDeploymentAttemptTask,
     choices: CAPITAL_DEPLOYMENT_ATTEMPT_CHOICES,
     resolutionFlag: Q1_WEEK11_RESOLVED,
+  },
+  {
+    week: 12,
+    slug: 'quarter-close-ethics-hearing',
+    task: quarterCloseEthicsHearingTask,
+    choices: QUARTER_CLOSE_ETHICS_HEARING_CHOICES,
+    resolutionFlag: Q1_WEEK12_RESOLVED,
   },
 ]

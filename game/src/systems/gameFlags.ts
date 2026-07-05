@@ -67,6 +67,18 @@ export const Q1_WEEK8_RESOLVED = 'Q1_WEEK8_RESOLVED' as const
 export const Q1_WEEK9_RESOLVED = 'Q1_WEEK9_RESOLVED' as const
 export const Q1_WEEK10_RESOLVED = 'Q1_WEEK10_RESOLVED' as const
 export const Q1_WEEK11_RESOLVED = 'Q1_WEEK11_RESOLVED' as const
+export const Q1_WEEK12_RESOLVED = 'Q1_WEEK12_RESOLVED' as const
+
+/**
+ * Q1_CLOSED — set when the player commits ANY choice on Week 12
+ * (`quarter-close-ethics-hearing`). Separate from Q1_WEEK12_RESOLVED
+ * because Q1_CLOSED is read by the End-of-Content boundary machinery
+ * (`contentBoundary.manifest.ts`, `endOfContentSlice.ts`) as the
+ * terminal marker of the shipped demo. Moving the demo boundary later
+ * means changing which flag maps to Q1_CLOSED, not renaming
+ * per-week resolution flags. Additive-only.
+ */
+export const Q1_CLOSED = 'Q1_CLOSED' as const
 
 /**
  * Set by Week 8's `payroll-audit-inspection` directive on ANY choice.
