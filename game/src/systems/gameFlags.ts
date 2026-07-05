@@ -63,6 +63,15 @@ export const Q1_WEEK4_RESOLVED = 'Q1_WEEK4_RESOLVED' as const
 export const Q1_WEEK5_RESOLVED = 'Q1_WEEK5_RESOLVED' as const
 export const Q1_WEEK6_RESOLVED = 'Q1_WEEK6_RESOLVED' as const
 export const Q1_WEEK7_RESOLVED = 'Q1_WEEK7_RESOLVED' as const
+export const Q1_WEEK8_RESOLVED = 'Q1_WEEK8_RESOLVED' as const
+
+/**
+ * Set by Week 8's `payroll-audit-inspection` directive on ANY choice.
+ * Read by the Q1P.A/Q1P.B inspection scenes (Track C14) as one of the
+ * two trigger conditions for the payroll inspection at W8 close.
+ * `docs/content/q1-arc.md` W8 row: "small deltas; sets PAYROLL_AUDIT_DONE".
+ */
+export const PAYROLL_AUDIT_DONE = 'PAYROLL_AUDIT_DONE' as const
 
 /**
  * Set by Week 4's `east-wilmer-audit-pre-brief` directive when the player

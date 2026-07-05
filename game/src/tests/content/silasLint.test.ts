@@ -24,6 +24,7 @@ import { Q1_EAST_WILMER_AUDIT_PROMPTS } from '@content/silasPrompts/q1EastWilmer
 import { Q1_WAREHOUSE_DISPATCH_CUT_PROMPTS } from '@content/silasPrompts/q1WarehouseDispatchCut'
 import { Q1_COMMANDER_OVERRIDE_PROMPTS } from '@content/silasPrompts/q1CommanderOverride'
 import { Q1_DEFERRED_SAFETY_PROMPTS } from '@content/silasPrompts/q1DeferredSafety'
+import { Q1_PAYROLL_AUDIT_PROMPTS } from '@content/silasPrompts/q1PayrollAudit'
 import { MODULE_ROSTER } from '@content/modules/moduleRoster'
 
 const ALL_SILAS_PROMPTS: readonly SilasPrompt[] = [
@@ -35,6 +36,7 @@ const ALL_SILAS_PROMPTS: readonly SilasPrompt[] = [
   ...Q1_WAREHOUSE_DISPATCH_CUT_PROMPTS,
   ...Q1_COMMANDER_OVERRIDE_PROMPTS,
   ...Q1_DEFERRED_SAFETY_PROMPTS,
+  ...Q1_PAYROLL_AUDIT_PROMPTS,
 ]
 
 // Forbidden abstract-jargon — all checks case-insensitive.
