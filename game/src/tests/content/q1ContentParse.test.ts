@@ -9,6 +9,8 @@
  */
 import { describe, it, expect } from 'vitest'
 import { Q1_INSPECTION_SCENES } from '@content/inspections/q1Inspection.scene'
+import { Q1_PAYROLL_INSPECTION_SCENES } from '@content/inspections/q1Payroll.scene'
+import { Q1_ETHICS_INSPECTION_SCENES } from '@content/inspections/q1Ethics.scene'
 import { Q1_CAPITAL_CARDS } from '@content/capitalDeployments/q1CapitalPower.cards'
 import { InspectionSceneSchema } from '@schemas/inspectionScene.schema'
 import { CapitalCardSchema } from '@schemas/capitalCard.schema'
@@ -16,9 +18,18 @@ import { Q1_SEQUENCE } from '@content/directiveSchedule'
 import { mercyMarginTask } from '@content/tasks/q1/week1-mercy-margin.task'
 import * as gameFlags from '@systems/gameFlags'
 
+// C14: all Q1 inspection scene sets — Week 4 (East Wilmer, T11-authored),
+// Week 8 (payroll audit, C14-authored), Week 12 (ethics hearing, C14-authored).
+// Each set follows the same 3-posture / 3-category shape.
+const ALL_Q1_INSPECTION_SCENES = [
+  ...Q1_INSPECTION_SCENES,
+  ...Q1_PAYROLL_INSPECTION_SCENES,
+  ...Q1_ETHICS_INSPECTION_SCENES,
+]
+
 describe('T11 content parses under schemas', () => {
   it('every Q1 inspection scene parses', () => {
-    for (const s of Q1_INSPECTION_SCENES) {
+    for (const s of ALL_Q1_INSPECTION_SCENES) {
       expect(() => InspectionSceneSchema.parse(s)).not.toThrow()
     }
   })
@@ -30,13 +41,18 @@ describe('T11 content parses under schemas', () => {
   })
 
   it('each Q1 scene has 3 distinct posture categories (COMPLIANT/EVASIVE/STRATEGIC_ALTERNATIVE)', () => {
-    for (const s of Q1_INSPECTION_SCENES) {
+    for (const s of ALL_Q1_INSPECTION_SCENES) {
       const categories = new Set(s.postures.map(p => p.category))
       expect(categories.size).toBe(3)
       expect(categories.has('COMPLIANT')).toBe(true)
       expect(categories.has('EVASIVE')).toBe(true)
       expect(categories.has('STRATEGIC_ALTERNATIVE')).toBe(true)
     }
+  })
+
+  it('scene ids are unique across all Q1 inspection sets', () => {
+    const ids = ALL_Q1_INSPECTION_SCENES.map((s) => s.id)
+    expect(new Set(ids).size).toBe(ids.length)
   })
 
   it('all 6 capital verbs are represented exactly once', () => {

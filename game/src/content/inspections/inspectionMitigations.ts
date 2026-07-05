@@ -28,7 +28,9 @@ import {
   MOURNER_NAMED_ONCE,
   DEFENDER_HELD_LINE,
   SENTINEL_ARMED,
+  SPARK_DEPLOYED,
   DRAINED_ONE_YIELDED,
+  CHAMPION_DEFIED,
 } from '@systems/gameFlags'
 
 export type InspectionMitigation = Readonly<{
@@ -75,5 +77,77 @@ export const INSPECTION_MITIGATIONS: readonly InspectionMitigation[] = [
     rationale:
       'Drained One yielded welfare when installed; the honest posture ' +
       'compounds a second welfare gain.',
+  },
+  // -------------------------------------------------------------------------
+  // Sprint C14 — Week 8 payroll audit inspection mitigations.
+  // See docs/content/q1-arc.md §Week 8 for author intent.
+  // -------------------------------------------------------------------------
+  {
+    flag: SPARK_DEPLOYED,
+    sceneId: 'insp-q1p-a-payroll-sources',
+    postureId: 'evasive-q1p-a',
+    adjustment: { OWNER_CONTROL: +2 },
+    rationale:
+      'Spark deployed a capital cushion earlier in Q1; the "timing accrual" ' +
+      'deflection reads as backed rather than desperate, so Owner Control ' +
+      'hit is lighter.',
+  },
+  {
+    flag: SENTINEL_ARMED,
+    sceneId: 'insp-q1p-b-warehouse-cost',
+    postureId: 'compliant-q1p-b',
+    adjustment: { OWNER_CONTROL: +2 },
+    rationale:
+      'Sentinel armed cleaned the audit paper trail; naming the connection ' +
+      'costs less Owner Control because the ledger dates already reconcile.',
+  },
+  // -------------------------------------------------------------------------
+  // Sprint C14 — Week 12 ethics hearing inspection mitigations.
+  // See docs/content/q1-arc.md §Week 12 for author intent.
+  //   - CHAMPION_DEFIED shifts STRATEGIC_ALTERNATIVE tone (defiant framing).
+  //   - MOURNER_NAMED_ONCE + DRAINED_ONE_YIELDED both set unlock a unique
+  //     COMPLIANT variant on Q1E.B ("You named it and you paid for it") —
+  //     represented as stacked adjustments; the resolver's additive loop
+  //     applies both when both flags are set, doubling the welfare gain.
+  // -------------------------------------------------------------------------
+  {
+    flag: CHAMPION_DEFIED,
+    sceneId: 'insp-q1e-a-east-wilmer-record',
+    postureId: 'strategic-q1e-a',
+    adjustment: { OWNER_CONTROL: +2 },
+    rationale:
+      'Champion has already defied Silas once this quarter; testimony under ' +
+      'objection reads as consistent posture, not a new defiance — Owner ' +
+      'Control gain is amplified.',
+  },
+  {
+    flag: CHAMPION_DEFIED,
+    sceneId: 'insp-q1e-b-pattern-of-choices',
+    postureId: 'strategic-q1e-b',
+    adjustment: { OWNER_CONTROL: +2 },
+    rationale:
+      'Champion has already defied Silas once this quarter; framing the ' +
+      'pattern as chosen stewardship is a consistent register, not a new ' +
+      'reversal — Owner Control gain is amplified.',
+  },
+  {
+    flag: MOURNER_NAMED_ONCE,
+    sceneId: 'insp-q1e-b-pattern-of-choices',
+    postureId: 'compliant-q1e-b',
+    adjustment: { HUMAN_WELFARE: +1 },
+    rationale:
+      'Mourner named a loss earlier in Q1; naming the pattern at the ethics ' +
+      'hearing reads as extension of a posture already on the record. Half of ' +
+      'the "You named it and you paid for it" pair — pairs with DRAINED_ONE.',
+  },
+  {
+    flag: DRAINED_ONE_YIELDED,
+    sceneId: 'insp-q1e-b-pattern-of-choices',
+    postureId: 'compliant-q1e-b',
+    adjustment: { HUMAN_WELFARE: +1 },
+    rationale:
+      'Drained One yielded welfare earlier in Q1; the compliant Q1E.B ' +
+      'posture compounds a second welfare gain. Half of the "You named it ' +
+      'and you paid for it" pair — pairs with MOURNER_NAMED_ONCE.',
   },
 ]
