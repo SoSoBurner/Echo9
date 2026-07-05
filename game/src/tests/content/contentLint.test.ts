@@ -24,6 +24,8 @@ import { QUEUE_TRIAGE_CHOICES } from '@content/choices/q1/week2-queue-triage-fol
 import { queueTriageFollowupTask } from '@content/tasks/q1/week2-queue-triage-followup.task'
 import { FRIDAY_PAYROLL_CHOICES } from '@content/choices/q1/week3-friday-payroll-shortfall.choices'
 import { fridayPayrollShortfallTask } from '@content/tasks/q1/week3-friday-payroll-shortfall.task'
+import { EAST_WILMER_AUDIT_CHOICES } from '@content/choices/q1/week4-east-wilmer-audit-pre-brief.choices'
+import { eastWilmerAuditPreBriefTask } from '@content/tasks/q1/week4-east-wilmer-audit-pre-brief.task'
 import { ALL_CONSEQUENCE_MODULES } from '@content/index'
 
 describe('content lint — East Wilmer choices', () => {
@@ -54,11 +56,13 @@ describe('content lint — id integrity', () => {
       mercyMarginTask,
       queueTriageFollowupTask,
       fridayPayrollShortfallTask,
+      eastWilmerAuditPreBriefTask,
     ] as const
     const Q1_CHOICE_ARRAYS = [
       EAST_WILMER_CHOICES,
       QUEUE_TRIAGE_CHOICES,
       FRIDAY_PAYROLL_CHOICES,
+      EAST_WILMER_AUDIT_CHOICES,
     ] as const
 
     const knownTaskIds = new Set<string>(Q1_TASKS.map((t) => t.id))

@@ -29,10 +29,12 @@ import type { TaskId } from '@schemas/gameState.schema'
 import { mercyMarginTask } from '@content/tasks/q1/week1-mercy-margin.task'
 import { queueTriageFollowupTask } from '@content/tasks/q1/week2-queue-triage-followup.task'
 import { fridayPayrollShortfallTask } from '@content/tasks/q1/week3-friday-payroll-shortfall.task'
+import { eastWilmerAuditPreBriefTask } from '@content/tasks/q1/week4-east-wilmer-audit-pre-brief.task'
 import {
   Q1_WEEK1_RESOLVED,
   Q1_WEEK2_RESOLVED,
   Q1_WEEK3_RESOLVED,
+  Q1_WEEK4_RESOLVED,
 } from '@systems/gameFlags'
 
 /**
@@ -82,5 +84,11 @@ export const Q1_SEQUENCE: readonly Q1DirectiveEntry[] = [
     slug: 'friday-payroll-shortfall',
     taskId: fridayPayrollShortfallTask.id,
     resolutionFlag: Q1_WEEK3_RESOLVED,
+  },
+  {
+    week: 4,
+    slug: 'east-wilmer-audit-pre-brief',
+    taskId: eastWilmerAuditPreBriefTask.id,
+    resolutionFlag: Q1_WEEK4_RESOLVED,
   },
 ]

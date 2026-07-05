@@ -59,3 +59,14 @@ export const CHAMPION_DEFIED = 'CHAMPION_DEFIED' as const
 export const Q1_WEEK1_RESOLVED = 'Q1_WEEK1_RESOLVED' as const
 export const Q1_WEEK2_RESOLVED = 'Q1_WEEK2_RESOLVED' as const
 export const Q1_WEEK3_RESOLVED = 'Q1_WEEK3_RESOLVED' as const
+export const Q1_WEEK4_RESOLVED = 'Q1_WEEK4_RESOLVED' as const
+
+/**
+ * Set by Week 4's `east-wilmer-audit-pre-brief` directive when the player
+ * commits any of the three posture-setting choices (full disclosure, hedged
+ * narrative, or mitigation packet). NOT set when Echo declines the brief —
+ * the ABSENCE of this flag is itself the input Q1A/Q1B inspection scenes
+ * read at resolution. See `docs/content/q1-arc.md` W4 row and inspection
+ * insertion notes.
+ */
+export const PREPARED_AUDIT = 'PREPARED_AUDIT' as const
