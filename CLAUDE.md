@@ -95,3 +95,6 @@ Rationale: plans are read cold by future-you, fresh subagents, and human stakeho
 - Don't run npm/npx from `Echo9/` — it has no package.json. Always `cd game/` (or use absolute paths).
 - No database, no backend — don't recommend DB mocks or migrations.
 - `vite.config.ts` must keep `base: './'`. Vite's default (`/`) breaks file:// double-click, itch.io subpath hosting, and any static host that serves from a subdirectory. Guarded by `npm run verify:subpath` (Playwright 3-way boot) and `src/tests/subpath/subpathAssetPaths.test.ts` (static dist scan).
+- `tsc --noEmit` (trinity) is looser than `tsc -b` (build.mjs): the build enforces `exactOptionalPropertyTypes`, so a commit can be trinity-green and still break `npm run build`. When touching JSX props that may be `undefined`, run `npx tsc -b` before pushing.
+- `useStore.getState().flags` is a `Set<string>`. In Playwright specs, do the `[...flags]` conversion **inside** `page.evaluate` — structured-clone returns after `evaluate()` drop Set-ness and a bare spread in Node throws "not iterable".
+- `SOAK_ITERATIONS=500` (ship-gate Phase 3) cannot fit inside Playwright's 10-min per-test ceiling with the current cold-boot cost. At 100 iterations the run is already ~11.6 min; mechanic budget passes. Reducing per-iteration boot cost is a prerequisite for the ship-gate soak.
