@@ -519,10 +519,11 @@ export function Layout() {
           className="overflow-y-auto border-r border-sealed-dim px-6 py-6"
         >
           {showResult && lastTrace ? (
-            <ResultCard
-              trace={lastTrace}
-              onContinue={currentEntry ? handleContinue : undefined}
-            />
+            currentEntry ? (
+              <ResultCard trace={lastTrace} onContinue={handleContinue} />
+            ) : (
+              <ResultCard trace={lastTrace} />
+            )
           ) : currentEntry ? (
             <CenterDirectivePanel
               task={currentEntry.task}

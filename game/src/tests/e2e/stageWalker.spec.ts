@@ -128,7 +128,7 @@ async function walkOneDirective(
   // and we're likely on a different UI branch — bail rather than loop.
   const resultCard = page.getByRole('heading', { name: /^result$/i, level: 2 })
   const resultShowed = await resultCard.isVisible({ timeout: 5_000 }).catch(() => false)
-  if (!resultShowed) return false
+  if (!resultShowed) return { advanced: false, directiveText }
   await captureCheckpoint(page, { name: `07-result-${String(index).padStart(2, '0')}` })
 
   // If an echo is pending, drain it via 'c' so the walker doesn't leave

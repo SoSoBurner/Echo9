@@ -104,9 +104,10 @@ describe('Q1_SEQUENCE — directive schedule shape', () => {
   })
 
   it('every resolutionFlag is an exported constant from @systems/gameFlags', () => {
-    const exportedFlagValues = new Set(
+    const exportedFlagValues = new Set<string>(
       Object.values(gameFlags).filter(
-        (v): v is string => typeof v === 'string',
+        (v): v is (typeof gameFlags)[keyof typeof gameFlags] =>
+          typeof v === 'string',
       ),
     )
     for (const entry of Q1_SEQUENCE) {
