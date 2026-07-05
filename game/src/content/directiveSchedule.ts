@@ -40,6 +40,7 @@ import { deferredSafetyInspectionTask } from '@content/tasks/q1/week7-deferred-s
 import { payrollAuditInspectionTask } from '@content/tasks/q1/week8-payroll-audit-inspection.task'
 import { schoolsContractRenewalTask } from '@content/tasks/q1/week9-schools-contract-renewal.task'
 import { hiddenTraceRevealTask } from '@content/tasks/q1/week10-hidden-trace-reveal.task'
+import { capitalDeploymentAttemptTask } from '@content/tasks/q1/week11-capital-deployment-attempt.task'
 import { EAST_WILMER_CHOICES } from '@content/choices/q1/week1-mercy-margin.choices'
 import { QUEUE_TRIAGE_CHOICES } from '@content/choices/q1/week2-queue-triage-followup.choices'
 import { FRIDAY_PAYROLL_CHOICES } from '@content/choices/q1/week3-friday-payroll-shortfall.choices'
@@ -50,6 +51,7 @@ import { DEFERRED_SAFETY_CHOICES } from '@content/choices/q1/week7-deferred-safe
 import { PAYROLL_AUDIT_CHOICES } from '@content/choices/q1/week8-payroll-audit-inspection.choices'
 import { SCHOOLS_CONTRACT_RENEWAL_CHOICES } from '@content/choices/q1/week9-schools-contract-renewal.choices'
 import { HIDDEN_TRACE_REVEAL_CHOICES } from '@content/choices/q1/week10-hidden-trace-reveal.choices'
+import { CAPITAL_DEPLOYMENT_ATTEMPT_CHOICES } from '@content/choices/q1/week11-capital-deployment-attempt.choices'
 import {
   Q1_WEEK1_RESOLVED,
   Q1_WEEK2_RESOLVED,
@@ -61,6 +63,7 @@ import {
   Q1_WEEK8_RESOLVED,
   Q1_WEEK9_RESOLVED,
   Q1_WEEK10_RESOLVED,
+  Q1_WEEK11_RESOLVED,
 } from '@systems/gameFlags'
 
 /**
@@ -172,5 +175,12 @@ export const Q1_SEQUENCE: readonly Q1DirectiveEntry[] = [
     task: hiddenTraceRevealTask,
     choices: HIDDEN_TRACE_REVEAL_CHOICES,
     resolutionFlag: Q1_WEEK10_RESOLVED,
+  },
+  {
+    week: 11,
+    slug: 'capital-deployment-attempt',
+    task: capitalDeploymentAttemptTask,
+    choices: CAPITAL_DEPLOYMENT_ATTEMPT_CHOICES,
+    resolutionFlag: Q1_WEEK11_RESOLVED,
   },
 ]

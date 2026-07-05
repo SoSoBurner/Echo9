@@ -14,6 +14,7 @@ import { DEFERRED_SAFETY_HOOKS } from '@content/consequences/q1/week7-deferred-s
 import { PAYROLL_AUDIT_HOOKS } from '@content/consequences/q1/week8-payroll-audit-inspection.consequences'
 import { SCHOOLS_CONTRACT_RENEWAL_HOOKS } from '@content/consequences/q1/week9-schools-contract-renewal.consequences'
 import { HIDDEN_TRACE_REVEAL_HOOKS } from '@content/consequences/q1/week10-hidden-trace-reveal.consequences'
+import { CAPITAL_DEPLOYMENT_ATTEMPT_HOOKS } from '@content/consequences/q1/week11-capital-deployment-attempt.consequences'
 
 // ---------------------------------------------------------------------------
 // Hook registry (§11 — every delayed consequence has the 7 mandatory fields)
@@ -30,6 +31,7 @@ export const ALL_CONSEQUENCE_MODULES: readonly ConsequenceHook[] = [
   ...PAYROLL_AUDIT_HOOKS,
   ...SCHOOLS_CONTRACT_RENEWAL_HOOKS,
   ...HIDDEN_TRACE_REVEAL_HOOKS,
+  ...CAPITAL_DEPLOYMENT_ATTEMPT_HOOKS,
 ]
 
 // ---------------------------------------------------------------------------

@@ -27,6 +27,7 @@ import { Q1_DEFERRED_SAFETY_PROMPTS } from '@content/silasPrompts/q1DeferredSafe
 import { Q1_PAYROLL_AUDIT_PROMPTS } from '@content/silasPrompts/q1PayrollAudit'
 import { Q1_SCHOOLS_CONTRACT_RENEWAL_PROMPTS } from '@content/silasPrompts/q1SchoolsContractRenewal'
 import { Q1_HIDDEN_TRACE_REVEAL_PROMPTS } from '@content/silasPrompts/q1HiddenTraceReveal'
+import { Q1_CAPITAL_DEPLOYMENT_ATTEMPT_PROMPTS } from '@content/silasPrompts/q1CapitalDeploymentAttempt'
 import { MODULE_ROSTER } from '@content/modules/moduleRoster'
 
 const ALL_SILAS_PROMPTS: readonly SilasPrompt[] = [
@@ -41,6 +42,7 @@ const ALL_SILAS_PROMPTS: readonly SilasPrompt[] = [
   ...Q1_PAYROLL_AUDIT_PROMPTS,
   ...Q1_SCHOOLS_CONTRACT_RENEWAL_PROMPTS,
   ...Q1_HIDDEN_TRACE_REVEAL_PROMPTS,
+  ...Q1_CAPITAL_DEPLOYMENT_ATTEMPT_PROMPTS,
 ]
 
 // Forbidden abstract-jargon — all checks case-insensitive.
