@@ -60,6 +60,7 @@ export const Q1_WEEK1_RESOLVED = 'Q1_WEEK1_RESOLVED' as const
 export const Q1_WEEK2_RESOLVED = 'Q1_WEEK2_RESOLVED' as const
 export const Q1_WEEK3_RESOLVED = 'Q1_WEEK3_RESOLVED' as const
 export const Q1_WEEK4_RESOLVED = 'Q1_WEEK4_RESOLVED' as const
+export const Q1_WEEK5_RESOLVED = 'Q1_WEEK5_RESOLVED' as const
 
 /**
  * Set by Week 4's `east-wilmer-audit-pre-brief` directive when the player
@@ -70,3 +71,12 @@ export const Q1_WEEK4_RESOLVED = 'Q1_WEEK4_RESOLVED' as const
  * insertion notes.
  */
 export const PREPARED_AUDIT = 'PREPARED_AUDIT' as const
+
+/**
+ * Set by Week 5's `warehouse-dispatch-cut` directive when Echo actually
+ * replies to Rasha Odenwalder (any of the three engaging choices). NOT
+ * set on `choice-radio-silence` — the absence of RASHA_MET is the input
+ * W6\u2013W8 Rasha directives read as Rasha\u2019s first read on Silas.
+ * `docs/content/q1-arc.md` W5 row calls this out as a new content flag.
+ */
+export const RASHA_MET = 'RASHA_MET' as const

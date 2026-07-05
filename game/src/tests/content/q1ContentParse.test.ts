@@ -70,7 +70,7 @@ describe('Q1_SEQUENCE — directive schedule shape', () => {
 
   it('Week 1 references the canonical mercy-margin task', () => {
     const week1 = Q1_SEQUENCE.find((e) => e.week === 1)
-    expect(week1?.taskId).toBe(mercyMarginTask.id)
+    expect(week1?.task.id).toBe(mercyMarginTask.id)
     expect(week1?.slug).toBe('mercy-margin')
   })
 

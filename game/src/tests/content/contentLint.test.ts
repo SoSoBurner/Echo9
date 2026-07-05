@@ -5,9 +5,10 @@
  *  - Every East Wilmer choice has a non-empty label and a keybind in '1'..'4'.
  *  - Every choice schedules ≥1 ConsequenceHook (slice-stage discipline; a
  *    zero-hook choice surfaces a designer-review concern).
- *  - Every taskId/choiceId referenced by the choice array, by mercyMarginTask,
- *    or by any hook in ALL_CONSEQUENCE_MODULES is also defined (no dangling
- *    ids).
+ *  - Every taskId/choiceId referenced by any Q1 week's task, choice, or by
+ *    any hook in ALL_CONSEQUENCE_MODULES is also defined (no dangling ids).
+ *    Sprint C6 refactored this to walk `Q1_SEQUENCE` directly — new weeks
+ *    join the lint automatically once they appear in the schedule.
  *  - mercyMarginTask has exactly 4 choiceIds.
  *  - Lenora's portal message contains "Maya" (death-immune-anchor enforcement,
  *    PLAN.md §7).
@@ -20,12 +21,7 @@ import {
   mercyMarginTask,
   LENORA_PORTAL_MESSAGE,
 } from '@content/tasks/q1/week1-mercy-margin.task'
-import { QUEUE_TRIAGE_CHOICES } from '@content/choices/q1/week2-queue-triage-followup.choices'
-import { queueTriageFollowupTask } from '@content/tasks/q1/week2-queue-triage-followup.task'
-import { FRIDAY_PAYROLL_CHOICES } from '@content/choices/q1/week3-friday-payroll-shortfall.choices'
-import { fridayPayrollShortfallTask } from '@content/tasks/q1/week3-friday-payroll-shortfall.task'
-import { EAST_WILMER_AUDIT_CHOICES } from '@content/choices/q1/week4-east-wilmer-audit-pre-brief.choices'
-import { eastWilmerAuditPreBriefTask } from '@content/tasks/q1/week4-east-wilmer-audit-pre-brief.task'
+import { Q1_SEQUENCE } from '@content/directiveSchedule'
 import { ALL_CONSEQUENCE_MODULES } from '@content/index'
 
 describe('content lint — East Wilmer choices', () => {
@@ -49,40 +45,27 @@ describe('content lint — East Wilmer choices', () => {
 
 describe('content lint — id integrity', () => {
   it('every taskId/choiceId referenced is also defined (no dangling ids)', () => {
-    // Per-week registry — every new C-track sprint appends one entry.
-    // Extension threshold: refactor to walk Q1_SEQUENCE once this list
-    // reaches 5+ entries. Below that the direct list is easier to read.
-    const Q1_TASKS = [
-      mercyMarginTask,
-      queueTriageFollowupTask,
-      fridayPayrollShortfallTask,
-      eastWilmerAuditPreBriefTask,
-    ] as const
-    const Q1_CHOICE_ARRAYS = [
-      EAST_WILMER_CHOICES,
-      QUEUE_TRIAGE_CHOICES,
-      FRIDAY_PAYROLL_CHOICES,
-      EAST_WILMER_AUDIT_CHOICES,
-    ] as const
-
-    const knownTaskIds = new Set<string>(Q1_TASKS.map((t) => t.id))
+    // Sprint C6: walk `Q1_SEQUENCE` for known ids so new weeks auto-register.
+    // Prior per-week registry (C3\u2013C5) is retired — one source of truth
+    // now lives in `directiveSchedule.ts`.
+    const knownTaskIds = new Set<string>(Q1_SEQUENCE.map((e) => e.task.id))
     const knownChoiceIds = new Set<string>(
-      Q1_CHOICE_ARRAYS.flatMap((arr) => arr.map((c) => c.id)),
+      Q1_SEQUENCE.flatMap((e) => e.choices.map((c) => c.id)),
     )
 
     // Task → choice ids must all be defined.
-    for (const task of Q1_TASKS) {
-      for (const cid of task.choiceIds) {
+    for (const entry of Q1_SEQUENCE) {
+      for (const cid of entry.task.choiceIds) {
         expect(
           knownChoiceIds.has(cid),
-          `task ${task.id} references missing choiceId "${cid}"`,
+          `task ${entry.task.id} references missing choiceId "${cid}"`,
         ).toBe(true)
       }
     }
 
     // Each choice's taskId must be defined.
-    for (const arr of Q1_CHOICE_ARRAYS) {
-      for (const choice of arr) {
+    for (const entry of Q1_SEQUENCE) {
+      for (const choice of entry.choices) {
         expect(
           knownTaskIds.has(choice.taskId),
           `choice ${choice.id} taskId "${choice.taskId}" is not defined`,
@@ -105,6 +88,15 @@ describe('content lint — id integrity', () => {
 
   it('mercyMarginTask declares exactly 4 choiceIds', () => {
     expect(mercyMarginTask.choiceIds.length).toBe(4)
+  })
+
+  it('every Q1 week has exactly 4 choices (schedule shape)', () => {
+    for (const entry of Q1_SEQUENCE) {
+      expect(
+        entry.choices.length,
+        `week ${entry.week} (${entry.slug}) choice count`,
+      ).toBe(4)
+    }
   })
 })
 

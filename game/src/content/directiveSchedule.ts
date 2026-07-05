@@ -17,6 +17,9 @@
  *   - The C-track content-parse test walks `Q1_SEQUENCE` and Zod-parses every
  *     referenced task/choice/consequence file, so drift between schedule and
  *     actual content fails CI loudly.
+ *   - `contentLint.test.ts` walks the sequence to build its known-task-id and
+ *     known-choice-id sets — new weeks join the lint automatically once they
+ *     appear here (Sprint C6 refactor).
  *
  * Additive-only. Each C-track sprint C3–C13 appends exactly one entry.
  * Existing entries never change — the Q1 spine is a fixed contract once
@@ -25,16 +28,24 @@
  * See `docs/content/q1-arc.md` for the week-by-week design notes this
  * schedule ratifies.
  */
-import type { TaskId } from '@schemas/gameState.schema'
+import type { TaskNode } from '@schemas/taskNode.schema'
+import type { ChoiceNode } from '@schemas/choiceNode.schema'
 import { mercyMarginTask } from '@content/tasks/q1/week1-mercy-margin.task'
 import { queueTriageFollowupTask } from '@content/tasks/q1/week2-queue-triage-followup.task'
 import { fridayPayrollShortfallTask } from '@content/tasks/q1/week3-friday-payroll-shortfall.task'
 import { eastWilmerAuditPreBriefTask } from '@content/tasks/q1/week4-east-wilmer-audit-pre-brief.task'
+import { warehouseDispatchCutTask } from '@content/tasks/q1/week5-warehouse-dispatch-cut.task'
+import { EAST_WILMER_CHOICES } from '@content/choices/q1/week1-mercy-margin.choices'
+import { QUEUE_TRIAGE_CHOICES } from '@content/choices/q1/week2-queue-triage-followup.choices'
+import { FRIDAY_PAYROLL_CHOICES } from '@content/choices/q1/week3-friday-payroll-shortfall.choices'
+import { EAST_WILMER_AUDIT_CHOICES } from '@content/choices/q1/week4-east-wilmer-audit-pre-brief.choices'
+import { WAREHOUSE_DISPATCH_CUT_CHOICES } from '@content/choices/q1/week5-warehouse-dispatch-cut.choices'
 import {
   Q1_WEEK1_RESOLVED,
   Q1_WEEK2_RESOLVED,
   Q1_WEEK3_RESOLVED,
   Q1_WEEK4_RESOLVED,
+  Q1_WEEK5_RESOLVED,
 } from '@systems/gameFlags'
 
 /**
@@ -43,13 +54,23 @@ import {
  */
 export type Q1Week = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12
 
+/**
+ * A single Q1 week's directive plus everything Systems/tests need to reason
+ * about it without knowing the file layout.
+ *
+ * The C6 refactor added `task` and `choices` as first-class fields so the
+ * content-lint id-integrity test walks Q1_SEQUENCE directly rather than
+ * duplicating a per-week array of imports. New weeks now register once here.
+ */
 export type Q1DirectiveEntry = Readonly<{
   /** Week ordinal, 1–12. Matches the file basename (`week<N>-<slug>`). */
   week: Q1Week
   /** URL/basename slug (e.g., `mercy-margin`, `queue-triage-followup`). */
   slug: string
-  /** TaskId of the directive that authored the week's beat. */
-  taskId: TaskId
+  /** The directive's TaskNode. `task.id` is the referenced task id. */
+  task: TaskNode
+  /** The 4 ChoiceNodes for this week. All must reference `task.id`. */
+  choices: readonly ChoiceNode[]
   /**
    * Flag set (additively) when the player commits any choice on this week's
    * directive. Downstream systems read this to know the week resolved without
@@ -70,25 +91,36 @@ export const Q1_SEQUENCE: readonly Q1DirectiveEntry[] = [
   {
     week: 1,
     slug: 'mercy-margin',
-    taskId: mercyMarginTask.id,
+    task: mercyMarginTask,
+    choices: EAST_WILMER_CHOICES,
     resolutionFlag: Q1_WEEK1_RESOLVED,
   },
   {
     week: 2,
     slug: 'queue-triage-followup',
-    taskId: queueTriageFollowupTask.id,
+    task: queueTriageFollowupTask,
+    choices: QUEUE_TRIAGE_CHOICES,
     resolutionFlag: Q1_WEEK2_RESOLVED,
   },
   {
     week: 3,
     slug: 'friday-payroll-shortfall',
-    taskId: fridayPayrollShortfallTask.id,
+    task: fridayPayrollShortfallTask,
+    choices: FRIDAY_PAYROLL_CHOICES,
     resolutionFlag: Q1_WEEK3_RESOLVED,
   },
   {
     week: 4,
     slug: 'east-wilmer-audit-pre-brief',
-    taskId: eastWilmerAuditPreBriefTask.id,
+    task: eastWilmerAuditPreBriefTask,
+    choices: EAST_WILMER_AUDIT_CHOICES,
     resolutionFlag: Q1_WEEK4_RESOLVED,
+  },
+  {
+    week: 5,
+    slug: 'warehouse-dispatch-cut',
+    task: warehouseDispatchCutTask,
+    choices: WAREHOUSE_DISPATCH_CUT_CHOICES,
+    resolutionFlag: Q1_WEEK5_RESOLVED,
   },
 ]

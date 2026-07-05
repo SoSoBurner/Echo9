@@ -8,6 +8,7 @@ import { MERCY_MARGIN_HOOKS } from '@content/consequences/q1/week1-mercy-margin.
 import { QUEUE_TRIAGE_HOOKS } from '@content/consequences/q1/week2-queue-triage-followup.consequences'
 import { FRIDAY_PAYROLL_HOOKS } from '@content/consequences/q1/week3-friday-payroll-shortfall.consequences'
 import { EAST_WILMER_AUDIT_HOOKS } from '@content/consequences/q1/week4-east-wilmer-audit-pre-brief.consequences'
+import { WAREHOUSE_DISPATCH_CUT_HOOKS } from '@content/consequences/q1/week5-warehouse-dispatch-cut.consequences'
 
 // ---------------------------------------------------------------------------
 // Hook registry (§11 — every delayed consequence has the 7 mandatory fields)
@@ -18,6 +19,7 @@ export const ALL_CONSEQUENCE_MODULES: readonly ConsequenceHook[] = [
   ...QUEUE_TRIAGE_HOOKS,
   ...FRIDAY_PAYROLL_HOOKS,
   ...EAST_WILMER_AUDIT_HOOKS,
+  ...WAREHOUSE_DISPATCH_CUT_HOOKS,
 ]
 
 // ---------------------------------------------------------------------------

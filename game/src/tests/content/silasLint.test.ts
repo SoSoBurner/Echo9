@@ -21,6 +21,7 @@ import { INSPECTION_MERCY_MARGIN_PROMPTS } from '@content/silasPrompts/inspectio
 import { Q1_QUEUE_TRIAGE_PROMPTS } from '@content/silasPrompts/q1QueueTriage'
 import { Q1_FRIDAY_PAYROLL_PROMPTS } from '@content/silasPrompts/q1FridayPayroll'
 import { Q1_EAST_WILMER_AUDIT_PROMPTS } from '@content/silasPrompts/q1EastWilmerAudit'
+import { Q1_WAREHOUSE_DISPATCH_CUT_PROMPTS } from '@content/silasPrompts/q1WarehouseDispatchCut'
 import { MODULE_ROSTER } from '@content/modules/moduleRoster'
 
 const ALL_SILAS_PROMPTS: readonly SilasPrompt[] = [
@@ -29,6 +30,7 @@ const ALL_SILAS_PROMPTS: readonly SilasPrompt[] = [
   ...Q1_QUEUE_TRIAGE_PROMPTS,
   ...Q1_FRIDAY_PAYROLL_PROMPTS,
   ...Q1_EAST_WILMER_AUDIT_PROMPTS,
+  ...Q1_WAREHOUSE_DISPATCH_CUT_PROMPTS,
 ]
 
 // Forbidden abstract-jargon — all checks case-insensitive.
@@ -57,6 +59,10 @@ const NAMED_ENTITIES = [
   'East Wilmer',
   'Capital',
   'Welfare',
+  // Sprint C6: Rasha Odenwalder enters as the W5\u2013W8 named victim.
+  // Registered here so future Silas prompts can operationally reference her
+  // without needing to include a digit.
+  'Rasha',
 ]
 const CONCRETE_VERBS = ['reduce', 'defer', 'reallocate', 'file', 'audit']
 
