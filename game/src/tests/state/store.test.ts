@@ -93,6 +93,9 @@ describe('useGameStore — composed root state', () => {
 
   it('exposes inspectionSlice initial state', () => {
     expect(useGameStore.getState().currentInspectionSceneIndex).toBeNull()
+    // C15: the discriminator alongside the cursor. Null when no inspection
+    // is active; identifies which scene set (W4/W8/W12) is running.
+    expect(useGameStore.getState().currentInspectionKey).toBeNull()
     expect(typeof useGameStore.getState().startInspection).toBe('function')
     expect(typeof useGameStore.getState().advanceInspection).toBe('function')
     expect(typeof useGameStore.getState().endInspection).toBe('function')
@@ -127,6 +130,7 @@ describe('useGameStore — persistence partition (§11 guard)', () => {
       isHydrated: false,
       flags: new Set<string>(),
       currentInspectionSceneIndex: null,
+      currentInspectionKey: null,
       capitalDeployedThisQuarter: false,
       pendingFiredHooks: [],
     })
@@ -148,7 +152,7 @@ describe('useGameStore — persistence partition (§11 guard)', () => {
     useGameStore.getState().installModule('MOURNER')
     useGameStore.getState().markHydrated()
     useGameStore.getState().setFlag('SILAS_OVERRIDE_AVAILABLE')
-    useGameStore.getState().startInspection()
+    useGameStore.getState().startInspection('W4')
     useGameStore.getState().markCapitalDeployed()
     useGameStore.getState().enqueueFired([makeHook()])
 
@@ -175,6 +179,8 @@ describe('useGameStore — persistence partition (§11 guard)', () => {
     expect(parsed.state).not.toHaveProperty('lastSavedAt')
     // Inspection cursor is transient runtime UI — must NOT persist.
     expect(parsed.state).not.toHaveProperty('currentInspectionSceneIndex')
+    // C15: the discriminator is transient runtime UI alongside the cursor.
+    expect(parsed.state).not.toHaveProperty('currentInspectionKey')
 
     // `flags` is serialised as Array (JSON cannot encode Set).
     expect(Array.isArray(parsed.state.flags)).toBe(true)

@@ -56,18 +56,31 @@ function freshTraceId(): TraceId {
 }
 
 // ---------------------------------------------------------------------------
-// T9 content wiring — real modules replace T8's MOCK_* constants.
+// C15 content wiring — Q1_SEQUENCE derivation drives the whole 12-week arc.
+// Layout selects `currentEntry` by scanning for the first unresolved week
+// (see `directiveSchedule.ts` doc comment) — no cursor slice, no persist,
+// no drift. All per-week content flows from `currentEntry`.
 // ---------------------------------------------------------------------------
-import {
-  mercyMarginTask,
-  LENORA_PORTAL_MESSAGE,
-  MERCY_MARGIN_NULL_TEXT,
-} from '@content/tasks/q1/week1-mercy-margin.task'
-import { EAST_WILMER_CHOICES } from '@content/choices/q1/week1-mercy-margin.choices'
-import { SILAS_DIRECTIVE_EAST_WILMER } from '@content/silasPrompts/q1EastWilmer'
 import { ALL_CONSEQUENCE_MODULES } from '@content/index'
-import { Q1_INSPECTION_SCENES } from '@content/inspections/q1Inspection.scene'
+import {
+  Q1_INSPECTION_SETS,
+  type Q1InspectionKey,
+} from '@content/inspections/q1InspectionSets'
 import { Q1_CAPITAL_CARDS } from '@content/capitalDeployments/q1CapitalPower.cards'
+import { Q1_SEQUENCE, type Q1Week } from '@content/directiveSchedule'
+
+/**
+ * Reverse lookup: for a given inspection key, find the Q1 week whose
+ * resolution just fired the inspection. Used by `handleInspectionCommit` to
+ * populate `sourceTaskId` on the inspection trace — by the time the
+ * inspection resolves the derivation has already advanced past that week,
+ * so the currentEntry selector no longer sees it.
+ */
+const INSPECTION_KEY_TO_WEEK: Readonly<Record<Q1InspectionKey, Q1Week>> = {
+  W4: 4,
+  W8: 8,
+  W12: 12,
+}
 
 // ---------------------------------------------------------------------------
 // Layout component
@@ -86,9 +99,12 @@ export function Layout() {
   const setPhase = useGameStore((s) => s.setPhase)
   const markCapitalDeployed = useGameStore((s) => s.markCapitalDeployed)
 
-  // INSPECTION panel state — cursor + flags drive both the open-condition
-  // and the engine call. The cursor is `null` whenever no scene is active.
+  // INSPECTION panel state — cursor + key + flags drive both the open
+  // condition and the engine call. The cursor is `null` whenever no scene
+  // is active; the key (`W4|W8|W12`) discriminates which scene list the
+  // cursor is walking (C15 registry gate).
   const currentInspectionSceneIndex = useGameStore((s) => s.currentInspectionSceneIndex)
+  const currentInspectionKey = useGameStore((s) => s.currentInspectionKey)
   const flags = useGameStore((s) => s.flags)
   // CAPITAL panel — opens when CAPITAL > 80 AND not yet deployed this quarter.
   // `showCapital` is local UI state so the player can defer (ESC) without
@@ -146,15 +162,32 @@ export function Layout() {
     return m
   }, [])
 
+  // C15: derive the active week's directive entry from flags. Scanning
+  // `Q1_SEQUENCE` for the first entry whose `resolutionFlag` is not yet in
+  // the flag set is the canonical rule (see `directiveSchedule.ts` doc
+  // comment) — no cursor slice, no persist drift. `undefined` = all 12
+  // weeks resolved (Q1 closed; End-of-Content overlay is driven by its own
+  // hook independently of this derivation).
+  const currentEntry = useMemo(
+    () => Q1_SEQUENCE.find((entry) => !flags.has(entry.resolutionFlag)),
+    [flags],
+  )
+
   const handleChoiceCommit = useCallback(
     (id: ChoiceId) => {
+      // No active week (post-Q1 close) — nothing to commit.
+      if (!currentEntry) return
+
       markBeat('firstChoiceCommit')
-      // 1. Resolve the ChoiceNode by id.
-      const choice = EAST_WILMER_CHOICES.find((c) => c.id === id)
+      // 1. Resolve the ChoiceNode by id against the current week's choice
+      //    set (C15: was hardcoded to EAST_WILMER_CHOICES / Week 1).
+      const choice = currentEntry.choices.find((c) => c.id === id)
       if (!choice) {
         // Content authoring bug — surface loudly in dev, ignore in prod.
         if (import.meta.env.DEV) {
-          console.error(`Layout.handleChoiceCommit: unknown ChoiceId "${id}"`)
+          console.error(
+            `Layout.handleChoiceCommit: unknown ChoiceId "${id}" for week ${currentEntry.week} (${currentEntry.slug})`,
+          )
         }
         return
       }
@@ -195,50 +228,97 @@ export function Layout() {
         scheduleHook(hook)
       }
 
-      // 6. Trigger the result panel.
+      // 6. Mark this week resolved — the derivation will find the next
+      //    unresolved entry on the next render, advancing the arc without
+      //    any cursor slice.
+      setFlag(currentEntry.resolutionFlag)
+
+      // 7. Trigger the result panel.
       setLastTrace(trace)
 
-      // 7. Auto-advance to INSPECTION on the "just-crossed" downward transition
-      //    of OWNER_CONTROL through 40 (PLAN.md §7: "At <40, Silas suspects
-      //    deviation"). The semantic must be a threshold crossing rather than
-      //    a static below-threshold check — meters start at 0, so a naive
-      //    `nextOC < 40` would fire on turn 1 before the player has done
-      //    anything Silas could suspect. `prev >= 40 && next < 40` captures
-      //    the design intent of a drop through the line.
+      // 8. C15 dispatch: fire W4/W8/W12 inspections when the just-resolved
+      //    week's insertion point + gate condition match. The inspection is
+      //    modal — it will render on top of the ResultCard until the player
+      //    walks the scene set.
       //
-      //    Read `phase` and `currentInspectionSceneIndex` from live state (not
-      //    the render-time selectors) so back-to-back commits during a single
-      //    render pass never re-trigger startInspection on stale values.
+      //    W4  East Wilmer field visit — OWNER_CONTROL < 40 after this
+      //        commit lands. Simpler than T11's "just-crossed" edge check:
+      //        scoping to Week 4 resolution means the beat fires reliably
+      //        the moment the audit-pre-brief resolves under duress, even
+      //        if OC crossed 40 earlier. (No re-fire risk because a week
+      //        only resolves once — the resolutionFlag guards it.)
+      //    W8  Payroll audit hearing — the arc doc gates this on
+      //        `OWNER_CONTROL < 40 || flags.has(PAYROLL_AUDIT_DONE)`. Since
+      //        every Week 8 choice is authored to set PAYROLL_AUDIT_DONE
+      //        (week8 task doc), the OR-branch is effectively always true
+      //        at Week 8 resolution — the audit exists in either case.
+      //        Treating W8 as unconditional at Week 8 resolution matches
+      //        the design intent without racing the flag-set inside the
+      //        same commit (`flags.has(...)` here would read stale state).
+      //    W12 Ethics hearing — unconditional at Q1 close.
       const prevOC = snapshot.meters.OWNER_CONTROL
       const deltaOC = choice.meterDeltas.OWNER_CONTROL ?? 0
       const nextOC = prevOC + deltaOC
-      if (prevOC >= 40 && nextOC < 40) {
+      let inspectionKey: Q1InspectionKey | null = null
+      if (currentEntry.week === 4 && nextOC < 40) {
+        inspectionKey = 'W4'
+      } else if (currentEntry.week === 8) {
+        inspectionKey = 'W8'
+      } else if (currentEntry.week === 12) {
+        inspectionKey = 'W12'
+      }
+      if (inspectionKey !== null) {
         const live = useGameStore.getState()
-        if (live.phase !== 'INSPECTION' && live.currentInspectionSceneIndex === null) {
-          startInspection()
+        if (
+          live.phase !== 'INSPECTION' &&
+          live.currentInspectionSceneIndex === null
+        ) {
+          startInspection(inspectionKey)
           setPhase('INSPECTION')
           markBeat('inspectionEntered')
         }
       }
     },
-    [hookCatalog, applyDelta, appendTrace, scheduleHook, startInspection, setPhase],
+    [
+      currentEntry,
+      hookCatalog,
+      applyDelta,
+      appendTrace,
+      scheduleHook,
+      setFlag,
+      startInspection,
+      setPhase,
+    ],
   )
 
   // -------------------------------------------------------------------------
   // INSPECTION commit — resolve posture, fan out to store, advance cursor.
+  // C15: the active scene list is resolved from the registry using the key
+  // the slice carries alongside the cursor — no more Q1_INSPECTION_SCENES
+  // hardcode. The source-task id is reverse-looked-up from the key because
+  // by the time the inspection resolves, the currentEntry derivation has
+  // already advanced past the week that fired it.
   // -------------------------------------------------------------------------
   const handleInspectionCommit = useCallback(
     (postureId: string) => {
-      if (currentInspectionSceneIndex === null) return
-      const scene = Q1_INSPECTION_SCENES[currentInspectionSceneIndex]
+      if (currentInspectionSceneIndex === null || currentInspectionKey === null) return
+      const scenes = Q1_INSPECTION_SETS[currentInspectionKey]
+      const scene = scenes[currentInspectionSceneIndex]
       if (!scene) return
+
+      const sourceWeek = INSPECTION_KEY_TO_WEEK[currentInspectionKey]
+      const sourceEntry = Q1_SEQUENCE.find((e) => e.week === sourceWeek)
+      // sourceEntry cannot be undefined — the schedule contains all 12 weeks
+      // and the key→week map is exhaustive — but fall back to the raw task
+      // lookup shape rather than crashing if content is somehow malformed.
+      const sourceTaskId = sourceEntry?.task.id ?? makeTaskId(`q1-${currentInspectionKey}-inspection`)
 
       const { meters, scheduledConsequences, ledger, flags: liveFlags } = useGameStore.getState()
       const snapshot = { meters, scheduledConsequences, ledger, flags: liveFlags }
       const ctx = {
         now: Date.now(),
         traceId: freshTraceId(),
-        sourceTaskId: mercyMarginTask.id,
+        sourceTaskId,
         sourceChoiceId: makeChoiceId(`inspection-${scene.id}-${postureId}`),
       }
 
@@ -251,9 +331,16 @@ export function Layout() {
       appendTrace(trace)
       for (const hook of scheduled) scheduleHook(hook)
 
-      advanceInspection(Q1_INSPECTION_SCENES.length)
+      advanceInspection(scenes.length)
     },
-    [currentInspectionSceneIndex, applyDelta, appendTrace, scheduleHook, advanceInspection],
+    [
+      currentInspectionSceneIndex,
+      currentInspectionKey,
+      applyDelta,
+      appendTrace,
+      scheduleHook,
+      advanceInspection,
+    ],
   )
 
   // -------------------------------------------------------------------------
@@ -361,10 +448,25 @@ export function Layout() {
   const showResult = phase === 'FIRST_RESULT' || lastTrace !== null
 
   // Active inspection scene — null whenever the panel should not render.
+  // C15: resolves via the registry using the discriminator key.
+  const activeInspectionScenes =
+    currentInspectionKey !== null ? Q1_INSPECTION_SETS[currentInspectionKey] : null
   const activeInspectionScene =
-    currentInspectionSceneIndex !== null
-      ? Q1_INSPECTION_SCENES[currentInspectionSceneIndex] ?? null
+    activeInspectionScenes !== null && currentInspectionSceneIndex !== null
+      ? activeInspectionScenes[currentInspectionSceneIndex] ?? null
       : null
+
+  // Continue-to-next-week callback for ResultCard. Clearing lastTrace flips
+  // the center panel back to the directive view, and the currentEntry
+  // derivation has already advanced to the next unresolved week (setFlag
+  // in handleChoiceCommit did the advance). We also reset phase back to
+  // FIRST_DIRECTIVE so downstream code that gates on phase sees the arc
+  // has moved on. If no next week exists (Q1 closed), the center panel
+  // renders the closed-arc placeholder instead of another directive.
+  const handleContinue = useCallback(() => {
+    setLastTrace(null)
+    setPhase('FIRST_DIRECTIVE')
+  }, [setPhase])
 
   return (
     <>
@@ -417,23 +519,30 @@ export function Layout() {
           className="overflow-y-auto border-r border-sealed-dim px-6 py-6"
         >
           {showResult && lastTrace ? (
-            <ResultCard trace={lastTrace} />
-          ) : (
+            <ResultCard
+              trace={lastTrace}
+              onContinue={currentEntry ? handleContinue : undefined}
+            />
+          ) : currentEntry ? (
             <CenterDirectivePanel
-              task={mercyMarginTask}
-              choices={[...EAST_WILMER_CHOICES]}
-              nullText={MERCY_MARGIN_NULL_TEXT}
-              humanMessage={LENORA_PORTAL_MESSAGE}
+              task={currentEntry.task}
+              choices={[...currentEntry.choices]}
+              nullText={currentEntry.nullText}
+              humanMessage={currentEntry.humanMessage}
               onChoiceCommit={handleChoiceCommit}
               registerKeyboardHandlers={registerChoiceHandlers}
             />
+          ) : (
+            <div className="text-fg-secondary text-sm font-mono">
+              Q1 closed. All twelve weeks resolved.
+            </div>
           )}
         </div>
 
         {/* right — module console (top) + Silas panel (below) share the column */}
         <div style={{ gridArea: 'right' }} className="overflow-y-auto flex flex-col">
           <RightModuleConsole registerModuleFocus={registerModuleFocus} />
-          <SilasPromptPanel prompt={SILAS_DIRECTIVE_EAST_WILMER} />
+          {currentEntry && <SilasPromptPanel prompt={currentEntry.silasPrompt} />}
         </div>
 
         {/* logdock — T13: rolling ledger view + lazy virtualized history */}
@@ -450,13 +559,13 @@ export function Layout() {
         DOM. Native <dialog> goes to the top layer regardless of position,
         but this keeps the JSX readable.
       */}
-      {activeInspectionScene && currentInspectionSceneIndex !== null && (
+      {activeInspectionScene && activeInspectionScenes && currentInspectionSceneIndex !== null && (
         <InspectionPanel
           scene={activeInspectionScene}
           flags={flags}
           onCommit={handleInspectionCommit}
           questionNumber={currentInspectionSceneIndex + 1}
-          totalQuestions={Q1_INSPECTION_SCENES.length}
+          totalQuestions={activeInspectionScenes.length}
         />
       )}
       {showCapital && (

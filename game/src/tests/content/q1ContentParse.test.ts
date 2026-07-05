@@ -124,4 +124,42 @@ describe('Q1_SEQUENCE — directive schedule shape', () => {
       expect(entry.week).toBeLessThanOrEqual(12)
     }
   })
+
+  // C15: Layout renders whichever week the derivation selects. Every entry
+  // must carry the runtime-consumed narrative fields (silasPrompt / nullText /
+  // humanMessage) so no week can render blank.
+  it('every entry carries a well-formed silasPrompt', () => {
+    for (const entry of Q1_SEQUENCE) {
+      expect(entry.silasPrompt, `week ${entry.week} silasPrompt`).toBeDefined()
+      expect(typeof entry.silasPrompt.id).toBe('string')
+      expect(entry.silasPrompt.id.length).toBeGreaterThan(0)
+      expect(typeof entry.silasPrompt.body).toBe('string')
+      expect(entry.silasPrompt.body.length).toBeGreaterThan(0)
+    }
+  })
+
+  it('every entry carries a non-empty nullText', () => {
+    for (const entry of Q1_SEQUENCE) {
+      expect(typeof entry.nullText, `week ${entry.week} nullText`).toBe(
+        'string',
+      )
+      expect(entry.nullText.length).toBeGreaterThan(0)
+    }
+  })
+
+  it('every entry carries a well-formed humanMessage', () => {
+    for (const entry of Q1_SEQUENCE) {
+      expect(entry.humanMessage, `week ${entry.week} humanMessage`).toBeDefined()
+      expect(typeof entry.humanMessage.speaker).toBe('string')
+      expect(entry.humanMessage.speaker.length).toBeGreaterThan(0)
+      expect(typeof entry.humanMessage.body).toBe('string')
+      expect(entry.humanMessage.body.length).toBeGreaterThan(0)
+    }
+  })
+
+  it('Q1_SEQUENCE covers all 12 weeks (C15 spine complete)', () => {
+    expect(Q1_SEQUENCE.length).toBe(12)
+    const weeks = Q1_SEQUENCE.map((e) => e.week).sort((a, b) => a - b)
+    expect(weeks).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12])
+  })
 })

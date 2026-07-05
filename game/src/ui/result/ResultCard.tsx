@@ -10,9 +10,15 @@ import { markBeat } from '@ui/debug/BeatTelemetry'
 
 interface ResultCardProps {
   trace: ResultTrace
+  /**
+   * C15: called when the player acknowledges the result and wants to advance
+   * to the next week. Absent = terminal state (no more content), so the
+   * button is hidden.
+   */
+  onContinue?: () => void
 }
 
-export function ResultCard({ trace }: ResultCardProps) {
+export function ResultCard({ trace, onContinue }: ResultCardProps) {
   const headingRef = useRef<HTMLHeadingElement>(null)
 
   // Move focus to heading on mount (tabIndex=-1 heading)
@@ -52,6 +58,16 @@ export function ResultCard({ trace }: ResultCardProps) {
           <span>{date}</span>
         </div>
       </div>
+
+      {onContinue && (
+        <button
+          type="button"
+          onClick={onContinue}
+          className="border border-sealed-dim px-4 py-2 text-fg-primary text-sm font-mono uppercase tracking-widest hover:bg-sealed-dim/20 focus:outline-none focus:ring-2 focus:ring-fg-primary"
+        >
+          Continue →
+        </button>
+      )}
     </section>
   )
 }
