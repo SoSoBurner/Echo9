@@ -64,6 +64,7 @@ export const Q1_WEEK5_RESOLVED = 'Q1_WEEK5_RESOLVED' as const
 export const Q1_WEEK6_RESOLVED = 'Q1_WEEK6_RESOLVED' as const
 export const Q1_WEEK7_RESOLVED = 'Q1_WEEK7_RESOLVED' as const
 export const Q1_WEEK8_RESOLVED = 'Q1_WEEK8_RESOLVED' as const
+export const Q1_WEEK9_RESOLVED = 'Q1_WEEK9_RESOLVED' as const
 
 /**
  * Set by Week 8's `payroll-audit-inspection` directive on ANY choice.

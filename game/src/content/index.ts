@@ -12,6 +12,7 @@ import { WAREHOUSE_DISPATCH_CUT_HOOKS } from '@content/consequences/q1/week5-war
 import { COMMANDER_OVERRIDE_HOOKS } from '@content/consequences/q1/week6-commander-override-pressure.consequences'
 import { DEFERRED_SAFETY_HOOKS } from '@content/consequences/q1/week7-deferred-safety-inspection.consequences'
 import { PAYROLL_AUDIT_HOOKS } from '@content/consequences/q1/week8-payroll-audit-inspection.consequences'
+import { SCHOOLS_CONTRACT_RENEWAL_HOOKS } from '@content/consequences/q1/week9-schools-contract-renewal.consequences'
 
 // ---------------------------------------------------------------------------
 // Hook registry (§11 — every delayed consequence has the 7 mandatory fields)
@@ -26,6 +27,7 @@ export const ALL_CONSEQUENCE_MODULES: readonly ConsequenceHook[] = [
   ...COMMANDER_OVERRIDE_HOOKS,
   ...DEFERRED_SAFETY_HOOKS,
   ...PAYROLL_AUDIT_HOOKS,
+  ...SCHOOLS_CONTRACT_RENEWAL_HOOKS,
 ]
 
 // ---------------------------------------------------------------------------

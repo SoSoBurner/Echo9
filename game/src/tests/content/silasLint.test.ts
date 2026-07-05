@@ -25,6 +25,7 @@ import { Q1_WAREHOUSE_DISPATCH_CUT_PROMPTS } from '@content/silasPrompts/q1Wareh
 import { Q1_COMMANDER_OVERRIDE_PROMPTS } from '@content/silasPrompts/q1CommanderOverride'
 import { Q1_DEFERRED_SAFETY_PROMPTS } from '@content/silasPrompts/q1DeferredSafety'
 import { Q1_PAYROLL_AUDIT_PROMPTS } from '@content/silasPrompts/q1PayrollAudit'
+import { Q1_SCHOOLS_CONTRACT_RENEWAL_PROMPTS } from '@content/silasPrompts/q1SchoolsContractRenewal'
 import { MODULE_ROSTER } from '@content/modules/moduleRoster'
 
 const ALL_SILAS_PROMPTS: readonly SilasPrompt[] = [
@@ -37,6 +38,7 @@ const ALL_SILAS_PROMPTS: readonly SilasPrompt[] = [
   ...Q1_COMMANDER_OVERRIDE_PROMPTS,
   ...Q1_DEFERRED_SAFETY_PROMPTS,
   ...Q1_PAYROLL_AUDIT_PROMPTS,
+  ...Q1_SCHOOLS_CONTRACT_RENEWAL_PROMPTS,
 ]
 
 // Forbidden abstract-jargon — all checks case-insensitive.
@@ -74,6 +76,10 @@ const NAMED_ENTITIES = [
   // can name the module by role (Commander demanding, Sentinel armed,
   // Mourner speaking, etc.) without needing to include a digit.
   'Commander',
+  // Sprint C10: Dhruv Meyer enters as the W9\u2013W12 named face (public
+  // schools contract liaison). Registered here so W9\u2013W12 prompts can
+  // name him operationally without relying on a digit for detail.
+  'Dhruv',
 ]
 const CONCRETE_VERBS = ['reduce', 'defer', 'reallocate', 'file', 'audit']
 
