@@ -22,6 +22,7 @@ import { Q1_QUEUE_TRIAGE_PROMPTS } from '@content/silasPrompts/q1QueueTriage'
 import { Q1_FRIDAY_PAYROLL_PROMPTS } from '@content/silasPrompts/q1FridayPayroll'
 import { Q1_EAST_WILMER_AUDIT_PROMPTS } from '@content/silasPrompts/q1EastWilmerAudit'
 import { Q1_WAREHOUSE_DISPATCH_CUT_PROMPTS } from '@content/silasPrompts/q1WarehouseDispatchCut'
+import { Q1_COMMANDER_OVERRIDE_PROMPTS } from '@content/silasPrompts/q1CommanderOverride'
 import { MODULE_ROSTER } from '@content/modules/moduleRoster'
 
 const ALL_SILAS_PROMPTS: readonly SilasPrompt[] = [
@@ -31,6 +32,7 @@ const ALL_SILAS_PROMPTS: readonly SilasPrompt[] = [
   ...Q1_FRIDAY_PAYROLL_PROMPTS,
   ...Q1_EAST_WILMER_AUDIT_PROMPTS,
   ...Q1_WAREHOUSE_DISPATCH_CUT_PROMPTS,
+  ...Q1_COMMANDER_OVERRIDE_PROMPTS,
 ]
 
 // Forbidden abstract-jargon — all checks case-insensitive.
@@ -63,6 +65,11 @@ const NAMED_ENTITIES = [
   // Registered here so future Silas prompts can operationally reference her
   // without needing to include a digit.
   'Rasha',
+  // Sprint C7: Commander module enters as a module role Silas can reference
+  // by name. Registered as an operational-detail entity so W7-W8 prompts
+  // can name the module by role (Commander demanding, Sentinel armed,
+  // Mourner speaking, etc.) without needing to include a digit.
+  'Commander',
 ]
 const CONCRETE_VERBS = ['reduce', 'defer', 'reallocate', 'file', 'audit']
 

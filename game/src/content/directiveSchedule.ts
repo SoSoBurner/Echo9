@@ -35,17 +35,20 @@ import { queueTriageFollowupTask } from '@content/tasks/q1/week2-queue-triage-fo
 import { fridayPayrollShortfallTask } from '@content/tasks/q1/week3-friday-payroll-shortfall.task'
 import { eastWilmerAuditPreBriefTask } from '@content/tasks/q1/week4-east-wilmer-audit-pre-brief.task'
 import { warehouseDispatchCutTask } from '@content/tasks/q1/week5-warehouse-dispatch-cut.task'
+import { commanderOverridePressureTask } from '@content/tasks/q1/week6-commander-override-pressure.task'
 import { EAST_WILMER_CHOICES } from '@content/choices/q1/week1-mercy-margin.choices'
 import { QUEUE_TRIAGE_CHOICES } from '@content/choices/q1/week2-queue-triage-followup.choices'
 import { FRIDAY_PAYROLL_CHOICES } from '@content/choices/q1/week3-friday-payroll-shortfall.choices'
 import { EAST_WILMER_AUDIT_CHOICES } from '@content/choices/q1/week4-east-wilmer-audit-pre-brief.choices'
 import { WAREHOUSE_DISPATCH_CUT_CHOICES } from '@content/choices/q1/week5-warehouse-dispatch-cut.choices'
+import { COMMANDER_OVERRIDE_CHOICES } from '@content/choices/q1/week6-commander-override-pressure.choices'
 import {
   Q1_WEEK1_RESOLVED,
   Q1_WEEK2_RESOLVED,
   Q1_WEEK3_RESOLVED,
   Q1_WEEK4_RESOLVED,
   Q1_WEEK5_RESOLVED,
+  Q1_WEEK6_RESOLVED,
 } from '@systems/gameFlags'
 
 /**
@@ -122,5 +125,12 @@ export const Q1_SEQUENCE: readonly Q1DirectiveEntry[] = [
     task: warehouseDispatchCutTask,
     choices: WAREHOUSE_DISPATCH_CUT_CHOICES,
     resolutionFlag: Q1_WEEK5_RESOLVED,
+  },
+  {
+    week: 6,
+    slug: 'commander-override-pressure',
+    task: commanderOverridePressureTask,
+    choices: COMMANDER_OVERRIDE_CHOICES,
+    resolutionFlag: Q1_WEEK6_RESOLVED,
   },
 ]

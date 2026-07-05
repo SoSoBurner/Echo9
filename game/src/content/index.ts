@@ -9,6 +9,7 @@ import { QUEUE_TRIAGE_HOOKS } from '@content/consequences/q1/week2-queue-triage-
 import { FRIDAY_PAYROLL_HOOKS } from '@content/consequences/q1/week3-friday-payroll-shortfall.consequences'
 import { EAST_WILMER_AUDIT_HOOKS } from '@content/consequences/q1/week4-east-wilmer-audit-pre-brief.consequences'
 import { WAREHOUSE_DISPATCH_CUT_HOOKS } from '@content/consequences/q1/week5-warehouse-dispatch-cut.consequences'
+import { COMMANDER_OVERRIDE_HOOKS } from '@content/consequences/q1/week6-commander-override-pressure.consequences'
 
 // ---------------------------------------------------------------------------
 // Hook registry (§11 — every delayed consequence has the 7 mandatory fields)
@@ -20,6 +21,7 @@ export const ALL_CONSEQUENCE_MODULES: readonly ConsequenceHook[] = [
   ...FRIDAY_PAYROLL_HOOKS,
   ...EAST_WILMER_AUDIT_HOOKS,
   ...WAREHOUSE_DISPATCH_CUT_HOOKS,
+  ...COMMANDER_OVERRIDE_HOOKS,
 ]
 
 // ---------------------------------------------------------------------------
