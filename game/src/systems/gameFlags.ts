@@ -58,3 +58,4 @@ export const CHAMPION_DEFIED = 'CHAMPION_DEFIED' as const
  */
 export const Q1_WEEK1_RESOLVED = 'Q1_WEEK1_RESOLVED' as const
 export const Q1_WEEK2_RESOLVED = 'Q1_WEEK2_RESOLVED' as const
+export const Q1_WEEK3_RESOLVED = 'Q1_WEEK3_RESOLVED' as const
