@@ -142,13 +142,16 @@ function resolveSubjects(args) {
 // ---------------------------------------------------------------------------
 
 async function callImagesApi(prompt, apiKey) {
+  // gpt-image-1 always returns base64 in `data[0].b64_json` and REJECTS the
+  // `response_format` parameter with a 400 (unknown_parameter). The older
+  // dall-e-* models accepted `response_format`, so this script previously
+  // sent it — leave the docs URL as a bread-crumb for the next author:
+  //   https://platform.openai.com/docs/api-reference/images/create
   const body = {
     model: OPENAI_IMAGE_MODEL,
     prompt,
     size: OPENAI_IMAGE_SIZE,
     n: 1,
-    // Request b64_json so we don't have to make a second request for the URL.
-    response_format: 'b64_json',
   }
   const res = await fetch(OPENAI_ENDPOINT, {
     method: 'POST',

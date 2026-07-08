@@ -63,7 +63,26 @@ export const STYLE_PREFIX =
  *                final prompt
  */
 export const SUBJECTS = /** @type {const} */ ([
-  // V2 adds: silas
+  // V2 — Silas Vance, owner-operator antagonist. §10 casts him as a busy,
+  // tired founder with operating pressure — never a villain explaining the
+  // game. The portrait must read as *human* first, *antagonist* second: it
+  // should feel like the player is looking at a manager who has already
+  // decided what the day requires and is only now telling them.
+  //
+  // Descriptor discipline notes (docs/art/portrait-style.md):
+  //   - Silhouette → mood → token prop, one sentence.
+  //   - No color words — the accent slot handles the amber (#D97757).
+  //   - The "already-made-the-decision" tension is the mood beat that
+  //     differentiates Silas from a stock CFO stock photo.
+  {
+    id: 'silas',
+    name: 'Silas Vance',
+    accent: 'silas',
+    descriptor:
+      'A tired owner-operator in his late 40s, close-cropped hair going grey at the temples, ' +
+      'half-smile with worry lines, tie loosened at an unbuttoned collar, ' +
+      'a folded quarterly report tucked against his chest.',
+  },
   // V3 adds: null
   // V4 adds: forecaster, morane-audit, upstream-forgiveness, bargain-hunt,
   //          collateral-caretaker, veiled-syndicate, deferral-atlas,
