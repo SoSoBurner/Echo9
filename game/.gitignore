@@ -22,3 +22,11 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# OpenAI API key files — the portrait pipeline reads OPENAI_API_KEY from env
+# only, but a stray .openai-key or .env dropped into the repo would be trivial
+# to leak. Belt-and-suspenders.
+.openai-key
+.env
+.env.*
+!.env.example
