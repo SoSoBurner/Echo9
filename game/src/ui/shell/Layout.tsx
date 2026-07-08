@@ -29,6 +29,7 @@ import { InspectionPanel } from '@ui/inspection/InspectionPanel'
 import { CapitalPowerPanel } from '@ui/capital/CapitalPowerPanel'
 import { ConsequenceReturnPanel } from '@ui/consequence/ConsequenceReturnPanel'
 import { EventQueueToast } from '@ui/consequence/EventQueueToast'
+import { EndOfContentOverlay } from '@ui/endOfContent/EndOfContentOverlay'
 import { LogDock } from '@ui/log/LogDock'
 import { useKeyboardNav } from './useKeyboardNav'
 import { markBeat } from '@ui/debug/BeatTelemetry'
@@ -233,14 +234,14 @@ export function Layout() {
       //    unresolved entry on the next render, advancing the arc without
       //    any cursor slice.
       setFlag(currentEntry.resolutionFlag)
-      // C16: mirror the resolutionFlag with Q1_CLOSED on Week 12 so the
-      //   End-of-Content boundary reads the same flag on every W12 posture.
-      //   Pre-C16 the demo boundary was pinned to a W1 optional-consequence
-      //   hook id, which only fired on one specific W1 path. See
-      //   `contentBoundary.manifest.ts` for the new terminal-flag export.
-      if (currentEntry.week === 12) {
-        setFlag(Q1_CLOSED)
-      }
+      // C16 note: Q1_CLOSED is NOT set here even for Week 12. The terminal
+      //   hook's reveal condition is FLAG on Q1_CLOSED, and firing it during
+      //   the W12 choice commit races the W12 inspection dispatch — a
+      //   consequence-return dialog would stack on top of the inspection
+      //   modal. Q1_CLOSED is now set in handleInspectionCommit on the LAST
+      //   W12 scene commit, matching the terminal hook's own narrative
+      //   register ("the ledger is at rest") which reads as after the ethics
+      //   hearing, not concurrent with it.
 
       // 7. Trigger the result panel.
       setLastTrace(trace)
@@ -340,7 +341,20 @@ export function Layout() {
       appendTrace(trace)
       for (const hook of scheduled) scheduleHook(hook)
 
+      // C16: capture "is this the LAST scene of the W12 ethics hearing" BEFORE
+      // advanceInspection nulls the sceneIndex+key. On the last W12 scene
+      // commit, set Q1_CLOSED — this fires the terminal hook AFTER the
+      // inspection modal has unmounted (advanceInspection runs first), so the
+      // consequence-return dialog opens cleanly without racing an open modal.
+      const isLastW12Scene =
+        currentInspectionKey === 'W12' &&
+        currentInspectionSceneIndex === scenes.length - 1
+
       advanceInspection(scenes.length)
+
+      if (isLastW12Scene) {
+        setFlag(Q1_CLOSED)
+      }
     },
     [
       currentInspectionSceneIndex,
@@ -349,6 +363,7 @@ export function Layout() {
       appendTrace,
       scheduleHook,
       advanceInspection,
+      setFlag,
     ],
   )
 
@@ -596,6 +611,14 @@ export function Layout() {
         open={showConsequencePanel}
         onClose={() => setShowConsequencePanel(false)}
       />
+      {/*
+        C5: EndOfContentOverlay mounts here alongside the other modals. It
+        self-gates on `endOfContentSeen` — the flag flips true when
+        ackFirstPending() drains the terminal Content-Boundary hook, which
+        gets enqueued when Q1_CLOSED is set at the last W12 inspection scene
+        commit (see handleInspectionCommit).
+      */}
+      <EndOfContentOverlay />
     </>
   )
 }

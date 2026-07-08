@@ -142,17 +142,31 @@ async function readState(page: Page): Promise<{
 }
 
 async function drainEchoIfPresent(page: Page): Promise<boolean> {
+  // Target the consequence-return dialog by its accessible name so we never
+  // grab a stacked inspection dialog by mistake (e.g. Week 12 where the
+  // terminal Q1_CLOSED hook can enqueue near an ongoing inspection).
   const toast = page.getByRole('status').filter({ hasText: /echoe?s? pending/i })
   const hasEcho = await toast.isVisible({ timeout: 1_500 }).catch(() => false)
   if (!hasEcho) return false
-  await page.keyboard.press('c')
-  const dialog = page.getByRole('dialog').first()
-  const opened = await dialog.isVisible({ timeout: 3_000 }).catch(() => false)
-  if (opened) {
+  // Multiple hooks can be queued; drain until the toast disappears. Cap at a
+  // safe iteration count so a stuck dialog can't spin forever.
+  const MAX_DRAIN = 8
+  for (let i = 0; i < MAX_DRAIN; i += 1) {
+    const stillPending = await toast
+      .isVisible({ timeout: 500 })
+      .catch(() => false)
+    if (!stillPending) return true
+    await page.keyboard.press('c')
+    const dialog = page.getByRole('dialog', { name: /consequence returns/i })
+    const opened = await dialog.isVisible({ timeout: 3_000 }).catch(() => false)
+    if (!opened) return true
     const ack = dialog.getByRole('button', { name: /acknowledge/i })
     if (await ack.isVisible().catch(() => false)) {
       await ack.click()
       await expect(dialog).toBeHidden({ timeout: 5_000 })
+    } else {
+      // Dialog opened but no ack button — bail rather than loop forever.
+      return true
     }
   }
   return true
@@ -292,6 +306,11 @@ test.describe('C15 full playtest — Q1 arc walked to end-of-content', () => {
           page,
           week === 4 ? 'W4' : week === 8 ? 'W8' : 'W12',
         )
+        // C16: the last W12 inspection scene commit sets Q1_CLOSED, which
+        // enqueues the terminal Content-Boundary hook. Drain it here so
+        // ackFirstPending() flips endOfContentSeen → EndOfContentOverlay opens.
+        // (W4/W8 may also enqueue hooks; drain them too for consistency.)
+        await drainEchoIfPresent(page)
       }
 
       // Result card → Continue → next week.
