@@ -16,6 +16,7 @@ import React from 'react'
 import { TopBar } from '@ui/topbar/TopBar'
 import { useGameStore } from '@state/store'
 import { resetStore } from '@tests/state/testHelpers'
+import { Q1_WEEK1_RESOLVED, Q1_WEEK2_RESOLVED } from '@systems/gameFlags'
 
 describe('TopBar — Target Variance + Silas Approval', () => {
   beforeEach(() => {
@@ -94,5 +95,32 @@ describe('TopBar — Target Variance + Silas Approval', () => {
     expect(useGameStore.getState().silasApproval).toBe(0)
     useGameStore.getState().setSilasApproval(250)
     expect(useGameStore.getState().silasApproval).toBe(100)
+  })
+
+  // Sprint C15b — the week label was hardcoded "Q1 W1" through all 12 weeks.
+  // It now reads from selectCurrentWeek and advances with each resolutionFlag.
+  it('renders Q1 W1 on a fresh state', () => {
+    render(React.createElement(TopBar))
+    expect(screen.getByLabelText('Current week').textContent).toBe('Q1 W1')
+  })
+
+  it('advances the week label as Q1 flags resolve', () => {
+    render(React.createElement(TopBar))
+    expect(screen.getByLabelText('Current week').textContent).toBe('Q1 W1')
+    act(() => {
+      useGameStore.getState().setFlag(Q1_WEEK1_RESOLVED)
+    })
+    expect(screen.getByLabelText('Current week').textContent).toBe('Q1 W2')
+    act(() => {
+      useGameStore.getState().setFlag(Q1_WEEK2_RESOLVED)
+    })
+    expect(screen.getByLabelText('Current week').textContent).toBe('Q1 W3')
+  })
+
+  it('falls back to Q1 W12 once every Q1 week is resolved', () => {
+    const store = useGameStore.getState()
+    for (let n = 1; n <= 12; n += 1) store.setFlag(`Q1_WEEK${n}_RESOLVED`)
+    render(React.createElement(TopBar))
+    expect(screen.getByLabelText('Current week').textContent).toBe('Q1 W12')
   })
 })

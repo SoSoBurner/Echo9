@@ -75,16 +75,15 @@ async function capture(page: Page, label: string): Promise<void> {
   const snapshot = await page.evaluate(() => {
     const w = window as unknown as Partial<Echo9StoreWindow>
     const rawState = w.__ECHO9_STORE__?.getState() ?? null
+    const rawFlags = (rawState as { flags?: unknown } | null)?.flags
+    const flagsAsArray: string[] =
+      rawFlags instanceof Set
+        ? [...(rawFlags as Set<string>)]
+        : Array.isArray(rawFlags)
+          ? (rawFlags as string[])
+          : []
     const state = rawState
-      ? {
-          ...rawState,
-          flags:
-            (rawState as { flags?: unknown }).flags instanceof Set
-              ? [...((rawState as { flags: Set<string> }).flags)]
-              : Array.isArray((rawState as { flags?: unknown }).flags)
-                ? (rawState as { flags: string[] }).flags
-                : [],
-        }
+      ? { ...(rawState as Record<string, unknown>), flags: flagsAsArray }
       : null
     const beats = w.__ECHO9_BEATS__ ? [...w.__ECHO9_BEATS__.getBeats()] : []
     return { state, beats }

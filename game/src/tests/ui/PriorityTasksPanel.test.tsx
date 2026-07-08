@@ -19,9 +19,13 @@ import { render, screen, fireEvent, cleanup } from '@testing-library/react'
 import React from 'react'
 import { PriorityTasksPanel } from '@ui/priority/PriorityTasksPanel'
 import { mercyMarginTask } from '@content/tasks/q1/week1-mercy-margin.task'
+import { useGameStore } from '@state/store'
+import { resetStore } from '@tests/state/testHelpers'
+import { Q1_WEEK1_RESOLVED, Q1_WEEK2_RESOLVED } from '@systems/gameFlags'
 
 describe('PriorityTasksPanel', () => {
   beforeEach(() => {
+    resetStore()
     cleanup()
   })
 
@@ -96,5 +100,31 @@ describe('PriorityTasksPanel', () => {
     expect(infoSpy).toHaveBeenCalledWith(
       expect.stringContaining('Ask Voice'),
     )
+  })
+
+  // Sprint C15b — the active row must track the current Q1 week rather than
+  // freezing on Mercy Margin. Advancing to Week 2 should surface the queue-
+  // triage directive as the active row; the two Stage-1 stubs remain.
+  it('advances the active row to the current Q1 week', () => {
+    useGameStore.getState().setFlag(Q1_WEEK1_RESOLVED)
+    render(React.createElement(PriorityTasksPanel))
+    const items = screen.getAllByRole('listitem')
+    // Row 0 now carries Week 2 (queue-triage-followup, slug → "Queue Triage Followup").
+    expect(items[0]?.getAttribute('aria-current')).toBe('true')
+    expect(items[0]?.textContent).toContain('Queue Triage Followup')
+    // Stubs are unchanged.
+    expect(items[1]?.textContent).toContain('Review Complaint Cost')
+    expect(items[2]?.textContent).toContain('Pending Return: Ward 6 Cluster')
+  })
+
+  it('renders a Q1-closed placeholder when every week is resolved', () => {
+    const store = useGameStore.getState()
+    // Set all 12 resolution flags in sequence.
+    store.setFlag(Q1_WEEK1_RESOLVED)
+    store.setFlag(Q1_WEEK2_RESOLVED)
+    // (Setting all 12 by name would be verbose; use the raw constant format.)
+    for (let n = 3; n <= 12; n += 1) store.setFlag(`Q1_WEEK${n}_RESOLVED`)
+    render(React.createElement(PriorityTasksPanel))
+    expect(screen.getByText('Q1 Closed')).toBeInTheDocument()
   })
 })

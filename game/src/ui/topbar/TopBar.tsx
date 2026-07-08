@@ -3,7 +3,10 @@
  * Silas approval percent, and a pause control.
  *
  * Reads `phase`, `meters.CAPITAL`, and `silasApproval` from useGameStore.
- * Quarter/week are hardcoded for T8; T14 will wire real time tracking.
+ * Week label (Sprint C15b) is derived from `selectCurrentWeek`, which scans
+ * Q1_SEQUENCE for the first unresolved week — the same rule Layout.tsx uses
+ * to render the current directive. When Q1 is closed the label falls back
+ * to "Q1 W12" so the header still reads coherently at the terminal.
  *
  * Target Variance (A1): the mockup treats the CAPITAL meter as a millions-of-
  * dollars reading against a fixed quarter target. Stage 1 fixes the target
@@ -11,6 +14,7 @@
  * tasks will source both target and scaling from real quarter state.
  */
 import { useGameStore } from '@state/store'
+import { selectCurrentWeek } from '@state/selectors/currentWeek'
 
 const PHASE_LABELS: Record<string, string> = {
   BOOT: 'Boot',
@@ -33,8 +37,10 @@ export function TopBar() {
   const phase = useGameStore((s) => s.phase)
   const capitalMeter = useGameStore((s) => s.meters.CAPITAL)
   const silasApproval = useGameStore((s) => s.silasApproval)
+  const currentWeek = useGameStore(selectCurrentWeek)
 
   const variance = capitalMeter - QUARTER_TARGET_CAPITAL
+  const weekLabel = `Q1 W${currentWeek ?? 12}`
 
   return (
     <header
@@ -42,8 +48,11 @@ export function TopBar() {
       aria-label="HUD top bar"
     >
       <div className="flex items-center gap-6">
-        <span className="text-fg-secondary text-xs uppercase tracking-widest font-mono">
-          Q1 W1
+        <span
+          className="text-fg-secondary text-xs uppercase tracking-widest font-mono"
+          aria-label="Current week"
+        >
+          {weekLabel}
         </span>
         <span className="text-fg-primary text-sm font-mono">
           {PHASE_LABELS[phase] ?? phase}
