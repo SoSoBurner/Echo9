@@ -6,27 +6,37 @@
  *   done — true when full text is revealed
  *   skip — function to jump instantly to end
  *
- * Reduced motion: if `useReducedMotion()` is true (OS-level
- * `prefers-reduced-motion: reduce` OR in-game comfort setting is "reduced" |
- * "none"), reveals full text immediately (no interval). PLAN.md §9 animation
- * discipline. Pre-D1 this hook only checked the OS media query and ignored
- * the in-game comfort setting; now both feed the same gate.
+ * Two independent gates skip the reveal and jump straight to full text:
+ *   - `useReducedMotion()` — OS-level `prefers-reduced-motion: reduce` OR
+ *     in-game motion setting is "reduced" | "none" (D1).
+ *   - Narration-pace multiplier of 0 — in-game pace setting is "instant" (D4).
+ *
+ * For non-zero pace multipliers, the base `speedMs` is scaled: 1.0 for
+ * polite-queue (baseline, no change), 2.0 for on-demand (slower reveal).
+ * The multiplier composes cleanly with `speedMs`: call sites still pick their
+ * own base cadence (18ms for the default, 22ms for SilasPromptPanel), and the
+ * pace setting scales all of them uniformly.
  */
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { useReducedMotion } from '@systems/comfort/reducedMotion'
+import { useNarrationPaceMultiplier } from '@systems/comfort/narrationPace'
 
 export function useTeletype(
   fullText: string,
   speedMs = 18,
 ): { text: string; done: boolean; skip: () => void } {
   const prefersReduced = useReducedMotion()
+  const paceMultiplier = useNarrationPaceMultiplier()
+  // D1 gate OR D4 'instant' — both jump to full text without an interval.
+  const bailInstantly = prefersReduced || paceMultiplier === 0
+  const effectiveSpeedMs = speedMs * paceMultiplier
 
-  const [revealed, setRevealed] = useState(prefersReduced ? fullText.length : 0)
+  const [revealed, setRevealed] = useState(bailInstantly ? fullText.length : 0)
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
   // Reset when fullText changes
   useEffect(() => {
-    if (prefersReduced) {
+    if (bailInstantly) {
       setRevealed(fullText.length)
       return
     }
@@ -44,7 +54,7 @@ export function useTeletype(
         }
         return next
       })
-    }, speedMs)
+    }, effectiveSpeedMs)
 
     return () => {
       if (intervalRef.current !== null) {
@@ -52,7 +62,7 @@ export function useTeletype(
         intervalRef.current = null
       }
     }
-  }, [fullText, speedMs, prefersReduced])
+  }, [fullText, effectiveSpeedMs, bailInstantly])
 
   const skip = useCallback(() => {
     if (intervalRef.current !== null) {
