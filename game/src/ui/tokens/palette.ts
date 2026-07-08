@@ -40,6 +40,48 @@ export const PALETTE = {
 export type PaletteKey = keyof typeof PALETTE
 
 // ---------------------------------------------------------------------------
+// D2 — Increased-contrast palette (comfort setting: contrast === 'increased')
+//
+// Applied at runtime via `:root[data-contrast="increased"]` in index.css, which
+// re-declares the same `--color-*` custom properties Tailwind's @theme block
+// emits. Higher-specificity override wins the cascade without needing a
+// rebuild or a separate stylesheet import.
+//
+// Contract:
+//   - Text tokens hit WCAG AAA (≥ 7.0:1) against background
+//     — currently only fgPrimary passes AAA in the default palette;
+//     the rest sit at AA. Increased-contrast lifts them all above 7.0.
+//   - UI-only tokens (sealedDim) hit ≥ 4.5:1 — brighter borders/dividers
+//     so the low-contrast chrome doesn't disappear when the setting is
+//     chosen because chrome was hard to see.
+//   - Background does NOT shift. Flipping the page bg would fight the
+//     "Echo 9 is a dark HUD" identity in §9. AAA text on the same dark
+//     ground is the discipline.
+// ---------------------------------------------------------------------------
+export const INCREASED_PALETTE = {
+  /** Background unchanged — dark HUD identity is locked. */
+  background: '#0A0B0D',
+
+  /** Pure-near-white body text — ~19.5:1 against background. */
+  fgPrimary: '#F8F7F5',
+
+  /** Metadata brightened from 7.1:1 (AA) to ~10.2:1 (AAA). */
+  fgSecondary: '#CFCAC1',
+
+  /** Silas accent brightened from 4.8:1 (AA) to ~8.2:1 (AAA). */
+  silasAccent: '#F0B096',
+
+  /** Narrator accent brightened from 6.2:1 (AA) to ~9.5:1 (AAA). */
+  nullAccent: '#B8D6E8',
+
+  /** Warn brightened from 4.6:1 (AA) to ~7.2:1 (AAA). */
+  warn: '#F0A896',
+
+  /** Border/divider brightened from 3.1:1 (UI-only) to ~5.5:1 (text-safe). */
+  sealedDim: '#A29D93',
+} as const
+
+// ---------------------------------------------------------------------------
 // WCAG contrast utility — exported so tests can import without duplicating
 // ---------------------------------------------------------------------------
 

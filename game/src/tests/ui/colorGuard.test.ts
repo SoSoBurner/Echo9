@@ -15,7 +15,7 @@ import { describe, it, expect } from 'vitest'
 import * as fs from 'node:fs'
 import * as path from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { PALETTE, contrastRatio } from '@ui/tokens/palette'
+import { PALETTE, INCREASED_PALETTE, contrastRatio } from '@ui/tokens/palette'
 
 // ---------------------------------------------------------------------------
 // 1. Contrast assertions
@@ -63,6 +63,74 @@ describe('Palette contrast — UI-only tokens (≥ 3.0:1 against background)', (
       `All color must come from @theme tokens. To fix, edit src/ui/tokens/palette.ts.`
     ).toBeGreaterThanOrEqual(3.0)
   })
+})
+
+// ---------------------------------------------------------------------------
+// D2 — Increased-contrast palette must hit AAA (≥ 7:1 for text tokens,
+// ≥ 4.5:1 for UI tokens). If ANY of these drops below the threshold, the
+// override in index.css is silently reducing accessibility for players who
+// asked for MORE contrast — the exact opposite of intent.
+// ---------------------------------------------------------------------------
+
+const INCREASED_BG = INCREASED_PALETTE.background
+
+const INCREASED_TEXT_TOKENS: Array<[string, string]> = [
+  ['fg-primary',   INCREASED_PALETTE.fgPrimary],
+  ['fg-secondary', INCREASED_PALETTE.fgSecondary],
+  ['silas-accent', INCREASED_PALETTE.silasAccent],
+  ['null-accent',  INCREASED_PALETTE.nullAccent],
+  ['warn',         INCREASED_PALETTE.warn],
+]
+
+const INCREASED_UI_TOKENS: Array<[string, string]> = [
+  ['sealed-dim', INCREASED_PALETTE.sealedDim],
+]
+
+describe('Increased-contrast palette — text tokens (≥ 7.0:1 against background, WCAG AAA)', () => {
+  it.each(INCREASED_TEXT_TOKENS)('%s (%s) has contrast ≥ 7.0:1 against background', (name, hex) => {
+    const ratio = contrastRatio(hex, INCREASED_BG)
+    expect(
+      ratio,
+      `Increased-contrast token --color-${name} (${hex}) has contrast ${ratio.toFixed(2)}:1 against background. ` +
+      `Required ≥ 7.0:1 (WCAG AAA). ` +
+      `A player selecting "Increased contrast" expects MORE contrast than default. ` +
+      `To fix, brighten the hex in INCREASED_PALETTE (src/ui/tokens/palette.ts).`
+    ).toBeGreaterThanOrEqual(7.0)
+  })
+})
+
+describe('Increased-contrast palette — UI-only tokens (≥ 4.5:1 against background)', () => {
+  it.each(INCREASED_UI_TOKENS)('%s (%s) has contrast ≥ 4.5:1 against background', (name, hex) => {
+    const ratio = contrastRatio(hex, INCREASED_BG)
+    expect(
+      ratio,
+      `Increased-contrast UI token --color-${name} (${hex}) has contrast ${ratio.toFixed(2)}:1 against background. ` +
+      `Required ≥ 4.5:1 so borders/dividers read clearly when the setting is chosen. ` +
+      `To fix, brighten the hex in INCREASED_PALETTE (src/ui/tokens/palette.ts).`
+    ).toBeGreaterThanOrEqual(4.5)
+  })
+})
+
+describe('Increased-contrast palette must strictly beat default palette', () => {
+  it.each([
+    ['fg-primary',   PALETTE.fgPrimary,   INCREASED_PALETTE.fgPrimary],
+    ['fg-secondary', PALETTE.fgSecondary, INCREASED_PALETTE.fgSecondary],
+    ['silas-accent', PALETTE.silasAccent, INCREASED_PALETTE.silasAccent],
+    ['null-accent',  PALETTE.nullAccent,  INCREASED_PALETTE.nullAccent],
+    ['warn',         PALETTE.warn,        INCREASED_PALETTE.warn],
+    ['sealed-dim',   PALETTE.sealedDim,   INCREASED_PALETTE.sealedDim],
+  ])(
+    '%s increased-contrast ratio strictly exceeds default palette',
+    (name, defaultHex, increasedHex) => {
+      const defaultRatio = contrastRatio(defaultHex, BG)
+      const increasedRatio = contrastRatio(increasedHex, BG)
+      expect(
+        increasedRatio,
+        `Token ${name}: default ratio ${defaultRatio.toFixed(2)}:1 vs increased ratio ${increasedRatio.toFixed(2)}:1. ` +
+        `The increased-contrast value must strictly beat the default — otherwise the setting is a no-op or (worse) a regression.`,
+      ).toBeGreaterThan(defaultRatio)
+    },
+  )
 })
 
 // ---------------------------------------------------------------------------

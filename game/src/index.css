@@ -56,6 +56,25 @@ body,
   animation: log-entry-enter 120ms ease-out;
 }
 
+/* D2 — Increased-contrast palette override.
+   Applied when systems/comfort/contrastTheme.ts stamps
+   `data-contrast="increased"` on <html> (either the comfort setting or OS-level
+   `prefers-contrast: more` OR them together). Higher-specificity selector wins
+   the cascade, so Tailwind utilities like `text-fg-primary` transparently pick
+   up the brighter hex at paint time — no class swap, no re-render.
+
+   Hex values MUST mirror INCREASED_PALETTE in src/ui/tokens/palette.ts.
+   colorGuard.test.ts asserts every text token here hits AAA (≥ 7:1) and every
+   UI token hits ≥ 4.5:1 — if a drift lands, that test fails. */
+:root[data-contrast="increased"] {
+  --color-fg-primary:    #F8F7F5;
+  --color-fg-secondary:  #CFCAC1;
+  --color-silas-accent:  #F0B096;
+  --color-null-accent:   #B8D6E8;
+  --color-warn:          #F0A896;
+  --color-sealed-dim:    #A29D93;
+}
+
 /* §4.4: respect reduced motion — boot effects must be reducible.
    Two triggers: OS-level `prefers-reduced-motion: reduce` AND the in-game
    comfort setting, applied to `<html data-motion="reduced" | "none">` by

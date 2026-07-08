@@ -30,6 +30,7 @@ import {
   applyComfortMotionToDom,
   dispatchComfortChanged,
 } from '@systems/comfort/reducedMotion'
+import { applyComfortContrastToDom } from '@systems/comfort/contrastTheme'
 
 interface AccessibilityComfortPanelProps {
   /** Called after Continue persists. Parent flips its gate to render BootScreen's Initialize. */
@@ -88,10 +89,11 @@ export function AccessibilityComfortPanel({
       // QuotaExceededError or blocked storage — proceed with defaults.
       // BootScreen will re-show the panel on next launch.
     }
-    // D1: apply the motion setting to <html data-motion="..."> and notify
-    // same-tab subscribers (useReducedMotion). Cross-tab subscribers see
-    // the write via the native `storage` event.
+    // D1/D2: apply the motion + contrast settings to <html data-motion/data-contrast>
+    // and notify same-tab subscribers (useReducedMotion + useContrast). Cross-tab
+    // subscribers see the write via the native `storage` event.
     applyComfortMotionToDom(settings.motion)
+    applyComfortContrastToDom(settings.contrast)
     dispatchComfortChanged()
     onComplete()
   }, [settings, onComplete])
