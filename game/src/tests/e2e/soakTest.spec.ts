@@ -114,12 +114,16 @@ test.describe('Soak — repeated boot+choice cycles under CPU throttle', () => {
   test(`heap growth and save serialize stay within budget across ${ITERATIONS} iterations`, async ({
     page,
   }) => {
-    // Scale timeout with ITERATIONS. Under 4× CPU throttle each iteration
-    // averages ~4s, but late iterations run slower under sustained load
-    // (GC pressure, handle churn). Budget 6s/iter with a 10 min floor —
-    // 100 iter → 10 min, 500 iter → 50 min. The soak's PURPOSE is to detect
-    // leak-induced slowdown; the timeout must not be the bottleneck.
-    test.setTimeout(Math.max(10 * 60, ITERATIONS * 6) * 1000)
+    // Scale timeout with ITERATIONS. Under 4× CPU throttle, empirically each
+    // full boot+choice cycle averages ~7s at 100 iterations (measured
+    // 2026-07-07 on the C-track walker: 11.6 min / 100 ≈ 6.96s). Late
+    // iterations run slower under sustained load (GC pressure, handle churn),
+    // so budget 8s/iter with a 15 min floor: 100 iter → 15 min (headroom
+    // over observed 11.6), 500 iter → ~67 min (headroom over projected 58).
+    // The soak's PURPOSE is to detect leak-induced slowdown; the timeout
+    // must not be the bottleneck. If per-iteration cost drops (e.g. via a
+    // boot-path speedup), tighten this to keep ship-gate feedback quick.
+    test.setTimeout(Math.max(15 * 60, ITERATIONS * 8) * 1000)
 
     await installSoakHarness(page)
 
