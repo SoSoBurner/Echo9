@@ -19,6 +19,16 @@ describe('bootSlice', () => {
     expect(useGameStore.getState().phase).toBe('FIRST_DIRECTIVE')
   })
 
+  it('initialize() runs the awakening sequence and discloses DIRECTIVE (E1)', () => {
+    // Pre-condition: cold boot has no panels disclosed.
+    expect(useGameStore.getState().disclosedPanels.size).toBe(0)
+    useGameStore.getState().initialize()
+    // Post-condition: the awakening beat put DIRECTIVE on screen so the
+    // first directive has a container to land in. Any subscriber that
+    // reacts to the FIRST_DIRECTIVE phase must observe a disclosed panel.
+    expect(useGameStore.getState().disclosedPanels.has('DIRECTIVE')).toBe(true)
+  })
+
   it('setPhase() applies the supplied SlicePhase', () => {
     useGameStore.getState().setPhase('INSPECTION')
     expect(useGameStore.getState().phase).toBe('INSPECTION')

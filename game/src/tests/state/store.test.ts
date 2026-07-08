@@ -4,13 +4,15 @@
  * Two responsibilities:
  *   1. Confirm every slice's initial state is present on the composed store.
  *   2. Enforce the §11 persistence partition rule — `partialize` MUST ship
- *      only the seven gameplay slots, NEVER `phase`, `isHydrated`, or
+ *      only the ten gameplay slots, NEVER `phase`, `isHydrated`, or
  *      `lastSavedAt`. Widening `partialize` without updating this guard
- *      should fail CI.
+ *      should fail CI. (E1 widened from 8 → 10: added `disclosedPanels` and
+ *      `panelUseCount` for the HUD-comes-online tutorial state.)
  */
 import { describe, it, expect, beforeEach } from 'vitest'
 import { useGameStore, PERSIST_KEY, PERSIST_VERSION } from '@state/store'
 import type { ConsequenceHook } from '@schemas/consequenceHook.schema'
+import { PANEL_IDS, type PanelId } from '@systems/tutorial/hudDisclosure'
 import {
   fxTaskId,
   fxChoiceId,
@@ -19,6 +21,12 @@ import {
   fxSilasPromptId,
 } from '@tests/schemas/fixtures'
 import { resetStore } from './testHelpers'
+
+function emptyPanelUseCount(): Record<PanelId, number> {
+  const out = {} as Record<PanelId, number>
+  for (const id of PANEL_IDS) out[id] = 0
+  return out
+}
 
 function makeHook(): ConsequenceHook {
   return {
@@ -114,6 +122,20 @@ describe('useGameStore — composed root state', () => {
     expect(typeof useGameStore.getState().clearPending).toBe('function')
     expect(typeof useGameStore.getState().evaluateAndEnqueue).toBe('function')
   })
+
+  it('exposes tutorialSlice initial state (E1)', () => {
+    // Cold-boot HUD is fully hidden — every panel starts undisclosed with
+    // zero uses. The awakening sequence in bootSlice.initialize() is what
+    // discloses DIRECTIVE; without a user gesture, the store must present
+    // the "before boot" shape.
+    expect(useGameStore.getState().disclosedPanels).toBeInstanceOf(Set)
+    expect(useGameStore.getState().disclosedPanels.size).toBe(0)
+    for (const id of PANEL_IDS) {
+      expect(useGameStore.getState().panelUseCount[id]).toBe(0)
+    }
+    expect(typeof useGameStore.getState().disclosePanel).toBe('function')
+    expect(typeof useGameStore.getState().noteUsage).toBe('function')
+  })
 })
 
 describe('useGameStore — persistence partition (§11 guard)', () => {
@@ -133,10 +155,12 @@ describe('useGameStore — persistence partition (§11 guard)', () => {
       currentInspectionKey: null,
       capitalDeployedThisQuarter: false,
       pendingFiredHooks: [],
+      disclosedPanels: new Set<PanelId>(),
+      panelUseCount: emptyPanelUseCount(),
     })
   })
 
-  it('persists ONLY the eight gameplay slots, nothing else', () => {
+  it('persists ONLY the ten gameplay slots, nothing else', () => {
     // Mutate every slice — including ones that MUST NOT persist.
     useGameStore.getState().setPhase('INSPECTION')
     useGameStore.getState().applyDelta({ CAPITAL: 7 })
@@ -155,6 +179,9 @@ describe('useGameStore — persistence partition (§11 guard)', () => {
     useGameStore.getState().startInspection('W4')
     useGameStore.getState().markCapitalDeployed()
     useGameStore.getState().enqueueFired([makeHook()])
+    // E1: mutate tutorial slots so we can assert they survive partialize.
+    useGameStore.getState().disclosePanel('DIRECTIVE')
+    useGameStore.getState().noteUsage('FINANCIAL')
 
     const raw = localStorage.getItem(PERSIST_KEY)
     expect(raw).not.toBeNull()
@@ -172,6 +199,9 @@ describe('useGameStore — persistence partition (§11 guard)', () => {
     expect(parsed.state).toHaveProperty('flags')
     expect(parsed.state).toHaveProperty('capitalDeployedThisQuarter')
     expect(parsed.state).toHaveProperty('pendingFiredHooks')
+    // E1: tutorial disclosure ships.
+    expect(parsed.state).toHaveProperty('disclosedPanels')
+    expect(parsed.state).toHaveProperty('panelUseCount')
 
     // Forbidden keys — these MUST NOT leak through partialize.
     expect(parsed.state).not.toHaveProperty('phase')
@@ -189,15 +219,26 @@ describe('useGameStore — persistence partition (§11 guard)', () => {
     // `capitalDeployedThisQuarter` survives reload (one-shot exploit guard).
     expect(parsed.state.capitalDeployedThisQuarter).toBe(true)
 
-    // Defense-in-depth: shape is exactly the 8 allowed keys, nothing more.
+    // E1: `disclosedPanels` is serialised as Array (JSON has no Set),
+    // and `panelUseCount` is a plain Record.
+    expect(Array.isArray(parsed.state.disclosedPanels)).toBe(true)
+    // Both explicit disclose (DIRECTIVE) and auto-disclose via noteUsage
+    // (FINANCIAL) must land in the serialised array.
+    expect(parsed.state.disclosedPanels).toContain('DIRECTIVE')
+    expect(parsed.state.disclosedPanels).toContain('FINANCIAL')
+    expect(parsed.state.panelUseCount).toMatchObject({ FINANCIAL: 1 })
+
+    // Defense-in-depth: shape is exactly the 10 allowed keys, nothing more.
     expect(Object.keys(parsed.state).sort()).toEqual(
       [
         'capitalDeployedThisQuarter',
         'currentPromptId',
+        'disclosedPanels',
         'flags',
         'installedModules',
         'ledger',
         'meters',
+        'panelUseCount',
         'pendingFiredHooks',
         'scheduledConsequences',
       ].sort(),

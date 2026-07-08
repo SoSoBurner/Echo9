@@ -48,6 +48,8 @@ import { createInspectionSlice, type InspectionSlice } from './inspectionSlice'
 import { createCapitalSlice, type CapitalSlice } from './capitalSlice'
 import { createEventQueueSlice, type EventQueueSlice } from './eventQueueSlice'
 import { createEndOfContentSlice, type EndOfContentSlice } from './endOfContentSlice'
+import { createTutorialSlice, type TutorialSlice } from './tutorialSlice'
+import { PANEL_IDS, type PanelId } from '@systems/tutorial/hudDisclosure'
 
 export type RootState =
   & BootSlice
@@ -62,6 +64,7 @@ export type RootState =
   & CapitalSlice
   & EventQueueSlice
   & EndOfContentSlice
+  & TutorialSlice
 
 export const PERSIST_KEY = 'echo9:autosave'
 
@@ -71,12 +74,18 @@ export const PERSIST_KEY = 'echo9:autosave'
  *   →
  *   installedModules: Partial<Record<ModuleId, { rank: 1|2|3 }>>
  *
+ * Bumped in E1 (1 → 2) to widen partialize with the tutorial disclosure
+ * slots (`disclosedPanels: PanelId[]`, `panelUseCount: Record<PanelId, number>`).
+ * The v1 → v2 migration arm below fills in defaults for players whose save
+ * predates the tutorial slice; without those defaults, the merge callback
+ * would have to invent a shape for reads before the first mutation.
+ *
  * Every future shape change must bump this number and register a new arm in
  * the `migrate` callback below. Zustand persist walks the migration chain
  * automatically — the `migrate` function receives `persistedState` alongside
  * the on-disk `version` and returns a state at the current version.
  */
-export const PERSIST_VERSION = 1 as const
+export const PERSIST_VERSION = 2 as const
 
 const rootCreator: StateCreator<
   RootState,
@@ -96,6 +105,7 @@ const rootCreator: StateCreator<
   ...createCapitalSlice(set, get, store),
   ...createEventQueueSlice(set, get, store),
   ...createEndOfContentSlice(set, get, store),
+  ...createTutorialSlice(set, get, store),
 })
 
 export const useGameStore = create<RootState>()(
@@ -124,6 +134,12 @@ export const useGameStore = create<RootState>()(
           // returns") leaks across reloads when the player closes the tab
           // between fire and ack.
           pendingFiredHooks: state.pendingFiredHooks,
+          // E1: tutorial disclosure MUST persist. Without this, a reload
+          // after Week 3 drops the player back to a fully-hidden HUD.
+          // `disclosedPanels` is a Set — same array-encoding treatment as
+          // `flags`; the merge callback below rehydrates Array → Set.
+          disclosedPanels: Array.from(state.disclosedPanels),
+          panelUseCount: state.panelUseCount,
         }),
 
         // Migration chain. v0 → v1 rewrites `installedModule: ModuleId | null`
@@ -154,6 +170,21 @@ export const useGameStore = create<RootState>()(
             }
             state = { ...rest, installedModules }
           }
+          if (version < 2) {
+            // v1 → v2: introduce tutorial disclosure slots. A player who saved
+            // before E1 landed has neither field on disk. Fill in the fully-
+            // hidden defaults so the merge callback doesn't have to invent
+            // shape. Any pre-E1 player effectively restarts the disclosure
+            // sequence — acceptable, because in-progress runs before E1 had
+            // no tutorial state to restart from.
+            const emptyUseCount: Record<PanelId, number> = {} as Record<PanelId, number>
+            for (const id of PANEL_IDS) emptyUseCount[id] = 0
+            state = {
+              ...state,
+              disclosedPanels: [],
+              panelUseCount: emptyUseCount,
+            }
+          }
           return state
         },
 
@@ -174,16 +205,20 @@ export const useGameStore = create<RootState>()(
           // Both fields are stripped from the bare spread so the spread does
           // not propagate the un-validated values.
           const persisted = (persistedState ?? {}) as Partial<
-            Omit<RootState, 'flags' | 'pendingFiredHooks'>
+            Omit<RootState, 'flags' | 'pendingFiredHooks' | 'disclosedPanels'>
           > & {
             flags?: unknown
             pendingFiredHooks?: unknown
             installedModules?: unknown
+            disclosedPanels?: unknown
+            panelUseCount?: unknown
           }
           const {
             flags: persistedFlags,
             pendingFiredHooks: persistedHooks,
             installedModules: persistedModules,
+            disclosedPanels: persistedDisclosed,
+            panelUseCount: persistedUseCount,
             ...persistedRest
           } = persisted
           const flagsSet: Set<string> = Array.isArray(persistedFlags)
@@ -194,6 +229,34 @@ export const useGameStore = create<RootState>()(
                 ConsequenceHookSchema.safeParse(h).success,
               )
             : currentState.pendingFiredHooks
+          // Rehydrate disclosedPanels Array → Set, dropping any element that
+          // isn't a known PanelId. A stale save with a removed panel id would
+          // otherwise leave a phantom entry in the Set that no panel render
+          // would ever consume, and layout iterators would silently skip it.
+          const knownPanelIds = new Set<PanelId>(PANEL_IDS)
+          const isPanelId = (v: unknown): v is PanelId =>
+            typeof v === 'string' && knownPanelIds.has(v as PanelId)
+          const disclosedSet: Set<PanelId> = Array.isArray(persistedDisclosed)
+            ? new Set(persistedDisclosed.filter(isPanelId))
+            : currentState.disclosedPanels
+          // Rebuild panelUseCount by starting from a total zero-init (so any
+          // future PanelId gets a 0), then overlaying persisted numeric
+          // values for known ids only. Silently drops non-numeric junk.
+          const safeUseCount: Record<PanelId, number> = {} as Record<PanelId, number>
+          for (const id of PANEL_IDS) safeUseCount[id] = 0
+          if (
+            persistedUseCount !== null &&
+            typeof persistedUseCount === 'object' &&
+            !Array.isArray(persistedUseCount)
+          ) {
+            for (const [key, value] of Object.entries(
+              persistedUseCount as Record<string, unknown>,
+            )) {
+              if (!isPanelId(key)) continue
+              if (typeof value !== 'number' || !Number.isFinite(value) || value < 0) continue
+              safeUseCount[key] = Math.floor(value)
+            }
+          }
           // Validate the installedModules map key-by-key. Any key that isn't a
           // known ModuleId is dropped; any entry whose rank isn't 1|2|3 is
           // dropped. A non-object value falls back to currentState's map.
@@ -229,6 +292,8 @@ export const useGameStore = create<RootState>()(
             flags: flagsSet,
             pendingFiredHooks: safeHooks,
             installedModules: safeModules,
+            disclosedPanels: disclosedSet,
+            panelUseCount: safeUseCount,
           }
           return merged
         },
