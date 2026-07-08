@@ -56,7 +56,10 @@ body,
   animation: log-entry-enter 120ms ease-out;
 }
 
-/* §4.4: respect reduced motion — boot effects must be reducible */
+/* §4.4: respect reduced motion — boot effects must be reducible.
+   Two triggers: OS-level `prefers-reduced-motion: reduce` AND the in-game
+   comfort setting, applied to `<html data-motion="reduced" | "none">` by
+   systems/comfort/reducedMotion.ts. Either one collapses animation. */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -65,4 +68,14 @@ body,
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
+}
+:root[data-motion="reduced"] *,
+:root[data-motion="reduced"] *::before,
+:root[data-motion="reduced"] *::after,
+:root[data-motion="none"] *,
+:root[data-motion="none"] *::before,
+:root[data-motion="none"] *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
 }

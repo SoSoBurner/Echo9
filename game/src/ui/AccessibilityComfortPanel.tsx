@@ -26,6 +26,10 @@ import {
   type NarrationPace,
   type PauseOnBlur,
 } from '@schemas/comfortSettings.schema'
+import {
+  applyComfortMotionToDom,
+  dispatchComfortChanged,
+} from '@systems/comfort/reducedMotion'
 
 interface AccessibilityComfortPanelProps {
   /** Called after Continue persists. Parent flips its gate to render BootScreen's Initialize. */
@@ -84,6 +88,11 @@ export function AccessibilityComfortPanel({
       // QuotaExceededError or blocked storage — proceed with defaults.
       // BootScreen will re-show the panel on next launch.
     }
+    // D1: apply the motion setting to <html data-motion="..."> and notify
+    // same-tab subscribers (useReducedMotion). Cross-tab subscribers see
+    // the write via the native `storage` event.
+    applyComfortMotionToDom(settings.motion)
+    dispatchComfortChanged()
     onComplete()
   }, [settings, onComplete])
 

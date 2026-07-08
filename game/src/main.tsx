@@ -2,6 +2,13 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
 import { App } from './ui/App'
+import { bootstrapComfortMotion } from '@systems/comfort/reducedMotion'
+
+// D1: read the persisted comfort motion setting and stamp `data-motion` on
+// <html> before React mounts. Without this, first paint runs at full motion
+// even when the player chose "Reduced" on a prior session — CSS keyframes
+// like `log-entry-enter` would fire briefly before the hook could gate them.
+bootstrapComfortMotion()
 
 // Task 16: install dev-only perf observers (longtask PerformanceObserver,
 // localStorage.setItem patch, rAF FPS loop, heap poller) before React mounts

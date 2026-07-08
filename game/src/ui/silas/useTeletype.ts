@@ -6,31 +6,20 @@
  *   done — true when full text is revealed
  *   skip — function to jump instantly to end
  *
- * prefers-reduced-motion: if the media query matches, reveals full text
- * immediately (no animation). PLAN.md §9 animation discipline.
+ * Reduced motion: if `useReducedMotion()` is true (OS-level
+ * `prefers-reduced-motion: reduce` OR in-game comfort setting is "reduced" |
+ * "none"), reveals full text immediately (no interval). PLAN.md §9 animation
+ * discipline. Pre-D1 this hook only checked the OS media query and ignored
+ * the in-game comfort setting; now both feed the same gate.
  */
 import { useState, useEffect, useCallback, useRef } from 'react'
-
-const REDUCED_MOTION_QUERY = '(prefers-reduced-motion: reduce)'
+import { useReducedMotion } from '@systems/comfort/reducedMotion'
 
 export function useTeletype(
   fullText: string,
   speedMs = 18,
 ): { text: string; done: boolean; skip: () => void } {
-  const [prefersReduced, setPrefersReduced] = useState(() =>
-    typeof window !== 'undefined'
-      ? window.matchMedia(REDUCED_MOTION_QUERY).matches
-      : false,
-  )
-
-  // Keep prefersReduced in sync with OS setting changes mid-session
-  useEffect(() => {
-    if (typeof window === 'undefined') return
-    const mq = window.matchMedia(REDUCED_MOTION_QUERY)
-    const onChange = (e: MediaQueryListEvent) => setPrefersReduced(e.matches)
-    mq.addEventListener('change', onChange)
-    return () => mq.removeEventListener('change', onChange)
-  }, [])
+  const prefersReduced = useReducedMotion()
 
   const [revealed, setRevealed] = useState(prefersReduced ? fullText.length : 0)
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
