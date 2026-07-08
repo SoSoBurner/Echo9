@@ -37,6 +37,18 @@ body,
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* D3: text-size comfort scaling. `--text-scale` is stamped on <html> as an
+   inline style by systems/comfort/textSize.ts (S=0.9, M=1.0 [absent], L=1.15,
+   XL=1.3). Scaling the root font-size lets every rem-based utility Tailwind
+   emits (`text-sm`, `text-base`, `text-lg`, spacing that uses rem) scale in
+   proportion — no call-site refactor needed. The `1rem` inside the calc
+   resolves against the browser's initial root font-size (usually 16px, but
+   whatever the user set in their browser prefs), so the multiplier stacks
+   on top of the user's own font preference rather than overriding it. */
+:root {
+  font-size: calc(1rem * var(--text-scale, 1));
+}
+
 /* T13: LogDock entry slide-in. 120ms translateY(4px) + opacity per
    PLAN.md §9. Only the ENTRY moves — the dock chrome stays still.
    The keyframe duration collapses to 0 under prefers-reduced-motion via

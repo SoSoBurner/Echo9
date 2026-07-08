@@ -4,6 +4,7 @@ import './index.css'
 import { App } from './ui/App'
 import { bootstrapComfortMotion } from '@systems/comfort/reducedMotion'
 import { bootstrapComfortContrast } from '@systems/comfort/contrastTheme'
+import { bootstrapComfortTextSize } from '@systems/comfort/textSize'
 
 // D1: read the persisted comfort motion setting and stamp `data-motion` on
 // <html> before React mounts. Without this, first paint runs at full motion
@@ -15,6 +16,11 @@ bootstrapComfortMotion()
 // before first paint if the player chose the increased palette. Without this,
 // the default palette flashes for 1–2 frames before the hook mounts.
 bootstrapComfortContrast()
+
+// D3: same idea for text size — stamp `--text-scale` on <html> as an inline
+// style so the :root font-size calc() in index.css picks up the multiplier
+// before first paint. Otherwise a player who chose L or XL sees a beat of M.
+bootstrapComfortTextSize()
 
 // Task 16: install dev-only perf observers (longtask PerformanceObserver,
 // localStorage.setItem patch, rAF FPS loop, heap poller) before React mounts
