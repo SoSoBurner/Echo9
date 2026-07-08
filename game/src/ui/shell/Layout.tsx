@@ -68,6 +68,7 @@ import {
 } from '@content/inspections/q1InspectionSets'
 import { Q1_CAPITAL_CARDS } from '@content/capitalDeployments/q1CapitalPower.cards'
 import { Q1_SEQUENCE, type Q1Week } from '@content/directiveSchedule'
+import { Q1_CLOSED } from '@systems/gameFlags'
 
 /**
  * Reverse lookup: for a given inspection key, find the Q1 week whose
@@ -232,6 +233,14 @@ export function Layout() {
       //    unresolved entry on the next render, advancing the arc without
       //    any cursor slice.
       setFlag(currentEntry.resolutionFlag)
+      // C16: mirror the resolutionFlag with Q1_CLOSED on Week 12 so the
+      //   End-of-Content boundary reads the same flag on every W12 posture.
+      //   Pre-C16 the demo boundary was pinned to a W1 optional-consequence
+      //   hook id, which only fired on one specific W1 path. See
+      //   `contentBoundary.manifest.ts` for the new terminal-flag export.
+      if (currentEntry.week === 12) {
+        setFlag(Q1_CLOSED)
+      }
 
       // 7. Trigger the result panel.
       setLastTrace(trace)

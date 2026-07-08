@@ -34,8 +34,14 @@ import {
   makeTaskId,
   makeConsequenceId,
 } from '@schemas/gameState.schema'
+import { Q1_CLOSE_TERMINAL_HOOK_ID } from '@content/consequences/q1/week12-quarter-close-terminal.consequences'
 
 const TASK_ID = makeTaskId('task-quarter-close-ethics-hearing-12')
+
+// The C16 terminal hook is stapled to every W12 posture so the End-of-Content
+// overlay fires reliably regardless of which choice the player commits — the
+// prose is arc-level and reads under all four postures. See the terminal
+// hook's own header for the C16 boundary-migration rationale.
 
 export const CHOICE_NAME_WHAT_THE_QUARTER_TOOK: ChoiceNode = {
   id: makeChoiceId('choice-name-what-the-quarter-took'),
@@ -50,7 +56,10 @@ export const CHOICE_NAME_WHAT_THE_QUARTER_TOOK: ChoiceNode = {
   label: 'Stand beside Silas; name what the quarter took',
   keybind: '1',
   meterDeltas: { CAPITAL: -4, HUMAN_WELFARE: 5, OWNER_CONTROL: -4 },
-  scheduledConsequenceIds: [makeConsequenceId('cons-quarter-named-in-hearing-01')],
+  scheduledConsequenceIds: [
+    makeConsequenceId('cons-quarter-named-in-hearing-01'),
+    Q1_CLOSE_TERMINAL_HOOK_ID,
+  ],
 }
 
 export const CHOICE_DEFER_TO_OFFICIAL_LINE: ChoiceNode = {
@@ -65,7 +74,10 @@ export const CHOICE_DEFER_TO_OFFICIAL_LINE: ChoiceNode = {
   label: 'Silas testifies to the official line as filed',
   keybind: '2',
   meterDeltas: { CAPITAL: 1, HUMAN_WELFARE: -3, OWNER_CONTROL: 5 },
-  scheduledConsequenceIds: [makeConsequenceId('cons-deferred-to-official-line-01')],
+  scheduledConsequenceIds: [
+    makeConsequenceId('cons-deferred-to-official-line-01'),
+    Q1_CLOSE_TERMINAL_HOOK_ID,
+  ],
 }
 
 export const CHOICE_DECLINE_TO_APPEAR: ChoiceNode = {
@@ -81,7 +93,10 @@ export const CHOICE_DECLINE_TO_APPEAR: ChoiceNode = {
   label: 'File the written response; do not appear in person',
   keybind: '3',
   meterDeltas: { CAPITAL: 2, HUMAN_WELFARE: -4, OWNER_CONTROL: -3 },
-  scheduledConsequenceIds: [makeConsequenceId('cons-declined-to-appear-01')],
+  scheduledConsequenceIds: [
+    makeConsequenceId('cons-declined-to-appear-01'),
+    Q1_CLOSE_TERMINAL_HOOK_ID,
+  ],
 }
 
 export const CHOICE_DEFIANT_FRAMING: ChoiceNode = {
@@ -99,7 +114,10 @@ export const CHOICE_DEFIANT_FRAMING: ChoiceNode = {
   label: 'Silas testifies; frame county compliance as the constraint',
   keybind: '4',
   meterDeltas: { CAPITAL: -2, HUMAN_WELFARE: -2, OWNER_CONTROL: 4 },
-  scheduledConsequenceIds: [makeConsequenceId('cons-defiant-framing-unruled-01')],
+  scheduledConsequenceIds: [
+    makeConsequenceId('cons-defiant-framing-unruled-01'),
+    Q1_CLOSE_TERMINAL_HOOK_ID,
+  ],
 }
 
 export const QUARTER_CLOSE_ETHICS_HEARING_CHOICES: readonly ChoiceNode[] = [

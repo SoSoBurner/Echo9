@@ -35,7 +35,7 @@ import {
 } from '@systems/consequenceEngine'
 import { makeTraceId, type TraceId } from '@schemas/gameState.schema'
 import { markBeat } from '@ui/debug/BeatTelemetry'
-import { END_OF_CONTENT_HOOK_ID } from '@content/contentBoundary.manifest'
+import { END_OF_CONTENT_TERMINAL_FLAG } from '@content/contentBoundary.manifest'
 import type { RootState } from './store'
 
 export type EventQueueSlice = {
@@ -90,11 +90,15 @@ export const createEventQueueSlice: StateCreator<
     set((state) => {
       state.pendingFiredHooks.shift()
     })
-    // Terminal-hook detection: when acking the LAST pending hook AND that hook
-    // is the shipped demo's end-of-content boundary, flip the flag through the
-    // slice action so its dedicated localStorage key updates atomically with
-    // the state mutation.
-    if (head.id === END_OF_CONTENT_HOOK_ID && queueLenBefore === 1) {
+    // Terminal-boundary detection (C16 flag-based): when acking the LAST
+    // pending hook AND the end-of-content terminal flag has entered state,
+    // flip endOfContentSeen through the slice action so its dedicated
+    // localStorage key updates atomically with the state mutation. Pre-C16
+    // this was a hook-id check pinned to a single W1 optional consequence
+    // (`cons-pediatric-silence-01`), so only one W1 posture ever reached the
+    // overlay. The flag is set by Layout on any Week 12 commit and mirrors
+    // the resolutionFlag, so every Q1-close posture now lands here.
+    if (queueLenBefore === 1 && get().flags.has(END_OF_CONTENT_TERMINAL_FLAG)) {
       get().markEndOfContentSeen()
     }
   },

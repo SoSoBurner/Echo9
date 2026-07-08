@@ -16,6 +16,7 @@ import { SCHOOLS_CONTRACT_RENEWAL_HOOKS } from '@content/consequences/q1/week9-s
 import { HIDDEN_TRACE_REVEAL_HOOKS } from '@content/consequences/q1/week10-hidden-trace-reveal.consequences'
 import { CAPITAL_DEPLOYMENT_ATTEMPT_HOOKS } from '@content/consequences/q1/week11-capital-deployment-attempt.consequences'
 import { QUARTER_CLOSE_ETHICS_HEARING_HOOKS } from '@content/consequences/q1/week12-quarter-close-ethics-hearing.consequences'
+import { QUARTER_CLOSE_TERMINAL_HOOKS } from '@content/consequences/q1/week12-quarter-close-terminal.consequences'
 
 // ---------------------------------------------------------------------------
 // Hook registry (§11 — every delayed consequence has the 7 mandatory fields)
@@ -34,6 +35,7 @@ export const ALL_CONSEQUENCE_MODULES: readonly ConsequenceHook[] = [
   ...HIDDEN_TRACE_REVEAL_HOOKS,
   ...CAPITAL_DEPLOYMENT_ATTEMPT_HOOKS,
   ...QUARTER_CLOSE_ETHICS_HEARING_HOOKS,
+  ...QUARTER_CLOSE_TERMINAL_HOOKS,
 ]
 
 // ---------------------------------------------------------------------------

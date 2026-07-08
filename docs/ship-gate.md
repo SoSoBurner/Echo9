@@ -35,13 +35,14 @@ The gate is stricter than the daily/weekly cadence in `docs/review-cadence.md`. 
 
 ### End-of-content boundary check
 
-- Play to the manifest's terminal hook (`END_OF_CONTENT_HOOK_ID` in `game/src/content/contentBoundary.manifest.ts`).
-- Acknowledge it. Overlay MUST appear.
+- Play any Q1 posture to Week 12 commit. C16 boundary: Layout sets `END_OF_CONTENT_TERMINAL_FLAG` (Q1_CLOSED, exported from `game/src/content/contentBoundary.manifest.ts`) on any W12 commit, and the arc-level terminal hook in `game/src/content/consequences/q1/week12-quarter-close-terminal.consequences.ts` fires on that flag.
+- Acknowledge the terminal hook. Overlay MUST appear.
 - Escape MUST NOT dismiss.
 - Body copy MUST read exactly: "Thank you for playing and look forward to future releases of this demo type language."
+- Repeat for all four W12 postures (name-what-took / defer / decline / defiant). Overlay MUST appear on every one.
 - Close browser without Replay. Reopen. Overlay reappears.
 - Replay. Verify both `echo9:autosave` and `echo9:endOfContentSeen` are gone from localStorage. Fresh boot has no overlay.
-- If Q_next is shipping: verify updating `game/src/content/contentBoundary.manifest.ts` to Q_next's terminal hook takes ≤1 line of code and 0 UI touches.
+- If Q_next is shipping: verify updating `game/src/content/contentBoundary.manifest.ts` to Q_next's terminal flag takes ≤1 line of code and 0 UI touches.
 
 ## Phase 5 — Ship-gate signal check
 
