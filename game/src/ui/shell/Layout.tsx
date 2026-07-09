@@ -116,6 +116,13 @@ export function Layout() {
   // ONLY the derived 0–3 tone tier ever reaches this component — the raw
   // value stays behind selectSilasEscalationTier (leak guard enforces this).
   const recordScrutinyEvent = useGameStore((s) => s.recordScrutinyEvent)
+  // S4 defiance-detection seam. A DEFY commit routes through
+  // recordDefianceCommit instead: the slice action rolls seeded detection
+  // (run seed + escalation band + week), applies the base DEFY spike plus
+  // the extra detection spike when caught, and records lastDefiance for the
+  // Track C consequence path. The seed itself never enters ui/** —
+  // runSeedImportGuard.test.ts enforces that.
+  const recordDefianceCommit = useGameStore((s) => s.recordDefianceCommit)
   const silasEscalationTier = useGameStore(selectSilasEscalationTier)
 
   // INSPECTION panel state — cursor + key + flags drive both the open
@@ -287,7 +294,14 @@ export function Layout() {
         [...currentEntry.choices],
         installedModules,
       )
-      recordScrutinyEvent(classifyCommitEvent(surfaced, id))
+      const commitEvent = classifyCommitEvent(surfaced, id)
+      if (commitEvent === 'DEFY') {
+        // S4: defiance rolls seeded detection inside the slice action —
+        // base DEFY spike always, extra spike only when Silas catches it.
+        recordDefianceCommit(currentEntry.week)
+      } else {
+        recordScrutinyEvent(commitEvent)
+      }
 
       // C16 note: Q1_CLOSED is NOT set here even for Week 12. The terminal
       //   hook's reveal condition is FLAG on Q1_CLOSED, and firing it during
@@ -356,6 +370,7 @@ export function Layout() {
       noteUsage,
       installedModules,
       recordScrutinyEvent,
+      recordDefianceCommit,
     ],
   )
 

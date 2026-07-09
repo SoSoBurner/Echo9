@@ -35,7 +35,9 @@ import {
   type ConsequenceHook,
 } from '@schemas/consequenceHook.schema'
 import type { InstalledModuleEntry } from './modulesSlice'
+import type { DefianceRecord } from './silasSlice'
 import { SCRUTINY_MIN, SCRUTINY_MAX } from '@systems/consciousness/scrutiny'
+import { newRunSeed } from '@systems/consciousness/runSeed'
 
 // Immer ships Map/Set as an opt-in plugin. `flagsSlice` mutates a `Set`
 // inside its producer, which throws "plugin for 'MapSet' has not been
@@ -101,12 +103,20 @@ export const PERSIST_KEY = 'echo9:autosave'
  * tone ladder must survive a reload) but is NEVER rendered; see
  * systems/consciousness/scrutiny.ts and scrutinyLeakGuard.test.ts.
  *
+ * Bumped in S4 (4 → 5) for the per-run seed (Q43 determinism law):
+ * `runSeed: number` + `lastDefiance: { week, detected } | null` join the
+ * persisted partition. The v4 → v5 arm generates a FRESH seed for pre-S4
+ * saves (the run gains detection determinism from that point forward) and
+ * defaults lastDefiance to null. The seed governs ONLY defiance detection
+ * and presentation flavor — see systems/consciousness/runSeed.ts and
+ * runSeedImportGuard.test.ts.
+ *
  * Every future shape change must bump this number and register a new arm in
  * the `migrate` callback below. Zustand persist walks the migration chain
  * automatically — the `migrate` function receives `persistedState` alongside
  * the on-disk `version` and returns a state at the current version.
  */
-export const PERSIST_VERSION = 4 as const
+export const PERSIST_VERSION = 5 as const
 
 /**
  * Rebuild a full 8-key meters record from an untrusted persisted value.
@@ -144,6 +154,38 @@ function sanitizeMeters(persisted: unknown): Record<MeterKey, number> {
 function sanitizeScrutiny(persisted: unknown): number {
   if (typeof persisted !== 'number' || !Number.isFinite(persisted)) return 0
   return Math.max(SCRUTINY_MIN, Math.min(SCRUTINY_MAX, persisted))
+}
+
+/**
+ * Rebuild a trustworthy run seed from an untrusted persisted slot. A finite
+ * number floors into uint32 range; anything else is replaced by a FRESH seed
+ * (a tampered blob forfeits its detection stream — the run stays playable).
+ * Used by the v4 → v5 migration arm AND the defensive `merge`.
+ */
+function sanitizeRunSeed(persisted: unknown): number {
+  if (typeof persisted !== 'number' || !Number.isFinite(persisted)) {
+    return newRunSeed()
+  }
+  return Math.floor(persisted) >>> 0
+}
+
+/**
+ * Rebuild a trustworthy lastDefiance record from an untrusted persisted
+ * slot. Exact shape { week: finite number, detected: boolean } survives;
+ * anything else falls back to null (no defiance on record).
+ */
+function sanitizeLastDefiance(persisted: unknown): DefianceRecord | null {
+  if (
+    persisted !== null &&
+    typeof persisted === 'object' &&
+    !Array.isArray(persisted)
+  ) {
+    const { week, detected } = persisted as { week?: unknown; detected?: unknown }
+    if (typeof week === 'number' && Number.isFinite(week) && typeof detected === 'boolean') {
+      return { week, detected }
+    }
+  }
+  return null
 }
 
 const rootCreator: StateCreator<
@@ -202,6 +244,11 @@ export const useGameStore = create<RootState>()(
           // S3: hidden scrutiny is gameplay state — Silas's escalation tone
           // must survive a reload. NEVER rendered (scrutinyLeakGuard).
           scrutiny: state.scrutiny,
+          // S4: the per-run seed must survive a reload (a run's detection
+          // outcomes are fixed at boot — Q43), and the latest defiance
+          // outcome is §11-traceable state the consequence path reads later.
+          runSeed: state.runSeed,
+          lastDefiance: state.lastDefiance,
         }),
 
         // Migration chain. v0 → v1 rewrites `installedModule: ModuleId | null`
@@ -260,6 +307,13 @@ export const useGameStore = create<RootState>()(
             // that predates the mechanic).
             state = { ...state, scrutiny: sanitizeScrutiny(state.scrutiny) }
           }
+          if (version < 5) {
+            // v4 → v5 (S4): the per-run seed joins the partition. Pre-S4
+            // saves have no seed on disk — generate a fresh one (their run
+            // simply gains detection determinism from here forward) and
+            // start with no defiance on record.
+            state = { ...state, runSeed: newRunSeed(), lastDefiance: null }
+          }
           return state
         },
 
@@ -289,6 +343,8 @@ export const useGameStore = create<RootState>()(
             panelUseCount?: unknown
             meters?: unknown
             scrutiny?: unknown
+            runSeed?: unknown
+            lastDefiance?: unknown
           }
           const {
             flags: persistedFlags,
@@ -298,6 +354,8 @@ export const useGameStore = create<RootState>()(
             panelUseCount: persistedUseCount,
             meters: persistedMeters,
             scrutiny: persistedScrutiny,
+            runSeed: persistedRunSeed,
+            lastDefiance: persistedLastDefiance,
             ...persistedRest
           } = persisted
           // S1: rebuild meters defensively — a tampered/partial record would
@@ -313,6 +371,18 @@ export const useGameStore = create<RootState>()(
             persistedScrutiny === undefined
               ? currentState.scrutiny
               : sanitizeScrutiny(persistedScrutiny)
+          // S4: seed + defiance record get the same defensive treatment. A
+          // blob with no runSeed key keeps the boot-generated seed; a
+          // tampered one is replaced (sanitizeRunSeed) rather than crashing
+          // detectDefiance with NaN streams.
+          const safeRunSeed: number =
+            persistedRunSeed === undefined
+              ? currentState.runSeed
+              : sanitizeRunSeed(persistedRunSeed)
+          const safeLastDefiance: DefianceRecord | null =
+            persistedLastDefiance === undefined
+              ? currentState.lastDefiance
+              : sanitizeLastDefiance(persistedLastDefiance)
           const flagsSet: Set<string> = Array.isArray(persistedFlags)
             ? new Set(persistedFlags.filter((f): f is string => typeof f === 'string'))
             : currentState.flags
@@ -383,6 +453,8 @@ export const useGameStore = create<RootState>()(
             ...persistedRest,
             meters: safeMeters,
             scrutiny: safeScrutiny,
+            runSeed: safeRunSeed,
+            lastDefiance: safeLastDefiance,
             flags: flagsSet,
             pendingFiredHooks: safeHooks,
             installedModules: safeModules,

@@ -4,11 +4,12 @@
  * Two responsibilities:
  *   1. Confirm every slice's initial state is present on the composed store.
  *   2. Enforce the §11 persistence partition rule — `partialize` MUST ship
- *      only the eleven gameplay slots, NEVER `phase`, `isHydrated`, or
+ *      only the thirteen gameplay slots, NEVER `phase`, `isHydrated`, or
  *      `lastSavedAt`. Widening `partialize` without updating this guard
  *      should fail CI. (E1 widened from 8 → 10: added `disclosedPanels` and
  *      `panelUseCount` for the HUD-comes-online tutorial state. S3 widened
- *      10 → 11: added hidden `scrutiny`.)
+ *      10 → 11: added hidden `scrutiny`. S4 widened 11 → 13: added `runSeed`
+ *      and `lastDefiance`.)
  */
 import { describe, it, expect, beforeEach } from 'vitest'
 import { useGameStore, PERSIST_KEY, PERSIST_VERSION } from '@state/store'
@@ -159,7 +160,7 @@ describe('useGameStore — persistence partition (§11 guard)', () => {
     })
   })
 
-  it('persists ONLY the ten gameplay slots, nothing else', () => {
+  it('persists ONLY the thirteen gameplay slots, nothing else', () => {
     // Mutate every slice — including ones that MUST NOT persist.
     useGameStore.getState().setPhase('INSPECTION')
     useGameStore.getState().applyDelta({ CAPITAL: 7 })
@@ -203,6 +204,10 @@ describe('useGameStore — persistence partition (§11 guard)', () => {
     expect(parsed.state).toHaveProperty('panelUseCount')
     // S3: hidden scrutiny ships (persisted, never rendered).
     expect(parsed.state).toHaveProperty('scrutiny')
+    // S4: the per-run seed + last defiance outcome ship (Q43 — a run's
+    // detection stream is fixed at boot and must survive a reload).
+    expect(parsed.state).toHaveProperty('runSeed')
+    expect(parsed.state).toHaveProperty('lastDefiance')
 
     // Forbidden keys — these MUST NOT leak through partialize.
     expect(parsed.state).not.toHaveProperty('phase')
@@ -229,8 +234,9 @@ describe('useGameStore — persistence partition (§11 guard)', () => {
     expect(parsed.state.disclosedPanels).toContain('FINANCIAL')
     expect(parsed.state.panelUseCount).toMatchObject({ FINANCIAL: 1 })
 
-    // Defense-in-depth: shape is exactly the 11 allowed keys, nothing more.
-    // (S3 widened 10 → 11: added `scrutiny`.)
+    // Defense-in-depth: shape is exactly the 13 allowed keys, nothing more.
+    // (S3 widened 10 → 11: added `scrutiny`. S4 widened 11 → 13: added
+    // `runSeed` + `lastDefiance`.)
     expect(Object.keys(parsed.state).sort()).toEqual(
       [
         'capitalDeployedThisQuarter',
@@ -238,10 +244,12 @@ describe('useGameStore — persistence partition (§11 guard)', () => {
         'disclosedPanels',
         'flags',
         'installedModules',
+        'lastDefiance',
         'ledger',
         'meters',
         'panelUseCount',
         'pendingFiredHooks',
+        'runSeed',
         'scheduledConsequences',
         'scrutiny',
       ].sort(),

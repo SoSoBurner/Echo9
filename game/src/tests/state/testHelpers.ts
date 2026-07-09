@@ -8,6 +8,7 @@
  */
 import { useGameStore, PERSIST_KEY } from '@state/store'
 import { METER_INITIAL_VALUES } from '@state/metersSlice'
+import { newRunSeed } from '@systems/consciousness/runSeed'
 import { PANEL_IDS, type PanelId } from '@systems/tutorial/hudDisclosure'
 
 export function resetStore(): void {
@@ -22,6 +23,10 @@ export function resetStore(): void {
     currentPromptId: null,
     silasApproval: 100,
     scrutiny: 0,
+    // S4 new-run semantics: a reset IS a fresh run — fresh seed, no defiance
+    // on record. Tests needing a specific seed setState it afterwards.
+    runSeed: newRunSeed(),
+    lastDefiance: null,
     installedModules: {},
     lastSavedAt: null,
     isHydrated: false,
