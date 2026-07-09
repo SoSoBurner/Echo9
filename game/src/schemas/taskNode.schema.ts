@@ -55,6 +55,14 @@ export const TaskNodeSchema = z.object({
   choiceIds: z.array(ChoiceIdSchema).min(2).max(4),
   /** S2 optional authoring — module-tagged extra options (rank ≥2 tier). */
   moduleVerbOptions: z.array(ModuleVerbOptionSchema).optional(),
+  /**
+   * P2 (Q16 Option 3) — OPTIONAL loose linkage to a PolylogueScene in the
+   * separate `@content/polylogueScenes` registry. Plain string (not the
+   * branded PolylogueSceneId) on purpose: resolution happens against the
+   * registry at the presentation seam, and absence means zero behavior
+   * change — all pre-P2 content parses unchanged.
+   */
+  polylogueSceneId: z.string().min(1).optional(),
 })
 
 export type TaskNode = z.infer<typeof TaskNodeSchema>
