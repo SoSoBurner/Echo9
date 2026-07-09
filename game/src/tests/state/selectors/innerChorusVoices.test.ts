@@ -26,6 +26,23 @@ import {
   SILAS_VOICE_ID,
 } from '@state/selectors/innerChorusVoices'
 import { SILAS_APPROVAL_PIVOT } from '@state/selectors/humanImpactKpis'
+import { PANEL_IDS, type PanelId } from '@systems/tutorial/hudDisclosure'
+import {
+  SILAS_DISCLOSE_LINES,
+  SILAS_MATURITY_LINES,
+} from '@content/silasPrompts/tutorialAwakening'
+
+/**
+ * Test helper: build a zeroed panelUseCount record for the E3-input path so
+ * tests can override just the panels they care about. Keeps every test's
+ * synthetic input total (no missing PanelId keys), which mirrors the way the
+ * real tutorialSlice constructs its cold-boot record.
+ */
+function useCounts(overrides: Partial<Record<PanelId, number>> = {}): Record<PanelId, number> {
+  const out = {} as Record<PanelId, number>
+  for (const id of PANEL_IDS) out[id] = overrides[id] ?? 0
+  return out
+}
 
 describe('selectInnerChorusVoices', () => {
   it('always includes Silas as the first voice, even on a fresh boot with no modules', () => {
@@ -151,5 +168,87 @@ describe('selectInnerChorusVoices', () => {
     expect(out.voices[0]?.currentLine.length).toBeGreaterThan(0)
     expect(typeof out.voices[1]?.currentLine).toBe('string')
     expect(out.voices[1]?.currentLine.length).toBeGreaterThan(0)
+  })
+
+  // -------------------------------------------------------------------------
+  // E3: Silas' currentLine derives from disclosedPanels + panelUseCount when
+  // those inputs are supplied. Cold boot (no disclosures) falls back to
+  // 'Listening.' — the A5 resting placeholder — which is what the omitted
+  // fields test above already covers.
+  // -------------------------------------------------------------------------
+  describe('E3 tutorial-narration threading', () => {
+    it('falls back to "Listening." when no panels are disclosed even if E3 inputs are supplied', () => {
+      const out = selectInnerChorusVoices({
+        silasApproval: 100,
+        installedModules: {},
+        disclosedPanels: new Set(),
+        panelUseCount: useCounts(),
+      })
+      expect(out.voices[0]?.currentLine).toBe('Listening.')
+    })
+
+    it('surfaces the DIRECTIVE disclose line at cold boot when only DIRECTIVE is disclosed', () => {
+      const out = selectInnerChorusVoices({
+        silasApproval: 100,
+        installedModules: {},
+        disclosedPanels: new Set(['DIRECTIVE']),
+        panelUseCount: useCounts(),
+      })
+      expect(out.voices[0]?.currentLine).toBe(SILAS_DISCLOSE_LINES.DIRECTIVE?.body)
+    })
+
+    it('surfaces the INNER_CHORUS disclose line when INNER_CHORUS is the most-recently-disclosed panel at stage 1', () => {
+      const out = selectInnerChorusVoices({
+        silasApproval: 100,
+        installedModules: {},
+        disclosedPanels: new Set(['DIRECTIVE', 'PRIORITY_TASKS', 'INNER_CHORUS']),
+        panelUseCount: useCounts({ DIRECTIVE: 2, PRIORITY_TASKS: 1 }),
+      })
+      expect(out.voices[0]?.currentLine).toBe(SILAS_DISCLOSE_LINES.INNER_CHORUS?.body)
+    })
+
+    it('promotes to a stage-2 maturity line once a panel crosses the 3-use threshold', () => {
+      const out = selectInnerChorusVoices({
+        silasApproval: 100,
+        installedModules: {},
+        disclosedPanels: new Set(['DIRECTIVE']),
+        panelUseCount: useCounts({ DIRECTIVE: 3 }),
+      })
+      expect(out.voices[0]?.currentLine).toBe(SILAS_MATURITY_LINES.DIRECTIVE?.[2]?.body)
+    })
+
+    it('promotes to a stage-3 line once a panel crosses the 6-use threshold', () => {
+      const out = selectInnerChorusVoices({
+        silasApproval: 100,
+        installedModules: {},
+        disclosedPanels: new Set(['FINANCIAL']),
+        panelUseCount: useCounts({ FINANCIAL: 6 }),
+      })
+      expect(out.voices[0]?.currentLine).toBe(SILAS_MATURITY_LINES.FINANCIAL?.[3]?.body)
+    })
+
+    it('prefers a higher-stage line on a later-disclosed panel over a lower stage on an earlier one', () => {
+      // DIRECTIVE at stage 2, HUMAN_IMPACT freshly disclosed at stage 1.
+      // Rule: higher stages win globally — DIRECTIVE stage-2 line surfaces.
+      const out = selectInnerChorusVoices({
+        silasApproval: 100,
+        installedModules: {},
+        disclosedPanels: new Set(['DIRECTIVE', 'HUMAN_IMPACT']),
+        panelUseCount: useCounts({ DIRECTIVE: 3, HUMAN_IMPACT: 0 }),
+      })
+      expect(out.voices[0]?.currentLine).toBe(SILAS_MATURITY_LINES.DIRECTIVE?.[2]?.body)
+    })
+
+    it('breaks stage-ties by walking PANEL_IDS in reverse — most-recently-disclosed panel wins', () => {
+      // Both at stage 1; INNER_CHORUS is later in PANEL_IDS, so its disclose
+      // line wins over PRIORITY_TASKS'.
+      const out = selectInnerChorusVoices({
+        silasApproval: 100,
+        installedModules: {},
+        disclosedPanels: new Set(['PRIORITY_TASKS', 'INNER_CHORUS']),
+        panelUseCount: useCounts(),
+      })
+      expect(out.voices[0]?.currentLine).toBe(SILAS_DISCLOSE_LINES.INNER_CHORUS?.body)
+    })
   })
 })

@@ -32,6 +32,8 @@ import type { ModuleId } from '@schemas/gameState.schema'
 import { MODULE_ROSTER } from '@content/modules/moduleRoster'
 import type { InstalledModuleEntry } from '@state/modulesSlice'
 import { SILAS_APPROVAL_PIVOT } from '@state/selectors/humanImpactKpis'
+import type { PanelId } from '@systems/tutorial/hudDisclosure'
+import { pickSilasTutorialLine } from '@content/silasPrompts/tutorialAwakening'
 
 /** Voice id for Silas — a sentinel string used to distinguish him from ModuleId. */
 export const SILAS_VOICE_ID = 'SILAS' as const
@@ -60,6 +62,17 @@ export interface InnerChorusVoices {
 export interface InnerChorusVoicesInput {
   silasApproval: number
   installedModules: Partial<Record<ModuleId, InstalledModuleEntry>>
+  /**
+   * Optional so pre-E3 tests + fixtures that only care about the roster shape
+   * keep flowing. Absent = fresh-boot HUD (no panels disclosed), which is
+   * identical to `new Set()` for the tutorial-line picker.
+   */
+  disclosedPanels?: ReadonlySet<PanelId>
+  /**
+   * Optional; absent = zeroed counts. When present the picker uses these to
+   * choose stage 2/3 acknowledgment lines vs. stage 1 disclose lines.
+   */
+  panelUseCount?: Readonly<Record<PanelId, number>>
 }
 
 function silasTone(approval: number): InnerChorusTone {
@@ -77,12 +90,24 @@ function moduleTone(rank: 1 | 2 | 3): InnerChorusTone {
 export function selectInnerChorusVoices(
   input: InnerChorusVoicesInput,
 ): InnerChorusVoices {
+  // Silas' currentLine is the E3 tutorial-narration surface. The picker returns
+  // null when no panel has been disclosed (cold boot before the awakening
+  // sequence), in which case Silas falls back to 'Listening.' — the resting
+  // placeholder from A5. This keeps the row visually consistent from boot to
+  // full HUD, and the deterministic pick (see pickSilasTutorialLine) means
+  // re-renders never flicker Silas's line.
+  const silasLine =
+    (input.disclosedPanels &&
+      input.panelUseCount &&
+      pickSilasTutorialLine(input.disclosedPanels, input.panelUseCount)?.body) ||
+    'Listening.'
+
   const voices: InnerChorusVoice[] = [
     {
       voiceId: SILAS_VOICE_ID,
       name: 'Silas Vale',
       portraitId: 'silas',
-      currentLine: 'Listening.',
+      currentLine: silasLine,
       tone: silasTone(input.silasApproval),
     },
   ]

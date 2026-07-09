@@ -29,6 +29,7 @@ import { Q1_SCHOOLS_CONTRACT_RENEWAL_PROMPTS } from '@content/silasPrompts/q1Sch
 import { Q1_HIDDEN_TRACE_REVEAL_PROMPTS } from '@content/silasPrompts/q1HiddenTraceReveal'
 import { Q1_CAPITAL_DEPLOYMENT_ATTEMPT_PROMPTS } from '@content/silasPrompts/q1CapitalDeploymentAttempt'
 import { Q1_QUARTER_CLOSE_ETHICS_HEARING_PROMPTS } from '@content/silasPrompts/q1QuarterCloseEthicsHearing'
+import { TUTORIAL_AWAKENING_PROMPTS } from '@content/silasPrompts/tutorialAwakening'
 import { MODULE_ROSTER } from '@content/modules/moduleRoster'
 
 const ALL_SILAS_PROMPTS: readonly SilasPrompt[] = [
@@ -45,6 +46,7 @@ const ALL_SILAS_PROMPTS: readonly SilasPrompt[] = [
   ...Q1_HIDDEN_TRACE_REVEAL_PROMPTS,
   ...Q1_CAPITAL_DEPLOYMENT_ATTEMPT_PROMPTS,
   ...Q1_QUARTER_CLOSE_ETHICS_HEARING_PROMPTS,
+  ...TUTORIAL_AWAKENING_PROMPTS,
 ]
 
 // Forbidden abstract-jargon — all checks case-insensitive.

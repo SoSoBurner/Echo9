@@ -79,10 +79,18 @@ export function InnerChorusPanel() {
 
   const silasApproval = useGameStore((s) => s.silasApproval)
   const installedModules = useGameStore((s) => s.installedModules)
+  // E3: threading the tutorial-narration inputs so Silas's row can surface a
+  // one-line acknowledgment when panels first appear and when they widen.
+  // Both are narrow scalar subscriptions — Zustand's default strict equality
+  // is fine because both slices produce new refs via immer.
+  const disclosedPanels = useGameStore((s) => s.disclosedPanels)
+  const panelUseCount = useGameStore((s) => s.panelUseCount)
 
   const { voices } = selectInnerChorusVoices({
     silasApproval,
     installedModules,
+    disclosedPanels,
+    panelUseCount,
   })
 
   if (!disclosed) return null
