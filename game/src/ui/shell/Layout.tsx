@@ -35,6 +35,10 @@ import { AlertCrawler } from '@ui/alerts/AlertCrawler'
 import { useKeyboardNav } from './useKeyboardNav'
 import { markBeat } from '@ui/debug/BeatTelemetry'
 import { resolveChoice } from '@systems/choiceResolver'
+import { optionSurface } from '@systems/consciousness/optionSurface'
+import { classifyCommitEvent } from '@systems/consciousness/scrutiny'
+import { selectSilasEscalationTier } from '@state/selectors/silasEscalation'
+import { applyEscalationTone } from '@content/silasPrompts/escalationTone'
 import { resolveInspection } from '@systems/inspectionEngine'
 import { resolveCapital } from '@systems/capitalResolver'
 import type { ResultTrace } from '@schemas/resultTrace.schema'
@@ -107,6 +111,12 @@ export function Layout() {
   // rapport shift (INNER_CHORUS). First commit discloses them at stage 1;
   // subsequent commits walk the maturity ramp toward mockup parity.
   const noteUsage = useGameStore((s) => s.noteUsage)
+  // S3 hidden scrutiny seam. Write side: recordScrutinyEvent classifies each
+  // choice commit as COMPLY/DEFY (see handleChoiceCommit step 6b). Read side:
+  // ONLY the derived 0–3 tone tier ever reaches this component — the raw
+  // value stays behind selectSilasEscalationTier (leak guard enforces this).
+  const recordScrutinyEvent = useGameStore((s) => s.recordScrutinyEvent)
+  const silasEscalationTier = useGameStore(selectSilasEscalationTier)
 
   // INSPECTION panel state — cursor + key + flags drive both the open
   // condition and the engine call. The cursor is `null` whenever no scene
@@ -186,6 +196,17 @@ export function Layout() {
     [flags],
   )
 
+  // S3: Silas's weekly prompt hardens along the escalation ladder — tier 0
+  // renders the authored warm baseline untouched; tiers 1–3 overlay one
+  // authored curt/suspicious/threat line (deterministic per prompt id).
+  const tonedSilasPrompt = useMemo(
+    () =>
+      currentEntry
+        ? applyEscalationTone(currentEntry.silasPrompt, silasEscalationTier)
+        : null,
+    [currentEntry, silasEscalationTier],
+  )
+
   const handleChoiceCommit = useCallback(
     (id: ChoiceId) => {
       // No active week (post-Q1 close) — nothing to commit.
@@ -255,6 +276,19 @@ export function Layout() {
       noteUsage('FINANCIAL')
       noteUsage('HUMAN_IMPACT')
       noteUsage('INNER_CHORUS')
+
+      // 6b. S3 hidden scrutiny — classify this commit against the option
+      //     surface the player actually saw: committing a surfaced
+      //     conflicts-with-directive option is DEFY (spike), anything else
+      //     is COMPLY (decay). resolveChoice() and the trace path above are
+      //     untouched; this is a parallel one-line fan-out.
+      const surfaced = optionSurface(
+        currentEntry.task,
+        [...currentEntry.choices],
+        installedModules,
+      )
+      recordScrutinyEvent(classifyCommitEvent(surfaced, id))
+
       // C16 note: Q1_CLOSED is NOT set here even for Week 12. The terminal
       //   hook's reveal condition is FLAG on Q1_CLOSED, and firing it during
       //   the W12 choice commit races the W12 inspection dispatch — a
@@ -320,6 +354,8 @@ export function Layout() {
       startInspection,
       setPhase,
       noteUsage,
+      installedModules,
+      recordScrutinyEvent,
     ],
   )
 
@@ -595,7 +631,7 @@ export function Layout() {
           <div className="flex justify-center py-4 border-b border-sealed-dim">
             <PortraitSlot portraitId="silas" size="md" />
           </div>
-          {currentEntry && <SilasPromptPanel prompt={currentEntry.silasPrompt} />}
+          {currentEntry && <SilasPromptPanel prompt={tonedSilasPrompt} />}
         </div>
 
         {/* logdock — T13 LogDock + V5 AlertCrawler.

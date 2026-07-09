@@ -34,6 +34,11 @@ import type { InstalledModuleEntry } from '@state/modulesSlice'
 import { SILAS_APPROVAL_PIVOT } from '@state/selectors/humanImpactKpis'
 import type { PanelId } from '@systems/tutorial/hudDisclosure'
 import { pickSilasTutorialLine } from '@content/silasPrompts/tutorialAwakening'
+import {
+  sentinelPeekAvailable,
+  SENTINEL_SCRUTINY_LINE,
+  type EscalationTier,
+} from '@systems/consciousness/scrutiny'
 
 /** Voice id for Silas — a sentinel string used to distinguish him from ModuleId. */
 export const SILAS_VOICE_ID = 'SILAS' as const
@@ -73,6 +78,13 @@ export interface InnerChorusVoicesInput {
    * choose stage 2/3 acknowledgment lines vs. stage 1 disclose lines.
    */
   panelUseCount?: Readonly<Record<PanelId, number>>
+  /**
+   * S3 — Silas's escalation tier (0–3), derived via selectSilasEscalationTier.
+   * Optional; absent = tier 0 (calm), which keeps pre-S3 callers and fixtures
+   * flowing. Only consumed by the Sentinel-peek gate below (Q42) — it never
+   * shifts any other voice row.
+   */
+  silasEscalationTier?: EscalationTier
 }
 
 function silasTone(approval: number): InnerChorusTone {
@@ -117,6 +129,13 @@ export function selectInnerChorusVoices(
   for (const node of MODULE_ROSTER) {
     const entry = input.installedModules[node.id]
     if (!entry) continue
+    // S3 Sentinel peek (Q42) — the SOLE UI leak of hidden scrutiny. When the
+    // SENTINEL module is installed at rank ≥2 while Silas's tone has climbed
+    // to tier ≥2, its row speaks the one authored in-fiction line. All other
+    // rows (and Sentinel below the gate) keep the normal placeholder.
+    const isSentinelPeek =
+      node.id === 'SENTINEL' &&
+      sentinelPeekAvailable(entry.rank, input.silasEscalationTier ?? 0)
     voices.push({
       voiceId: node.id,
       name: node.name,
@@ -124,8 +143,9 @@ export function selectInnerChorusVoices(
       // Placeholder line pulls from the ModuleNode's silasFraming so even before
       // content authors write chorus lines the row is not blank. First 60 chars
       // keep the row visually consistent across modules.
-      currentLine:
-        node.silasFraming.length > 60
+      currentLine: isSentinelPeek
+        ? SENTINEL_SCRUTINY_LINE
+        : node.silasFraming.length > 60
           ? `${node.silasFraming.slice(0, 60)}\u2026`
           : node.silasFraming,
       tone: moduleTone(entry.rank),

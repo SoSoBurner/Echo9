@@ -28,6 +28,7 @@ import {
   selectInnerChorusVoices,
   type InnerChorusVoice,
 } from '@state/selectors/innerChorusVoices'
+import { selectSilasEscalationTier } from '@state/selectors/silasEscalation'
 import { PortraitSlot } from '@ui/portraits/PortraitSlot'
 import {
   PORTRAIT_IDS,
@@ -85,12 +86,17 @@ export function InnerChorusPanel() {
   // is fine because both slices produce new refs via immer.
   const disclosedPanels = useGameStore((s) => s.disclosedPanels)
   const panelUseCount = useGameStore((s) => s.panelUseCount)
+  // S3: Silas's tone tier (0–3). Derived subscription — the panel never sees
+  // the underlying hidden value, only the ladder step. Feeds the Sentinel-peek
+  // gate inside the selector (the sole sanctioned leak, Q42).
+  const silasEscalationTier = useGameStore(selectSilasEscalationTier)
 
   const { voices } = selectInnerChorusVoices({
     silasApproval,
     installedModules,
     disclosedPanels,
     panelUseCount,
+    silasEscalationTier,
   })
 
   if (!disclosed) return null

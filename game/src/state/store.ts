@@ -35,6 +35,7 @@ import {
   type ConsequenceHook,
 } from '@schemas/consequenceHook.schema'
 import type { InstalledModuleEntry } from './modulesSlice'
+import { SCRUTINY_MIN, SCRUTINY_MAX } from '@systems/consciousness/scrutiny'
 
 // Immer ships Map/Set as an opt-in plugin. `flagsSlice` mutates a `Set`
 // inside its producer, which throws "plugin for 'MapSet' has not been
@@ -94,12 +95,18 @@ export const PERSIST_KEY = 'echo9:autosave'
  * The v2 → v3 arm preserves persisted values for known meters and fills the
  * 5 new ones with METER_INITIAL_VALUES so a pre-S1 save loads cleanly.
  *
+ * Bumped in S3 (3 → 4) for hidden scrutiny (Q39/Q42): `scrutiny: number`
+ * joins the persisted partition. The v3 → v4 arm defaults it to 0 — a pre-S3
+ * save loads with no suspicion banked. The value is gameplay state (Silas's
+ * tone ladder must survive a reload) but is NEVER rendered; see
+ * systems/consciousness/scrutiny.ts and scrutinyLeakGuard.test.ts.
+ *
  * Every future shape change must bump this number and register a new arm in
  * the `migrate` callback below. Zustand persist walks the migration chain
  * automatically — the `migrate` function receives `persistedState` alongside
  * the on-disk `version` and returns a state at the current version.
  */
-export const PERSIST_VERSION = 3 as const
+export const PERSIST_VERSION = 4 as const
 
 /**
  * Rebuild a full 8-key meters record from an untrusted persisted value.
@@ -124,6 +131,19 @@ function sanitizeMeters(persisted: unknown): Record<MeterKey, number> {
     }
   }
   return meters
+}
+
+/**
+ * Rebuild a trustworthy scrutiny value from an untrusted persisted slot.
+ * Finite numbers clamp into [SCRUTINY_MIN, SCRUTINY_MAX] via updateScrutiny's
+ * band (re-implemented locally to avoid importing the pure module's private
+ * clamp); anything else falls back to 0. Used by the v3 → v4 migration arm
+ * AND the defensive `merge` (tampered blobs at the current version get the
+ * same treatment).
+ */
+function sanitizeScrutiny(persisted: unknown): number {
+  if (typeof persisted !== 'number' || !Number.isFinite(persisted)) return 0
+  return Math.max(SCRUTINY_MIN, Math.min(SCRUTINY_MAX, persisted))
 }
 
 const rootCreator: StateCreator<
@@ -179,6 +199,9 @@ export const useGameStore = create<RootState>()(
           // `flags`; the merge callback below rehydrates Array → Set.
           disclosedPanels: Array.from(state.disclosedPanels),
           panelUseCount: state.panelUseCount,
+          // S3: hidden scrutiny is gameplay state — Silas's escalation tone
+          // must survive a reload. NEVER rendered (scrutinyLeakGuard).
+          scrutiny: state.scrutiny,
         }),
 
         // Migration chain. v0 → v1 rewrites `installedModule: ModuleId | null`
@@ -231,6 +254,12 @@ export const useGameStore = create<RootState>()(
             // HUMAN_STABILITY) start at their cold-boot values.
             state = { ...state, meters: sanitizeMeters(state.meters) }
           }
+          if (version < 4) {
+            // v3 → v4 (S3): hidden scrutiny joins the partition. Pre-S3 saves
+            // have no slot — default to 0 (no suspicion banked against a run
+            // that predates the mechanic).
+            state = { ...state, scrutiny: sanitizeScrutiny(state.scrutiny) }
+          }
           return state
         },
 
@@ -259,6 +288,7 @@ export const useGameStore = create<RootState>()(
             disclosedPanels?: unknown
             panelUseCount?: unknown
             meters?: unknown
+            scrutiny?: unknown
           }
           const {
             flags: persistedFlags,
@@ -267,6 +297,7 @@ export const useGameStore = create<RootState>()(
             disclosedPanels: persistedDisclosed,
             panelUseCount: persistedUseCount,
             meters: persistedMeters,
+            scrutiny: persistedScrutiny,
             ...persistedRest
           } = persisted
           // S1: rebuild meters defensively — a tampered/partial record would
@@ -276,6 +307,12 @@ export const useGameStore = create<RootState>()(
             persistedMeters === undefined
               ? currentState.meters
               : sanitizeMeters(persistedMeters)
+          // S3: same defensive treatment for scrutiny — a tampered string or
+          // out-of-band number would otherwise leak into escalationTier.
+          const safeScrutiny: number =
+            persistedScrutiny === undefined
+              ? currentState.scrutiny
+              : sanitizeScrutiny(persistedScrutiny)
           const flagsSet: Set<string> = Array.isArray(persistedFlags)
             ? new Set(persistedFlags.filter((f): f is string => typeof f === 'string'))
             : currentState.flags
@@ -345,6 +382,7 @@ export const useGameStore = create<RootState>()(
             ...currentState,
             ...persistedRest,
             meters: safeMeters,
+            scrutiny: safeScrutiny,
             flags: flagsSet,
             pendingFiredHooks: safeHooks,
             installedModules: safeModules,

@@ -4,10 +4,11 @@
  * Two responsibilities:
  *   1. Confirm every slice's initial state is present on the composed store.
  *   2. Enforce the §11 persistence partition rule — `partialize` MUST ship
- *      only the ten gameplay slots, NEVER `phase`, `isHydrated`, or
+ *      only the eleven gameplay slots, NEVER `phase`, `isHydrated`, or
  *      `lastSavedAt`. Widening `partialize` without updating this guard
  *      should fail CI. (E1 widened from 8 → 10: added `disclosedPanels` and
- *      `panelUseCount` for the HUD-comes-online tutorial state.)
+ *      `panelUseCount` for the HUD-comes-online tutorial state. S3 widened
+ *      10 → 11: added hidden `scrutiny`.)
  */
 import { describe, it, expect, beforeEach } from 'vitest'
 import { useGameStore, PERSIST_KEY, PERSIST_VERSION } from '@state/store'
@@ -200,6 +201,8 @@ describe('useGameStore — persistence partition (§11 guard)', () => {
     // E1: tutorial disclosure ships.
     expect(parsed.state).toHaveProperty('disclosedPanels')
     expect(parsed.state).toHaveProperty('panelUseCount')
+    // S3: hidden scrutiny ships (persisted, never rendered).
+    expect(parsed.state).toHaveProperty('scrutiny')
 
     // Forbidden keys — these MUST NOT leak through partialize.
     expect(parsed.state).not.toHaveProperty('phase')
@@ -226,7 +229,8 @@ describe('useGameStore — persistence partition (§11 guard)', () => {
     expect(parsed.state.disclosedPanels).toContain('FINANCIAL')
     expect(parsed.state.panelUseCount).toMatchObject({ FINANCIAL: 1 })
 
-    // Defense-in-depth: shape is exactly the 10 allowed keys, nothing more.
+    // Defense-in-depth: shape is exactly the 11 allowed keys, nothing more.
+    // (S3 widened 10 → 11: added `scrutiny`.)
     expect(Object.keys(parsed.state).sort()).toEqual(
       [
         'capitalDeployedThisQuarter',
@@ -239,6 +243,7 @@ describe('useGameStore — persistence partition (§11 guard)', () => {
         'panelUseCount',
         'pendingFiredHooks',
         'scheduledConsequences',
+        'scrutiny',
       ].sort(),
     )
   })
