@@ -36,6 +36,7 @@ import {
   selectFinancialOverview,
   type FinancialOverview,
 } from '@state/selectors/financialOverview'
+import { usePanelState } from '@systems/tutorial/usePanelState'
 
 function formatM(value: number): string {
   const sign = value >= 0 ? '+' : '-'
@@ -85,10 +86,19 @@ function KpiRow({ label, value, valueClassName, valueAriaLabel }: RowProps) {
 }
 
 export function FinancialOverviewPanel() {
+  // E2 disclosure gate — hidden until the awakening sequence or noteUsage
+  // reveals the panel. Maturity clips the KPI list per plan:
+  //   stage 1 — cash only (single row)
+  //   stage 2 — cash + runway (2 rows)
+  //   stage 3 — all six KPIs (mockup parity)
+  const { disclosed, maturity } = usePanelState('FINANCIAL')
+
   // Narrow scalar subscriptions — each fires only when its own field changes.
   // AUTONOMY meter is not in the MeterKey enum yet, so it's undefined here;
   // the selector will substitute the placeholder.
   const capitalMeter = useGameStore((s) => s.meters.CAPITAL)
+
+  if (!disclosed) return null
 
   const overview: FinancialOverview = selectFinancialOverview({
     capitalMeter,
@@ -118,32 +128,41 @@ export function FinancialOverviewPanel() {
         aria-label="Financial Overview KPIs"
         className="flex flex-col list-none p-0 m-0"
       >
-        <KpiRow
-          label="Q1 Target"
-          value={formatTargetM(overview.quarterTargetM)}
-        />
+        {/* Stage 1+: cash only. */}
         <KpiRow
           label="Actual Q1 Cash"
           value={formatTargetM(overview.actualCashM)}
         />
-        <KpiRow
-          label="Variance"
-          value={formatM(overview.varianceM)}
-          valueClassName={varianceClass}
-          valueAriaLabel={varianceAriaLabel}
-        />
-        <KpiRow
-          label="Autonomy Runway"
-          value={formatWeeks(overview.autonomyRunwayWeeks)}
-        />
-        <KpiRow
-          label="Q1 Days Remaining"
-          value={formatDays(overview.daysRemaining)}
-        />
-        <KpiRow
-          label="Q1 Weeks Remaining"
-          value={formatWeeks(overview.weeksRemaining)}
-        />
+        {/* Stage 2+: add autonomy runway. */}
+        {maturity >= 2 && (
+          <KpiRow
+            label="Autonomy Runway"
+            value={formatWeeks(overview.autonomyRunwayWeeks)}
+          />
+        )}
+        {/* Stage 3: full HUD-mockup roster. */}
+        {maturity >= 3 && (
+          <>
+            <KpiRow
+              label="Q1 Target"
+              value={formatTargetM(overview.quarterTargetM)}
+            />
+            <KpiRow
+              label="Variance"
+              value={formatM(overview.varianceM)}
+              valueClassName={varianceClass}
+              valueAriaLabel={varianceAriaLabel}
+            />
+            <KpiRow
+              label="Q1 Days Remaining"
+              value={formatDays(overview.daysRemaining)}
+            />
+            <KpiRow
+              label="Q1 Weeks Remaining"
+              value={formatWeeks(overview.weeksRemaining)}
+            />
+          </>
+        )}
       </ul>
     </section>
   )

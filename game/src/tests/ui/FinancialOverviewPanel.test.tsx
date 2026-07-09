@@ -15,11 +15,12 @@ import { render, screen, cleanup } from '@testing-library/react'
 import React from 'react'
 import { FinancialOverviewPanel } from '@ui/financial/FinancialOverviewPanel'
 import { useGameStore } from '@state/store'
-import { resetStore } from '@tests/state/testHelpers'
+import { resetStore, matureAllPanels } from '@tests/state/testHelpers'
 
 describe('FinancialOverviewPanel', () => {
   beforeEach(() => {
     resetStore()
+    matureAllPanels()
     cleanup()
   })
 

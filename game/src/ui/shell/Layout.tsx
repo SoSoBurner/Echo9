@@ -101,6 +101,12 @@ export function Layout() {
   const startInspection = useGameStore((s) => s.startInspection)
   const setPhase = useGameStore((s) => s.setPhase)
   const markCapitalDeployed = useGameStore((s) => s.markCapitalDeployed)
+  // E2 disclosure — every choice commit "uses" the A-track panels: the
+  // directive is being resolved (DIRECTIVE + PRIORITY_TASKS), the meter
+  // deltas land (FINANCIAL + HUMAN_IMPACT), and the chorus reflects the
+  // rapport shift (INNER_CHORUS). First commit discloses them at stage 1;
+  // subsequent commits walk the maturity ramp toward mockup parity.
+  const noteUsage = useGameStore((s) => s.noteUsage)
 
   // INSPECTION panel state — cursor + key + flags drive both the open
   // condition and the engine call. The cursor is `null` whenever no scene
@@ -235,6 +241,16 @@ export function Layout() {
       //    unresolved entry on the next render, advancing the arc without
       //    any cursor slice.
       setFlag(currentEntry.resolutionFlag)
+
+      // 6a. E2 disclosure ramp — count this commit as a use of each
+      //     A-track panel. First commit discloses them at stage 1; by
+      //     the 6th commit they reach stage 3 (mockup parity). See
+      //     panelMaturity() for the exact ramp.
+      noteUsage('DIRECTIVE')
+      noteUsage('PRIORITY_TASKS')
+      noteUsage('FINANCIAL')
+      noteUsage('HUMAN_IMPACT')
+      noteUsage('INNER_CHORUS')
       // C16 note: Q1_CLOSED is NOT set here even for Week 12. The terminal
       //   hook's reveal condition is FLAG on Q1_CLOSED, and firing it during
       //   the W12 choice commit races the W12 inspection dispatch — a
@@ -299,6 +315,7 @@ export function Layout() {
       setFlag,
       startInspection,
       setPhase,
+      noteUsage,
     ],
   )
 

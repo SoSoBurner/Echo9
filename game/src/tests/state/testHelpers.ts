@@ -31,3 +31,26 @@ export function resetStore(): void {
     panelUseCount,
   })
 }
+
+/**
+ * matureAllPanels — flip every PanelId to disclosed AND set its use count to
+ * the top of the maturity ramp (6+ = stage 3).
+ *
+ * Panel-render unit tests care about the panel's fully-mature markup shape,
+ * NOT about the E2 disclosure choreography — the latter has dedicated tests
+ * around `usePanelState` + `noteUsage`. Without this helper, every panel test
+ * would have to reproduce the same disclose+bump preamble, and any future
+ * PanelId addition would ripple through unrelated test files.
+ *
+ * Use in a `beforeEach` after `resetStore()` when the test's subject is a
+ * panel's mature render. Leave it out when the test is specifically about
+ * disclosure or maturity transitions.
+ */
+export function matureAllPanels(): void {
+  const panelUseCount: Record<PanelId, number> = {} as Record<PanelId, number>
+  for (const id of PANEL_IDS) panelUseCount[id] = 6
+  useGameStore.setState({
+    disclosedPanels: new Set<PanelId>(PANEL_IDS),
+    panelUseCount,
+  })
+}

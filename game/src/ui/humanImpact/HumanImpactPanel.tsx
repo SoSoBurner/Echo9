@@ -20,6 +20,7 @@
  */
 import { useGameStore } from '@state/store'
 import { selectHumanImpactKpis } from '@state/selectors/humanImpactKpis'
+import { usePanelState } from '@systems/tutorial/usePanelState'
 
 interface RowProps {
   label: string
@@ -49,6 +50,12 @@ function KpiRow({ label, value, tone }: RowProps) {
 }
 
 export function HumanImpactPanel() {
+  // E2 disclosure gate. Maturity ramp per plan:
+  //   stage 1 — welfare only
+  //   stage 2 — welfare + approval
+  //   stage 3 — all 4 rows
+  const { disclosed, maturity } = usePanelState('HUMAN_IMPACT')
+
   // Narrow scalar subscriptions — each fires only when its own field changes.
   const humanWelfareMeter = useGameStore((s) => s.meters.HUMAN_WELFARE)
   const silasApproval = useGameStore((s) => s.silasApproval)
@@ -61,6 +68,11 @@ export function HumanImpactPanel() {
     ledgerLength,
     ownerControlMeter,
   })
+
+  if (!disclosed) return null
+
+  const visibleRows =
+    maturity === 1 ? rows.slice(0, 1) : maturity === 2 ? rows.slice(0, 2) : rows
 
   return (
     <section
@@ -76,7 +88,7 @@ export function HumanImpactPanel() {
         aria-label="Human Impact KPIs"
         className="flex flex-col list-none p-0 m-0"
       >
-        {rows.map((row) => (
+        {visibleRows.map((row) => (
           <KpiRow
             key={row.key}
             label={row.label}

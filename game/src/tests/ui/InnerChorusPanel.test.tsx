@@ -15,11 +15,12 @@ import { render, screen, cleanup, within } from '@testing-library/react'
 import React from 'react'
 import { InnerChorusPanel } from '@ui/innerChorus/InnerChorusPanel'
 import { useGameStore } from '@state/store'
-import { resetStore } from '@tests/state/testHelpers'
+import { resetStore, matureAllPanels } from '@tests/state/testHelpers'
 
 describe('InnerChorusPanel', () => {
   beforeEach(() => {
     resetStore()
+    matureAllPanels()
     cleanup()
   })
 

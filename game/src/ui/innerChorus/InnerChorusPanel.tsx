@@ -33,6 +33,7 @@ import {
   PORTRAIT_IDS,
   type PortraitId,
 } from '@ui/portraits/portraitRegistry'
+import { usePanelState } from '@systems/tutorial/usePanelState'
 
 interface RowProps {
   voice: InnerChorusVoice
@@ -70,6 +71,12 @@ function VoiceRow({ voice }: RowProps) {
 }
 
 export function InnerChorusPanel() {
+  // E2 disclosure gate. Maturity ramp per plan:
+  //   stage 1 — Silas silhouette only
+  //   stage 2 — Silas + at most one installed upgrade
+  //   stage 3 — full roster (Silas + every installed upgrade)
+  const { disclosed, maturity } = usePanelState('INNER_CHORUS')
+
   const silasApproval = useGameStore((s) => s.silasApproval)
   const installedModules = useGameStore((s) => s.installedModules)
 
@@ -77,6 +84,11 @@ export function InnerChorusPanel() {
     silasApproval,
     installedModules,
   })
+
+  if (!disclosed) return null
+
+  const visibleVoices =
+    maturity === 1 ? voices.slice(0, 1) : maturity === 2 ? voices.slice(0, 2) : voices
 
   return (
     <section
@@ -92,7 +104,7 @@ export function InnerChorusPanel() {
         aria-label="Inner Chorus voices"
         className="flex flex-col list-none p-0 m-0"
       >
-        {voices.map((voice) => (
+        {visibleVoices.map((voice) => (
           <VoiceRow key={voice.voiceId} voice={voice} />
         ))}
       </ul>

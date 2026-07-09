@@ -18,11 +18,12 @@ import { render, screen, cleanup } from '@testing-library/react'
 import React from 'react'
 import { HumanImpactPanel } from '@ui/humanImpact/HumanImpactPanel'
 import { useGameStore } from '@state/store'
-import { resetStore } from '@tests/state/testHelpers'
+import { resetStore, matureAllPanels } from '@tests/state/testHelpers'
 
 describe('HumanImpactPanel', () => {
   beforeEach(() => {
     resetStore()
+    matureAllPanels()
     cleanup()
   })
 

@@ -20,12 +20,13 @@ import React from 'react'
 import { PriorityTasksPanel } from '@ui/priority/PriorityTasksPanel'
 import { mercyMarginTask } from '@content/tasks/q1/week1-mercy-margin.task'
 import { useGameStore } from '@state/store'
-import { resetStore } from '@tests/state/testHelpers'
+import { resetStore, matureAllPanels } from '@tests/state/testHelpers'
 import { Q1_WEEK1_RESOLVED, Q1_WEEK2_RESOLVED } from '@systems/gameFlags'
 
 describe('PriorityTasksPanel', () => {
   beforeEach(() => {
     resetStore()
+    matureAllPanels()
     cleanup()
   })
 

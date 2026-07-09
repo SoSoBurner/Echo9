@@ -23,6 +23,7 @@
  */
 import { useGameStore } from '@state/store'
 import { selectActiveTasks, type ActiveTask } from '@state/selectors/activeTasks'
+import { usePanelState } from '@systems/tutorial/usePanelState'
 
 interface TaskCardProps {
   task: ActiveTask
@@ -73,9 +74,22 @@ function TaskCard({ task, onExecute, onAskVoice }: TaskCardProps) {
 }
 
 export function PriorityTasksPanel() {
+  // E2 disclosure gate — hidden until the awakening sequence or a later
+  // `noteUsage('PRIORITY_TASKS')` discloses it.
+  const { disclosed, maturity } = usePanelState('PRIORITY_TASKS')
+
   // Selector returns the Stage 1 roster; wrapped in useGameStore so a future
   // task can move the roster into a real slice without changing this call.
   const tasks = useGameStore(selectActiveTasks)
+
+  if (!disclosed) return null
+
+  // Maturity ramp per plan E2:
+  //   stage 1 — single row (the first / active task only)
+  //   stage 2 — up to 3 rows
+  //   stage 3 — all rows (Stage 1 authored roster caps at 3 today anyway)
+  const visibleTasks =
+    maturity === 1 ? tasks.slice(0, 1) : maturity === 2 ? tasks.slice(0, 3) : tasks
 
   // Stage 1: EXECUTE and Ask Voice are no-ops with a dev-only marker. A6 owns
   // the real dispatch wiring (CenterDirectivePanel focus + SilasPromptPanel
@@ -98,7 +112,7 @@ export function PriorityTasksPanel() {
     >
       <p className="text-fg-secondary text-xs uppercase tracking-widest">Priority Tasks</p>
       <ul role="list" aria-label="Priority Tasks" className="flex flex-col gap-2 list-none p-0 m-0">
-        {tasks.map((task) => (
+        {visibleTasks.map((task) => (
           <TaskCard key={task.id} task={task} onExecute={onExecute} onAskVoice={onAskVoice} />
         ))}
       </ul>
