@@ -16,7 +16,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useGameStore } from '@state/store'
 import { TopBar } from '@ui/topbar/TopBar'
-import { LeftStatusRail } from '@ui/meters/LeftStatusRail'
 import { PriorityTasksPanel } from '@ui/priority/PriorityTasksPanel'
 import { FinancialOverviewPanel } from '@ui/financial/FinancialOverviewPanel'
 import { HumanImpactPanel } from '@ui/humanImpact/HumanImpactPanel'
@@ -546,13 +545,12 @@ export function Layout() {
           <TopBar />
         </div>
 
-        {/* left — priority tasks (top) + financial overview + status rail (bottom) */}
+        {/* left — A-track panels: priority tasks, financial, human impact, inner chorus */}
         <div style={{ gridArea: 'left' }} className="overflow-y-auto">
           <PriorityTasksPanel />
           <FinancialOverviewPanel />
           <HumanImpactPanel />
           <InnerChorusPanel />
-          <LeftStatusRail />
         </div>
 
         {/* center — directive / choices / result */}
