@@ -115,6 +115,10 @@ export function Layout() {
   const currentInspectionSceneIndex = useGameStore((s) => s.currentInspectionSceneIndex)
   const currentInspectionKey = useGameStore((s) => s.currentInspectionKey)
   const flags = useGameStore((s) => s.flags)
+  // S2: installed-module rank map — drives optionSurface in the center panel.
+  // Stable reference between installs/promotions (immer produces new refs on
+  // change), so the panel's useMemo only recomputes when the map changes.
+  const installedModules = useGameStore((s) => s.installedModules)
   // CAPITAL panel — opens when CAPITAL > 80 AND not yet deployed this quarter.
   // `showCapital` is local UI state so the player can defer (ESC) without
   // losing the >80 threshold; reopens next time the player chooses to.
@@ -569,6 +573,7 @@ export function Layout() {
             <CenterDirectivePanel
               task={currentEntry.task}
               choices={[...currentEntry.choices]}
+              installedModules={installedModules}
               nullText={currentEntry.nullText}
               humanMessage={currentEntry.humanMessage}
               onChoiceCommit={handleChoiceCommit}

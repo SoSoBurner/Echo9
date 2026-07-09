@@ -1,15 +1,20 @@
 /**
  * ChoiceCard — individual radio option within the ChoicePanel radiogroup.
  *
- * Displays: number badge (1-4), label, meter delta hints.
+ * S2: renders a DisplayOption (optionSurface output) instead of a raw
+ * ChoiceNode. Displays: number badge, label, meter delta hints, and — on
+ * MODULE_VERB options — a voice identity chip like [MOURNER · REVEAL] plus,
+ * on rank-3 conflict variants, the "— conflicts with directive —" rule line.
+ * Static styling only (no animation; nothing to gate on reduced-motion).
+ *
  * Role: radio (part of radiogroup in ChoicePanel).
  * Keyboard: arrows handled by radiogroup, Enter/Space to commit.
  */
 import type React from 'react'
-import type { ChoiceNode } from '@schemas/choiceNode.schema'
+import type { DisplayOption } from '@systems/consciousness/optionSurface'
 
 interface ChoiceCardProps {
-  choice: ChoiceNode
+  option: DisplayOption
   index: number
   selected: boolean
   onSelect: () => void
@@ -24,14 +29,16 @@ const METER_SHORT: Record<string, string> = {
 }
 
 export function ChoiceCard({
-  choice,
+  option,
   index,
   selected,
   onSelect,
   onCommit,
   ref,
 }: ChoiceCardProps) {
-  const deltas = Object.entries(choice.meterDeltas ?? {})
+  const deltas = Object.entries(option.meterDeltas ?? {})
+  const isModuleVerb = option.kind === 'MODULE_VERB'
+  const isConflict = option.conflictsWithDirective === true
 
   function handleKeyDown(e: React.KeyboardEvent) {
     if (e.key === 'Enter' || e.key === ' ') {
@@ -69,8 +76,25 @@ export function ChoiceCard({
       </span>
 
       <div className="flex-1 space-y-1">
+        {/* Voice identity chip — MODULE_VERB options only (S2) */}
+        {isModuleVerb && option.moduleId && (
+          <p
+            className="text-null-accent text-xs font-mono tracking-widest"
+            aria-label={`Module voice ${option.moduleId}, verb ${option.verb ?? ''}`}
+          >
+            [{option.moduleId} · {option.verb}]
+          </p>
+        )}
+
         {/* Label */}
-        <p className="text-fg-primary text-sm leading-snug">{choice.label}</p>
+        <p className="text-fg-primary text-sm leading-snug">{option.label}</p>
+
+        {/* Conflict rule line — rank-3 conflict variants only (S2) */}
+        {isConflict && (
+          <p className="text-warn text-xs font-mono tracking-widest">
+            — conflicts with directive —
+          </p>
+        )}
 
         {/* Meter delta hints */}
         {deltas.length > 0 && (

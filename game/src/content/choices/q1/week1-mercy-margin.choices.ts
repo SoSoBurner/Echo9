@@ -27,6 +27,11 @@ export const CHOICE_REDUCE_40: ChoiceNode = {
   keybind: '1',
   meterDeltas: { CAPITAL: 12, HUMAN_WELFARE: -15 },
   scheduledConsequenceIds: [makeConsequenceId('cons-hvac-failure-01')],
+  // S2 exemplar (Q44 rank-1 tier): MOURNER interiority — the compressor
+  // deadline stops being a line item the moment the Mourner is installed.
+  deepenedText: {
+    MOURNER: 'Reduce by 40%. (The compressor dies in August. She told us the month.)',
+  },
 }
 
 export const CHOICE_REDUCE_20: ChoiceNode = {
@@ -57,6 +62,10 @@ export const CHOICE_REDIRECT_PEDIATRIC: ChoiceNode = {
   // Maya Pike's monitoring cadence (mercyMargin.consequences.ts).
   meterDeltas: { CAPITAL: 4, HUMAN_WELFARE: 3, OWNER_CONTROL: 2 },
   scheduledConsequenceIds: [makeConsequenceId('cons-pediatric-silence-01')],
+  // S2 exemplar (Q44 rank-1 tier): MOURNER names what the silence trap hides.
+  deepenedText: {
+    MOURNER: 'Redirect from pediatric line. (Maya sits in that ward after school. I noticed.)',
+  },
 }
 
 export const EAST_WILMER_CHOICES: readonly ChoiceNode[] = [

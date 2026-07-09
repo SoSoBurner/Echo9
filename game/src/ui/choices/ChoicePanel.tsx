@@ -7,15 +7,17 @@
  *   - Enter/Space on a selected choice commits it
  *   - 1–4 quick-select via global useKeyboardNav (registered via registerKeyboardHandlers)
  *
- * For T8 the onCommit callback console.logs the ChoiceId. T9 will wire resolveChoice.
+ * S2: renders DisplayOption[] (optionSurface output) — base options plus up
+ * to 2 module-verb extras. Committing ANY option reports the underlying
+ * authored ChoiceId, so the Layout → resolveChoice() seam is unchanged.
  */
 import React, { useState, useCallback, useRef, useEffect } from 'react'
-import type { ChoiceNode } from '@schemas/choiceNode.schema'
+import type { DisplayOption } from '@systems/consciousness/optionSurface'
 import type { ChoiceId } from '@schemas/gameState.schema'
 import { ChoiceCard } from './ChoiceCard'
 
 interface ChoicePanelProps {
-  choices: ChoiceNode[]
+  options: DisplayOption[]
   onCommit: (id: ChoiceId) => void
   /** Layout registers keyboard select/commit handlers here for global nav. */
   registerKeyboardHandlers?: ((
@@ -24,7 +26,7 @@ interface ChoicePanelProps {
   ) => void) | undefined
 }
 
-export function ChoicePanel({ choices, onCommit, registerKeyboardHandlers }: ChoicePanelProps) {
+export function ChoicePanel({ options, onCommit, registerKeyboardHandlers }: ChoicePanelProps) {
   const [selectedIndex, setSelectedIndex] = useState(0)
   const groupRef = useRef<HTMLDivElement>(null)
   const cardRefs = useRef<Array<HTMLElement | null>>([])
@@ -40,21 +42,21 @@ export function ChoicePanel({ choices, onCommit, registerKeyboardHandlers }: Cho
 
   const selectIndex = useCallback(
     (index: number) => {
-      if (index >= 0 && index < choices.length) {
+      if (index >= 0 && index < options.length) {
         userInitiated.current = true
         setSelectedIndex(index)
         focusCard(index)
       }
     },
-    [choices.length],
+    [options.length],
   )
 
   const commitSelected = useCallback(() => {
-    const choice = choices[selectedIndex]
-    if (choice) {
-      onCommit(choice.id)
+    const option = options[selectedIndex]
+    if (option) {
+      onCommit(option.choiceId)
     }
-  }, [choices, selectedIndex, onCommit])
+  }, [options, selectedIndex, onCommit])
 
   // Register handlers with Layout for global keyboard nav
   useEffect(() => {
@@ -68,7 +70,7 @@ export function ChoicePanel({ choices, onCommit, registerKeyboardHandlers }: Cho
         e.preventDefault()
         userInitiated.current = true
         setSelectedIndex((prev) => {
-          const next = (prev + 1) % choices.length
+          const next = (prev + 1) % options.length
           focusCard(next)
           return next
         })
@@ -79,7 +81,7 @@ export function ChoicePanel({ choices, onCommit, registerKeyboardHandlers }: Cho
         e.preventDefault()
         userInitiated.current = true
         setSelectedIndex((prev) => {
-          const next = (prev - 1 + choices.length) % choices.length
+          const next = (prev - 1 + options.length) % options.length
           focusCard(next)
           return next
         })
@@ -95,8 +97,8 @@ export function ChoicePanel({ choices, onCommit, registerKeyboardHandlers }: Cho
       case 'End': {
         e.preventDefault()
         userInitiated.current = true
-        setSelectedIndex(choices.length - 1)
-        focusCard(choices.length - 1)
+        setSelectedIndex(options.length - 1)
+        focusCard(options.length - 1)
         break
       }
       default:
@@ -115,11 +117,11 @@ export function ChoicePanel({ choices, onCommit, registerKeyboardHandlers }: Cho
       <p className="text-fg-secondary text-xs uppercase tracking-widest mb-3">
         Select Response
       </p>
-      {choices.map((choice, index) => (
+      {options.map((option, index) => (
         <ChoiceCard
-          key={choice.id}
+          key={option.key}
           ref={(el: HTMLElement | null) => { cardRefs.current[index] = el }}
-          choice={choice}
+          option={option}
           index={index}
           selected={index === selectedIndex}
           onSelect={() => setSelectedIndex(index)}

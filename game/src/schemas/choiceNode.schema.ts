@@ -4,6 +4,11 @@
  * `meterDeltas` is a Partial<Record<MeterKey, number>> because a choice may
  * only move one or two meters; missing keys mean no change. `keybind` is one
  * of '1'..'4' to match the 4-choice cap and the UI hotkeys.
+ *
+ * `deepenedText` (S2, Q44 rank-deepened tiers) is OPTIONAL authoring: per
+ * installed module (rank ≥1), optionSurface() swaps the label for the
+ * module's interiority rewrite. Unauthored = zero behavior change; the field
+ * is presentation-only and never read by resolveChoice().
  */
 import { z } from 'zod'
 import {
@@ -11,6 +16,7 @@ import {
   TaskIdSchema,
   ConsequenceIdSchema,
   MeterKeySchema,
+  ModuleIdSchema,
 } from '@schemas/gameState.schema'
 
 export const ChoiceNodeSchema = z.object({
@@ -22,6 +28,13 @@ export const ChoiceNodeSchema = z.object({
   meterDeltas: z.partialRecord(MeterKeySchema, z.number().int()),
   /** ConsequenceHook ids scheduled when this choice is taken. */
   scheduledConsequenceIds: z.array(ConsequenceIdSchema),
+  /**
+   * S2 optional authoring — per-module interiority rewrite of `label`,
+   * shown when that module is installed at rank ≥1 (optionSurface).
+   * Style: base verb + parenthetical interiority, brief and unsettling —
+   * "Process the backlog. (Her file is in there. I noticed.)"
+   */
+  deepenedText: z.partialRecord(ModuleIdSchema, z.string().min(1)).optional(),
 })
 
 export type ChoiceNode = z.infer<typeof ChoiceNodeSchema>

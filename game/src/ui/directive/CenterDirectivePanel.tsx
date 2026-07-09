@@ -4,10 +4,20 @@
  *
  * Receives mock (T8) or real (T9+) data via props.
  * The onChoiceCommit callback is a Layout-level callback, easily swapped in T9.
+ *
+ * S2: the raw authored choices are passed through optionSurface() with the
+ * installed-module rank map (also a prop — the panel stays store-free) to
+ * produce the DisplayOption[] the ChoicePanel renders. With no modules
+ * installed the surface is the base choices verbatim.
  */
+import { useMemo } from 'react'
 import type { TaskNode } from '@schemas/taskNode.schema'
 import type { ChoiceNode } from '@schemas/choiceNode.schema'
 import type { ChoiceId } from '@schemas/gameState.schema'
+import {
+  optionSurface,
+  type InstalledModuleMap,
+} from '@systems/consciousness/optionSurface'
 import { NullCompression } from './NullCompression'
 import { HumanMessage } from './HumanMessage'
 import { ChoicePanel } from '@ui/choices/ChoicePanel'
@@ -15,6 +25,8 @@ import { ChoicePanel } from '@ui/choices/ChoicePanel'
 interface CenterDirectivePanelProps {
   task: TaskNode
   choices: ChoiceNode[]
+  /** Installed-module rank map (modulesSlice shape) — drives optionSurface. */
+  installedModules?: InstalledModuleMap | undefined
   nullText: string
   humanMessage: { speaker: string; body: string }
   onChoiceCommit: (id: ChoiceId) => void
@@ -28,11 +40,17 @@ interface CenterDirectivePanelProps {
 export function CenterDirectivePanel({
   task,
   choices,
+  installedModules,
   nullText,
   humanMessage,
   onChoiceCommit,
   registerKeyboardHandlers,
 }: CenterDirectivePanelProps) {
+  const options = useMemo(
+    () => optionSurface(task, choices, installedModules ?? {}),
+    [task, choices, installedModules],
+  )
+
   return (
     <section className="space-y-6" aria-label="Directive panel">
       {/* Directive heading */}
@@ -47,9 +65,9 @@ export function CenterDirectivePanel({
       {/* Human message */}
       <HumanMessage speaker={humanMessage.speaker} body={humanMessage.body} />
 
-      {/* Choices */}
+      {/* Choices — S2 option surface (base + module-verb extras) */}
       <ChoicePanel
-        choices={choices}
+        options={options}
         onCommit={onChoiceCommit}
         registerKeyboardHandlers={registerKeyboardHandlers}
       />
