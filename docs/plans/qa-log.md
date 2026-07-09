@@ -238,3 +238,9 @@ Format: `Q##: <question> — <ISO date>` / `Options presented` / `User answer` /
 ## Appendix B — Live Q&A slot
 
 Append new entries here as they land during execution, same format. Do not overwrite historic entries. If a decision is revised, log a superseding entry (e.g., Q44a) and cross-link — never edit in place.
+
+### Q46: file:// launcher approach — 2026-07-09 (execution-time, supersedes plan W1 shim)
+- **Context:** Chrome blocks ES-module scripts over file:// (CORS), so the planned meta-refresh shim landed on a dead black screen; `verify:subpath`'s file:// leg only passes with `--allow-file-access-from-files`.
+- **Options presented:** inline single-file build / launcher-as-instruction-page / drop Track W
+- **User answer:** "can you make a batch file that launches the game properly?"
+- **How this shaped the plan:** W1 delivered as `Play Echo 9.bat` (npm install on first run → `npm run play` → browser auto-opens at localhost:4173) + `launch.html` rewritten as cross-platform instructions. Verified by live boot screenshot. Commit `5fa56d3`.
