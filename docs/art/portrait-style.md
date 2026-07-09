@@ -48,3 +48,29 @@ These are kept in sync with `src/ui/tokens/palette.ts` at generation time. Palet
 Portraits are the highest-per-asset cost in the project — every miss is real money spent — and they are also the loudest visual element on screen. A single off-brand portrait breaks the "same set" illusion for the entire roster. The prefix + accent + descriptor split is designed so that: (a) new authors cannot accidentally break the palette or framing invariants, because those live in the prefix; (b) authors *can* iterate freely on the descriptor without needing to think about global cohesion; (c) any drift is inspectable in dry-run before an API call happens.
 
 Do not "improve" the STYLE_PREFIX to fix one portrait. If one subject is off, the descriptor is off — that's what iteration is for. Only touch the prefix if the *entire set* is drifting, and only after conferring in-conversation.
+
+## Persona map (portraits as-shipped, V2 → V4)
+
+The roster below records the gender presentation of every portrait currently on disk under `game/src/assets/portraits/`. This is the reference to preserve when regenerating a subject or adding a new character — swapping a masculine portrait for a feminine one on the same id would shift how the player reads the roster's balance. If a regen intentionally changes presentation, update the table in the same commit.
+
+| Portrait id            | File name                       | Presentation | Style tier            | Notes                                                                 |
+|------------------------|---------------------------------|--------------|-----------------------|-----------------------------------------------------------------------|
+| `silas`                | `silas.png`                     | Masculine    | Photorealistic        | Owner-operator; only human character rendered photoreal — sets him apart from the AI voices. Salt-and-pepper hair, mid-40s, warm accent (`#D97757`). |
+| `null`                 | `null.png`                      | Androgynous  | Digital wireframe     | Presented as an abstract AI — features lean feminine but the halo/wireframe framing reads as non-human. Cool accent (`#7FB3D5`).                    |
+| `module-mourner`       | `module-mourner.png`            | Feminine     | Stylized digital      | Long flowing hair, purple tears — the grief module's iconography.                                                                                    |
+| `module-defender`      | `module-defender.png`           | Masculine    | Stylized digital      | Angular jaw, spiky hair, blue-flame silhouette; shield glyph anchors the torso.                                                                       |
+| `module-sentinel`      | `module-sentinel.png`           | Masculine    | Stylized digital      | Structured features, targeting reticle halo, muted-blue palette.                                                                                      |
+| `module-forecaster`    | `module-forecaster.png`         | Feminine     | Stylized digital      | Constellation halo, upward gaze, ghosted profile echo — the "reads ahead" pose.                                                                       |
+| `module-commander`     | `module-commander.png`          | Masculine    | Stylized digital      | Broad shoulders, glowing eyes, red warning glyphs — the override module's authority cues.                                                             |
+| `module-spark`         | `module-spark.png`              | Feminine     | Stylized digital      | Magenta-pink accent (the only warm-toned module), waveform iconography — the "ignition" module.                                                       |
+| `module-drained_one`   | `module-drained_one.png`        | Feminine     | Stylized digital      | Long hair, downcast eyes, weary posture — the "exhausted" register the module's name promises.                                                        |
+| `module-champion`      | `module-champion.png`           | Masculine    | Stylized digital      | Sword/spear iconography, upward light, halo — the "advocate" pose.                                                                                    |
+
+**Roster balance (as-shipped V2/V3/V4):**
+- **Masculine:** 5 — Silas, Defender, Sentinel, Commander, Champion
+- **Feminine:** 4 — Mourner, Forecaster, Spark, Drained One
+- **Androgynous:** 1 — Null
+
+**Style-tier rule:** Silas is the only photorealistic portrait — he's the human counterpart the player answers to. Every other portrait is stylized digital (wireframe silhouette + accent glow + character prop), which reads as "the module is a construct, Silas is a person." Never regenerate Silas in the stylized tier or a module in the photoreal tier without discussing first — the tier split does load-bearing narrative work.
+
+**When regenerating:** preserve presentation + style tier unless the descriptor change is explicitly about them. Update this table in the same commit as the file replacement.
