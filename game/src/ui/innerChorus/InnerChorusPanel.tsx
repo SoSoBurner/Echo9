@@ -28,9 +28,25 @@ import {
   selectInnerChorusVoices,
   type InnerChorusVoice,
 } from '@state/selectors/innerChorusVoices'
+import { PortraitSlot } from '@ui/portraits/PortraitSlot'
+import {
+  PORTRAIT_IDS,
+  type PortraitId,
+} from '@ui/portraits/portraitRegistry'
 
 interface RowProps {
   voice: InnerChorusVoice
+}
+
+/**
+ * Narrow the selector's free-string `portraitId` to the closed PortraitId union
+ * before handing it to PortraitSlot. If a future selector emits an id the
+ * registry doesn't know about, fall back to the neutral `null` slot rather
+ * than crash — the ring/silhouette still communicates "voice present" and the
+ * missing metadata surfaces in dev via the placeholder caption.
+ */
+function toPortraitId(raw: string): PortraitId {
+  return (PORTRAIT_IDS as readonly string[]).includes(raw) ? (raw as PortraitId) : 'null'
 }
 
 function VoiceRow({ voice }: RowProps) {
@@ -40,11 +56,7 @@ function VoiceRow({ voice }: RowProps) {
       data-tone={voice.tone}
       className="flex items-center gap-3 py-2"
     >
-      <div
-        data-portrait-id={voice.portraitId}
-        aria-hidden="true"
-        className="w-8 h-8 rounded-full bg-gradient-to-br from-sealed-dim to-fg-secondary shrink-0"
-      />
+      <PortraitSlot portraitId={toPortraitId(voice.portraitId)} size="sm" />
       <div className="flex flex-col min-w-0">
         <span className="text-fg-primary text-xs uppercase tracking-widest font-mono truncate">
           {voice.name}

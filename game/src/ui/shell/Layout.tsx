@@ -23,6 +23,7 @@ import { HumanImpactPanel } from '@ui/humanImpact/HumanImpactPanel'
 import { InnerChorusPanel } from '@ui/innerChorus/InnerChorusPanel'
 import { CenterDirectivePanel } from '@ui/directive/CenterDirectivePanel'
 import { SilasPromptPanel } from '@ui/silas/SilasPromptPanel'
+import { PortraitSlot } from '@ui/portraits/PortraitSlot'
 import { ResultCard } from '@ui/result/ResultCard'
 import { RightModuleConsole } from '@ui/modules/RightModuleConsole'
 import { InspectionPanel } from '@ui/inspection/InspectionPanel'
@@ -564,9 +565,15 @@ export function Layout() {
           )}
         </div>
 
-        {/* right — module console (top) + Silas panel (below) share the column */}
+        {/* right — module console (top) + Silas portrait slot + Silas panel (below) share the column.
+            Portrait slot is placeholder-first: renders a themed silhouette until
+            V2's generated PNG lands under src/assets/portraits/silas.png, at
+            which point PortraitSlot auto-swaps (import.meta.glob picks it up). */}
         <div style={{ gridArea: 'right' }} className="overflow-y-auto flex flex-col">
           <RightModuleConsole registerModuleFocus={registerModuleFocus} />
+          <div className="flex justify-center py-4 border-b border-sealed-dim">
+            <PortraitSlot portraitId="silas" size="md" />
+          </div>
           {currentEntry && <SilasPromptPanel prompt={currentEntry.silasPrompt} />}
         </div>
 
