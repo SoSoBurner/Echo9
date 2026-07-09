@@ -37,6 +37,7 @@ import {
   type FinancialOverview,
 } from '@state/selectors/financialOverview'
 import { usePanelState } from '@systems/tutorial/usePanelState'
+import { DonutChart } from '@ui/charts/DonutChart'
 
 function formatM(value: number): string {
   const sign = value >= 0 ? '+' : '-'
@@ -123,6 +124,22 @@ export function FinancialOverviewPanel() {
       <p className="text-fg-secondary text-xs uppercase tracking-widest">
         Financial Overview
       </p>
+      {/* Stage 3: donut visualization of cash vs quarter target — SVG only
+          (no charting library) per Stage-1 discipline. Sits above the KPI
+          list so the ring anchors the eye before the numeric rows. Its
+          aria-label speaks for the SVG, so screen readers get the meaning
+          once instead of the geometry per-shape. */}
+      {maturity >= 3 && (
+        <div className="flex justify-center py-1">
+          <DonutChart
+            value={Math.max(0, overview.actualCashM)}
+            max={overview.quarterTargetM}
+            label="Q1 Cash / Target"
+            formatValue={(v) => `$${v.toFixed(0)}M`}
+            ariaLabel={`Q1 cash ${overview.actualCashM.toFixed(1)} million dollars of ${overview.quarterTargetM.toFixed(0)} million target`}
+          />
+        </div>
+      )}
       <ul
         role="list"
         aria-label="Financial Overview KPIs"

@@ -31,6 +31,7 @@ import { ConsequenceReturnPanel } from '@ui/consequence/ConsequenceReturnPanel'
 import { EventQueueToast } from '@ui/consequence/EventQueueToast'
 import { EndOfContentOverlay } from '@ui/endOfContent/EndOfContentOverlay'
 import { LogDock } from '@ui/log/LogDock'
+import { AlertCrawler } from '@ui/alerts/AlertCrawler'
 import { useKeyboardNav } from './useKeyboardNav'
 import { markBeat } from '@ui/debug/BeatTelemetry'
 import { resolveChoice } from '@systems/choiceResolver'
@@ -592,12 +593,20 @@ export function Layout() {
           {currentEntry && <SilasPromptPanel prompt={currentEntry.silasPrompt} />}
         </div>
 
-        {/* logdock — T13: rolling ledger view + lazy virtualized history */}
+        {/* logdock — T13 LogDock + V5 AlertCrawler.
+            AlertCrawler is a single-line `aria-live="polite"` strip that
+            announces the newest ResultTrace as it lands (LogDock's
+            role="list" only speaks its initial contents). Rendered ABOVE
+            the dock so the visual strip sits at the top of the bottom band,
+            with the scrolling ledger below. */}
         <div
           style={{ gridArea: 'logdock' }}
-          className="border-t border-sealed-dim px-4 py-2 overflow-hidden"
+          className="border-t border-sealed-dim overflow-hidden flex flex-col"
         >
-          <LogDock registerToggle={registerLogToggle} />
+          <AlertCrawler />
+          <div className="px-4 py-2 overflow-hidden flex-1 min-h-0">
+            <LogDock registerToggle={registerLogToggle} />
+          </div>
         </div>
       </div>
 
