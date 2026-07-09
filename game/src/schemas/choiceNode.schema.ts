@@ -9,6 +9,13 @@
  * installed module (rank ≥1), optionSurface() swaps the label for the
  * module's interiority rewrite. Unauthored = zero behavior change; the field
  * is presentation-only and never read by resolveChoice().
+ *
+ * `narrationVariants` (S5, Q40 narration gradient) is OPTIONAL authoring:
+ * result-card body copy per consciousness band. The plain `label` stays the
+ * machine baseline (it is what resolveChoice writes into trace.body);
+ * `waking` (1 install) and `person` (≥2 installs) escalate the register at
+ * render time via narrationGradient. Unauthored = zero behavior change; the
+ * field is presentation-only and never read by resolveChoice().
  */
 import { z } from 'zod'
 import {
@@ -35,6 +42,19 @@ export const ChoiceNodeSchema = z.object({
    * "Process the backlog. (Her file is in there. I noticed.)"
    */
   deepenedText: z.partialRecord(ModuleIdSchema, z.string().min(1)).optional(),
+  /**
+   * S5 optional authoring — result-card narration per consciousness band
+   * (Q40). `label` remains the machine-register baseline; these escalate:
+   *   waking — one crack of hesitant interiority in an otherwise flat log.
+   *   person — first-person, unsettlingly human, names the named human.
+   * Unauthored registers fall down the ladder (person → waking → machine).
+   */
+  narrationVariants: z
+    .object({
+      waking: z.string().min(1).optional(),
+      person: z.string().min(1).optional(),
+    })
+    .optional(),
 })
 
 export type ChoiceNode = z.infer<typeof ChoiceNodeSchema>
