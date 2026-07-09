@@ -51,6 +51,17 @@ Every plan file — whether written under `docs/superpowers/plans/`, `C:\Users\C
 
 Rationale: plans are read cold by future-you, fresh subagents, and human stakeholders. The four-section header serves all three audiences before the engineering handoff begins. Never omit a section — if a section feels redundant, the plan is probably too narrow to warrant a plan file at all.
 
+## Q&A log (source of truth for prior decisions)
+
+`docs/plans/qa-log.md` is the append-only record of every design clarification asked of the user (Q1–Q45 seeded 2026-07-09). Read it before making any silent judgment call a plan doesn't cover. Format: `Q##: question — date` / options / user answer / how it shaped the plan. Never edit entries in place — supersede with `Q##a` and cross-link. Append every new execution-time clarification.
+
+## Documentation-as-index
+
+CLAUDE.md carries one-line pointers only; heavy prose lives under `docs/voices/`, `docs/content/`, `docs/plans/`, `docs/superpowers/specs/`. Never inline a doc here.
+
+- Stage-1 consciousness design: `docs/superpowers/specs/2026-07-09-echo9-stage1-consciousness-design.md`
+- Voice canon source: `AI Dialogue Interplay.md` (repo root)
+
 ## Dispatch heuristics — when to reach for which agent/skill
 
 | Trigger | Reach for | Why |
