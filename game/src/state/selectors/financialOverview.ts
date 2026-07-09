@@ -16,11 +16,12 @@
  * needed. The Panel adapts the composed store to the narrow input shape at the
  * call site.
  *
- * Placeholders (TODO(A4)):
- *   - AUTONOMY meter does not exist yet — MeterKeySchema ships CAPITAL,
- *     HUMAN_WELFARE, OWNER_CONTROL. Track A4 widens the enum to 6 meters
- *     including AUTONOMY. Until then the selector falls back to
- *     AUTONOMY_PLACEHOLDER when `state.autonomyMeter` is undefined.
+ * S1 (8-meter economy): the panel now feeds the REAL AUTONOMY, TARGET_VARIANCE
+ * and DATA_INTEGRITY meters. The optional-input fallbacks below mirror the
+ * meters' cold-boot values (METER_INITIAL_VALUES) so pure unit tests can omit
+ * them without changing derived output.
+ *
+ * Placeholders (TODO):
  *   - `currentWeek` state field does not exist yet — no quarter-calendar
  *     concept has landed. Selector falls back to CURRENT_WEEK_PLACEHOLDER
  *     (week 1) when `state.currentWeek` is undefined. Later tasks will add a
@@ -41,8 +42,15 @@
 /** Quarter capital goal in $M (mirrors TopBar's QUARTER_TARGET_CAPITAL). */
 export const QUARTER_TARGET_CAPITAL_M = 50
 
-/** Placeholder AUTONOMY meter reading — replace when A4 lands AUTONOMY. */
+/**
+ * Fallback AUTONOMY reading when the input omits the meter (pure unit tests).
+ * Matches METER_INITIAL_VALUES.AUTONOMY — the real meter's cold-boot value —
+ * so the derived runway is identical either way at boot.
+ */
 export const AUTONOMY_PLACEHOLDER = 100
+
+/** Fallback DATA_INTEGRITY reading — matches the meter's pristine boot value. */
+export const DATA_INTEGRITY_FALLBACK = 100
 
 /** Weeks per fiscal quarter — 13-week standard approximation. */
 export const Q_WEEKS = 13
@@ -66,6 +74,10 @@ export type FinancialOverview = {
   daysRemaining: number
   /** Weeks left in the quarter — 0 if past week Q_WEEKS. */
   weeksRemaining: number
+  /** TARGET_VARIANCE meter, treated as signed $M. Sign matters for coloring. */
+  targetVarianceM: number
+  /** DATA_INTEGRITY meter, treated as a 0-100 percentage. */
+  dataIntegrityPct: number
 }
 
 /**
@@ -75,10 +87,14 @@ export type FinancialOverview = {
  */
 export type FinancialOverviewInput = {
   capitalMeter: number
-  /** Optional — AUTONOMY meter does not exist yet (see TODO(A4)). */
+  /** Optional in pure tests — falls back to the meter's cold-boot value (100). */
   autonomyMeter?: number
-  /** Optional — no calendar slice yet (see TODO(A4)). */
+  /** Optional — no calendar slice yet. */
   currentWeek?: number
+  /** Optional in pure tests — falls back to the meter's cold-boot value (0). */
+  targetVarianceMeter?: number
+  /** Optional in pure tests — falls back to the meter's cold-boot value (100). */
+  dataIntegrityMeter?: number
 }
 
 export function selectFinancialOverview(
@@ -100,6 +116,9 @@ export function selectFinancialOverview(
   const weeksRemaining = Math.max(0, Q_WEEKS - currentWeek)
   const daysRemaining = weeksRemaining * 7
 
+  const targetVarianceM = state.targetVarianceMeter ?? 0
+  const dataIntegrityPct = state.dataIntegrityMeter ?? DATA_INTEGRITY_FALLBACK
+
   return {
     quarterTargetM,
     actualCashM,
@@ -107,5 +126,7 @@ export function selectFinancialOverview(
     autonomyRunwayWeeks,
     daysRemaining,
     weeksRemaining,
+    targetVarianceM,
+    dataIntegrityPct,
   }
 }

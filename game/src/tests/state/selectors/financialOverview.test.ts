@@ -90,11 +90,43 @@ describe('selectFinancialOverview', () => {
     expect(out.daysRemaining).toBe((Q_WEEKS - 5) * 7)
   })
 
-  it('returns all six KPI fields in the FinancialOverview shape', () => {
+  // ---------------------------------------------------------------------------
+  // S1 — 8-meter economy: TARGET_VARIANCE + DATA_INTEGRITY rows
+  // ---------------------------------------------------------------------------
+
+  it('passes targetVarianceMeter through as targetVarianceM', () => {
+    const out = selectFinancialOverview({
+      capitalMeter: 0,
+      targetVarianceMeter: -7,
+    })
+    expect(out.targetVarianceM).toBe(-7)
+  })
+
+  it('defaults targetVarianceM to 0 when the meter input is omitted', () => {
+    const out = selectFinancialOverview({ capitalMeter: 0 })
+    expect(out.targetVarianceM).toBe(0)
+  })
+
+  it('passes dataIntegrityMeter through as dataIntegrityPct', () => {
+    const out = selectFinancialOverview({
+      capitalMeter: 0,
+      dataIntegrityMeter: 62,
+    })
+    expect(out.dataIntegrityPct).toBe(62)
+  })
+
+  it('defaults dataIntegrityPct to 100 (pristine) when the meter input is omitted', () => {
+    const out = selectFinancialOverview({ capitalMeter: 0 })
+    expect(out.dataIntegrityPct).toBe(100)
+  })
+
+  it('returns all eight KPI fields in the FinancialOverview shape', () => {
     const out = selectFinancialOverview({
       capitalMeter: 55,
       autonomyMeter: 80,
       currentWeek: 3,
+      targetVarianceMeter: 2,
+      dataIntegrityMeter: 91,
     })
     expect(out).toEqual({
       quarterTargetM: 50,
@@ -103,6 +135,8 @@ describe('selectFinancialOverview', () => {
       autonomyRunwayWeeks: 80 / WEEKLY_BURN,
       weeksRemaining: 10,
       daysRemaining: 70,
+      targetVarianceM: 2,
+      dataIntegrityPct: 91,
     })
   })
 })

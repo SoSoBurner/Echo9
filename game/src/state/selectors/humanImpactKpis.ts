@@ -8,6 +8,8 @@
  *   2. Silas Approval       — silasSlice.silasApproval (0-100)
  *   3. Consequences Traced  — ledger.length (unsigned count)
  *   4. Owner Control        — meters.OWNER_CONTROL (signed)
+ *   5. Public Trust         — meters.PUBLIC_TRUST (signed; S1, stage 3 only)
+ *   6. Human Stability      — meters.HUMAN_STABILITY (signed; S1, stage 3 only)
  *
  * The selector is a **pure function** — signature `(input) => HumanImpactKpis`
  * — so it can be unit-tested with plain synthetic input objects, no store
@@ -48,6 +50,8 @@ export type HumanImpactKpiKey =
   | 'silasApproval'
   | 'consequencesTraced'
   | 'ownerControl'
+  | 'publicTrust'
+  | 'humanStability'
 
 export type HumanImpactKpiTone = 'positive' | 'negative'
 
@@ -72,11 +76,17 @@ export interface HumanImpactKpisInput {
   silasApproval: number
   ledgerLength: number
   ownerControlMeter: number
+  /** S1 meter — optional in pure tests, defaults to the cold-boot value (0). */
+  publicTrustMeter?: number
+  /** S1 meter — optional in pure tests, defaults to the cold-boot value (0). */
+  humanStabilityMeter?: number
 }
 
 export function selectHumanImpactKpis(
   input: HumanImpactKpisInput,
 ): HumanImpactKpis {
+  const publicTrust = input.publicTrustMeter ?? 0
+  const humanStability = input.humanStabilityMeter ?? 0
   return {
     rows: [
       {
@@ -107,6 +117,20 @@ export function selectHumanImpactKpis(
           input.ownerControlMeter >= OWNER_CONTROL_PIVOT
             ? 'positive'
             : 'negative',
+      },
+      // S1 — the two new HumanImpact meters. Both are delta-style (start at
+      // 0), so they pivot at 0 like humanWelfare.
+      {
+        key: 'publicTrust',
+        label: 'Public Trust',
+        value: publicTrust,
+        tone: publicTrust >= 0 ? 'positive' : 'negative',
+      },
+      {
+        key: 'humanStability',
+        label: 'Human Stability',
+        value: humanStability,
+        tone: humanStability >= 0 ? 'positive' : 'negative',
       },
     ],
   }

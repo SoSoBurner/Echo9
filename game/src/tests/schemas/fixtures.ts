@@ -22,7 +22,18 @@ import type {
   TraceId,
   ConsequenceId,
   SilasPromptId,
+  MeterKey,
 } from '@schemas/gameState.schema'
+import { METER_INITIAL_VALUES } from '@state/metersSlice'
+
+/**
+ * Full 8-key meters record for fixtures (S1). Starts every meter at its
+ * cold-boot value and overlays the supplied overrides — so widening the
+ * MeterKey enum again will never ripple through test fixtures a second time.
+ */
+export const fxMeters = (
+  overrides: Partial<Record<MeterKey, number>> = {},
+): Record<MeterKey, number> => ({ ...METER_INITIAL_VALUES, ...overrides })
 
 export const fxTaskId        = (s = 'task-001'):  TaskId        => makeTaskId(s)
 export const fxChoiceId      = (s = 'choice-001'): ChoiceId      => makeChoiceId(s)

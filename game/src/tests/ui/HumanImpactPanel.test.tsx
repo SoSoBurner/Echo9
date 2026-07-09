@@ -33,18 +33,20 @@ describe('HumanImpactPanel', () => {
     expect(group).toBeInTheDocument()
   })
 
-  it('renders exactly four KPI listitem rows', () => {
+  it('renders exactly six KPI listitem rows at full maturity (S1: +Public Trust, +Human Stability)', () => {
     render(React.createElement(HumanImpactPanel))
     const items = screen.getAllByRole('listitem')
-    expect(items).toHaveLength(4)
+    expect(items).toHaveLength(6)
   })
 
-  it('renders all four KPI row labels', () => {
+  it('renders all six KPI row labels', () => {
     render(React.createElement(HumanImpactPanel))
     expect(screen.getByText(/^Human Welfare$/i)).toBeInTheDocument()
     expect(screen.getByText(/^Silas Approval$/i)).toBeInTheDocument()
     expect(screen.getByText(/^Consequences Traced$/i)).toBeInTheDocument()
     expect(screen.getByText(/^Owner Control$/i)).toBeInTheDocument()
+    expect(screen.getByText(/^Public Trust$/i)).toBeInTheDocument()
+    expect(screen.getByText(/^Human Stability$/i)).toBeInTheDocument()
   })
 
   it('reflects HUMAN_WELFARE meter as the Human Welfare value', () => {
@@ -101,5 +103,42 @@ describe('HumanImpactPanel', () => {
     render(React.createElement(HumanImpactPanel))
     const value = screen.getByLabelText(/consequences traced/i)
     expect(value.className).toMatch(/text-red/)
+  })
+
+  // ---------------------------------------------------------------------------
+  // S1 — 8-meter economy wiring
+  // ---------------------------------------------------------------------------
+
+  it('reflects the PUBLIC_TRUST meter as the Public Trust value', () => {
+    useGameStore.setState((s) => ({
+      meters: { ...s.meters, PUBLIC_TRUST: 23 },
+    }))
+    render(React.createElement(HumanImpactPanel))
+    const value = screen.getByLabelText(/public trust 23/i)
+    expect(value.textContent).toBe('23')
+  })
+
+  it('reflects the HUMAN_STABILITY meter as the Human Stability value', () => {
+    useGameStore.setState((s) => ({
+      meters: { ...s.meters, HUMAN_STABILITY: -8 },
+    }))
+    render(React.createElement(HumanImpactPanel))
+    const value = screen.getByLabelText(/human stability -8/i)
+    expect(value.textContent).toBe('-8')
+    expect(value.className).toMatch(/text-red/)
+  })
+
+  it('hides the S1 meter rows below maturity 3 (stage 2 keeps the 2-row look)', () => {
+    useGameStore.setState({
+      disclosedPanels: new Set(['HUMAN_IMPACT']),
+      panelUseCount: {
+        ...useGameStore.getState().panelUseCount,
+        HUMAN_IMPACT: 3,
+      },
+    })
+    render(React.createElement(HumanImpactPanel))
+    expect(screen.queryByText(/^Public Trust$/i)).not.toBeInTheDocument()
+    expect(screen.queryByText(/^Human Stability$/i)).not.toBeInTheDocument()
+    expect(screen.getAllByRole('listitem')).toHaveLength(2)
   })
 })

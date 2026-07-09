@@ -21,6 +21,7 @@ import {
   fxChoiceId,
   fxTraceId,
   fxConsequenceId,
+  fxMeters,
 } from '@tests/schemas/fixtures'
 import { makeConsequenceId } from '@schemas/gameState.schema'
 
@@ -30,7 +31,7 @@ import { makeConsequenceId } from '@schemas/gameState.schema'
 
 function makeBaseState(): GameState {
   return {
-    meters: { CAPITAL: 50, HUMAN_WELFARE: 50, OWNER_CONTROL: 50 },
+    meters: fxMeters({ CAPITAL: 50, HUMAN_WELFARE: 50, OWNER_CONTROL: 50 }),
     scheduledConsequences: [],
     ledger: [],
   }

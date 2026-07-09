@@ -33,7 +33,7 @@ import type {
 } from '@schemas/inspectionScene.schema'
 import type { ResultTrace } from '@schemas/resultTrace.schema'
 import { SILAS_OVERRIDE_AVAILABLE } from '@systems/gameFlags'
-import { fxTaskId, fxChoiceId, fxTraceId } from '@tests/schemas/fixtures'
+import { fxTaskId, fxChoiceId, fxTraceId, fxMeters } from '@tests/schemas/fixtures'
 
 // ---------------------------------------------------------------------------
 // Shared test data builders
@@ -41,7 +41,7 @@ import { fxTaskId, fxChoiceId, fxTraceId } from '@tests/schemas/fixtures'
 
 function makeBaseState(overrides: Partial<InspectionState> = {}): InspectionState {
   return {
-    meters: { CAPITAL: 50, HUMAN_WELFARE: 50, OWNER_CONTROL: 50 },
+    meters: fxMeters({ CAPITAL: 50, HUMAN_WELFARE: 50, OWNER_CONTROL: 50 }),
     scheduledConsequences: [],
     ledger: [],
     flags: new Set<string>(),

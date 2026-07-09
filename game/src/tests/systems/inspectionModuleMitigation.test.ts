@@ -28,7 +28,7 @@ import {
   SENTINEL_ARMED,
   DRAINED_ONE_YIELDED,
 } from '@systems/gameFlags'
-import { fxTaskId, fxChoiceId, fxTraceId } from '@tests/schemas/fixtures'
+import { fxTaskId, fxChoiceId, fxTraceId, fxMeters } from '@tests/schemas/fixtures'
 
 // ---------------------------------------------------------------------------
 // Shared builders — mirror inspectionEngine.test.ts shape.
@@ -36,7 +36,7 @@ import { fxTaskId, fxChoiceId, fxTraceId } from '@tests/schemas/fixtures'
 
 function makeState(overrides: Partial<InspectionState> = {}): InspectionState {
   return {
-    meters: { CAPITAL: 50, HUMAN_WELFARE: 50, OWNER_CONTROL: 50 },
+    meters: fxMeters({ CAPITAL: 50, HUMAN_WELFARE: 50, OWNER_CONTROL: 50 }),
     scheduledConsequences: [],
     ledger: [],
     flags: new Set<string>(),

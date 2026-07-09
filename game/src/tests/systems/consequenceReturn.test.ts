@@ -23,6 +23,7 @@ import {
   fxTaskId,
   fxChoiceId,
   fxConsequenceId,
+  fxMeters,
 } from '@tests/schemas/fixtures'
 
 // ---------------------------------------------------------------------------
@@ -32,7 +33,7 @@ import {
 function makeBaseState(overrides: Partial<EvalState> = {}): EvalState {
   return {
     phase: 'BOOT',
-    meters: { CAPITAL: 50, HUMAN_WELFARE: 50, OWNER_CONTROL: 50 },
+    meters: fxMeters({ CAPITAL: 50, HUMAN_WELFARE: 50, OWNER_CONTROL: 50 }),
     flags: new Set<string>(),
     scheduledConsequences: [],
     ...overrides,
@@ -111,7 +112,7 @@ describe('evaluate — METER_THRESHOLD condition', () => {
       revealCondition: { type: 'METER_THRESHOLD', meter: 'OWNER_CONTROL', threshold: 40 },
     })
     const state = makeBaseState({
-      meters: { CAPITAL: 50, HUMAN_WELFARE: 50, OWNER_CONTROL: 40 },
+      meters: fxMeters({ CAPITAL: 50, HUMAN_WELFARE: 50, OWNER_CONTROL: 40 }),
       scheduledConsequences: [hook],
     })
 
@@ -127,7 +128,7 @@ describe('evaluate — METER_THRESHOLD condition', () => {
       revealCondition: { type: 'METER_THRESHOLD', meter: 'OWNER_CONTROL', threshold: 40 },
     })
     const state = makeBaseState({
-      meters: { CAPITAL: 50, HUMAN_WELFARE: 50, OWNER_CONTROL: 35 },
+      meters: fxMeters({ CAPITAL: 50, HUMAN_WELFARE: 50, OWNER_CONTROL: 35 }),
       scheduledConsequences: [hook],
     })
 
@@ -258,7 +259,7 @@ describe('evaluate — METER_THRESHOLD above threshold', () => {
     })
     const state = makeBaseState({
       // OWNER_CONTROL is 41 — above threshold; should NOT fire
-      meters: { CAPITAL: 50, HUMAN_WELFARE: 50, OWNER_CONTROL: 41 },
+      meters: fxMeters({ CAPITAL: 50, HUMAN_WELFARE: 50, OWNER_CONTROL: 41 }),
       scheduledConsequences: [hook],
     })
 
@@ -319,7 +320,7 @@ describe('evaluate — NEVER condition (Decision 5: silence-as-horror)', () => {
     // State that would trigger any other hook type — NEVER should still not fire.
     const state = makeBaseState({
       phase: 'END_OF_SLICE',
-      meters: { CAPITAL: 0, HUMAN_WELFARE: 0, OWNER_CONTROL: 0 },
+      meters: fxMeters(),
       flags: new Set(['ALL_FLAGS_SET']),
       scheduledConsequences: [hook],
     })
@@ -370,7 +371,7 @@ describe('evaluate — multiple matching hooks', () => {
     })
     const state = makeBaseState({
       phase: 'INSPECTION',
-      meters: { CAPITAL: 20, HUMAN_WELFARE: 50, OWNER_CONTROL: 50 },
+      meters: fxMeters({ CAPITAL: 20, HUMAN_WELFARE: 50, OWNER_CONTROL: 50 }),
       flags: new Set(['ALERT']),
       scheduledConsequences: [hookA, hookB, hookC],
     })

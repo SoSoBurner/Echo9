@@ -1,11 +1,13 @@
 /**
  * HumanImpactPanel — left-column four-row KPI panel (Task A4, Stage 1).
  *
- * Rows (plan §A4, reframed to real state):
+ * Rows (plan §A4, widened in S1 for the 8-meter economy):
  *   1. Human Welfare        — meters.HUMAN_WELFARE
  *   2. Silas Approval       — silasApproval (0-100)
  *   3. Consequences Traced  — ledger.length (append-only trace record)
  *   4. Owner Control        — meters.OWNER_CONTROL
+ *   5. Public Trust         — meters.PUBLIC_TRUST (stage 3 only)
+ *   6. Human Stability      — meters.HUMAN_STABILITY (stage 3 only)
  *
  * State wiring:
  *   Individual scalar subscriptions (narrow) then compose the selector input.
@@ -50,10 +52,10 @@ function KpiRow({ label, value, tone }: RowProps) {
 }
 
 export function HumanImpactPanel() {
-  // E2 disclosure gate. Maturity ramp per plan:
+  // E2 disclosure gate. Maturity ramp per plan (S1 widened stage 3):
   //   stage 1 — welfare only
   //   stage 2 — welfare + approval
-  //   stage 3 — all 4 rows
+  //   stage 3 — all 6 rows (incl. the S1 meters Public Trust / Human Stability)
   const { disclosed, maturity } = usePanelState('HUMAN_IMPACT')
 
   // Narrow scalar subscriptions — each fires only when its own field changes.
@@ -61,12 +63,16 @@ export function HumanImpactPanel() {
   const silasApproval = useGameStore((s) => s.silasApproval)
   const ledgerLength = useGameStore((s) => s.ledger.length)
   const ownerControlMeter = useGameStore((s) => s.meters.OWNER_CONTROL)
+  const publicTrustMeter = useGameStore((s) => s.meters.PUBLIC_TRUST)
+  const humanStabilityMeter = useGameStore((s) => s.meters.HUMAN_STABILITY)
 
   const { rows } = selectHumanImpactKpis({
     humanWelfareMeter,
     silasApproval,
     ledgerLength,
     ownerControlMeter,
+    publicTrustMeter,
+    humanStabilityMeter,
   })
 
   if (!disclosed) return null

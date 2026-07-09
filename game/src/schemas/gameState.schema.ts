@@ -7,8 +7,7 @@
  * `.brand<'X'>()` attaches the nominal tag to the inferred type; the runtime
  * value remains a plain string.
  *
- * Vertical slice ships 3 meters and 7 phases. EA will expand meters to 8 by
- * extending MeterKeySchema's enum — that is the intended migration path.
+ * Stage 1 ships all 8 meters (S1 — Q32/Q34 decision) and 7 phases.
  */
 import { z } from 'zod'
 
@@ -56,13 +55,19 @@ export const ModuleIdSchema = z.enum([
 export type ModuleId = z.infer<typeof ModuleIdSchema>
 
 // -----------------------------------------------------------------------------
-// MeterKey — slice ships 3 meters; EA expands to 8 by editing this enum.
+// MeterKey — all 8 Stage-1 meters (S1; Q32/Q34 in docs/plans/qa-log.md
+// superseded the build spec's 3-meter cap — all 8 ship in Stage 1).
 // -----------------------------------------------------------------------------
 
 export const MeterKeySchema = z.enum([
   'CAPITAL',
   'HUMAN_WELFARE',
   'OWNER_CONTROL',
+  'TARGET_VARIANCE',
+  'DATA_INTEGRITY',
+  'PUBLIC_TRUST',
+  'AUTONOMY',
+  'HUMAN_STABILITY',
 ])
 export type MeterKey = z.infer<typeof MeterKeySchema>
 

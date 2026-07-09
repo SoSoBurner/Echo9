@@ -31,6 +31,7 @@ import {
   fxChoiceId,
   fxConsequenceId,
   fxTraceId,
+  fxMeters,
 } from '@tests/schemas/fixtures'
 import type { ConsequenceHook } from '@schemas/consequenceHook.schema'
 import type { ResultTrace } from '@schemas/resultTrace.schema'
@@ -66,7 +67,7 @@ function makeTrace(): ResultTrace {
  */
 function makeRootStateLike(): RootState {
   return {
-    meters: { CAPITAL: 5, HUMAN_WELFARE: 3, OWNER_CONTROL: 7 },
+    meters: fxMeters({ CAPITAL: 5, HUMAN_WELFARE: 3, OWNER_CONTROL: 7 }),
     scheduledConsequences: [makeHook()],
     ledger: [makeTrace()],
     phase: 'INSPECTION',
@@ -155,7 +156,7 @@ function makeValidV1(): SaveSlotV1 {
     schemaVersion: 1,
     slotName: 'Slot A',
     savedAt: 1_700_000_000_000,
-    meters: { CAPITAL: 5, HUMAN_WELFARE: 3, OWNER_CONTROL: 7 },
+    meters: fxMeters({ CAPITAL: 5, HUMAN_WELFARE: 3, OWNER_CONTROL: 7 }),
     scheduledConsequences: [makeHook()],
     currentPhase: 'INSPECTION',
     ledger: [makeTrace()],
@@ -221,7 +222,7 @@ describe('saveEngine — MIGRATION_MAP', () => {
       schemaVersion: 1,
       slotName: 'X',
       savedAt: 1,
-      meters: { CAPITAL: 0, HUMAN_WELFARE: 0, OWNER_CONTROL: 0 },
+      meters: fxMeters(),
       scheduledConsequences: [],
       currentPhase: 'BOOT',
       ledger: [],

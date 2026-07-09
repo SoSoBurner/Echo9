@@ -11,6 +11,7 @@
  */
 import { describe, it, expect, beforeEach } from 'vitest'
 import { useGameStore, PERSIST_KEY, PERSIST_VERSION } from '@state/store'
+import { METER_INITIAL_VALUES } from '@state/metersSlice'
 import type { ConsequenceHook } from '@schemas/consequenceHook.schema'
 import { PANEL_IDS, type PanelId } from '@systems/tutorial/hudDisclosure'
 import {
@@ -52,12 +53,9 @@ describe('useGameStore — composed root state', () => {
     expect(typeof useGameStore.getState().setPhase).toBe('function')
   })
 
-  it('exposes metersSlice initial state', () => {
-    expect(useGameStore.getState().meters).toEqual({
-      CAPITAL: 0,
-      HUMAN_WELFARE: 0,
-      OWNER_CONTROL: 0,
-    })
+  it('exposes metersSlice initial state (all 8 S1 meters)', () => {
+    expect(useGameStore.getState().meters).toEqual(METER_INITIAL_VALUES)
+    expect(Object.keys(useGameStore.getState().meters)).toHaveLength(8)
     expect(typeof useGameStore.getState().applyDelta).toBe('function')
   })
 
@@ -143,7 +141,7 @@ describe('useGameStore — persistence partition (§11 guard)', () => {
     localStorage.removeItem(PERSIST_KEY)
     useGameStore.setState({
       phase: 'BOOT',
-      meters: { CAPITAL: 0, HUMAN_WELFARE: 0, OWNER_CONTROL: 0 },
+      meters: { ...METER_INITIAL_VALUES },
       scheduledConsequences: [],
       ledger: [],
       currentPromptId: null,

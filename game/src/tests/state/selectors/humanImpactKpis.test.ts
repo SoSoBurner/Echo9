@@ -27,21 +27,74 @@ import {
   OWNER_CONTROL_PIVOT,
 } from '@state/selectors/humanImpactKpis'
 
+/** Shorthand: all-zero input with per-test overrides (S1 widened the shape). */
+function makeInput(
+  overrides: Partial<Parameters<typeof selectHumanImpactKpis>[0]> = {},
+): Parameters<typeof selectHumanImpactKpis>[0] {
+  return {
+    humanWelfareMeter: 0,
+    silasApproval: 0,
+    ledgerLength: 0,
+    ownerControlMeter: 0,
+    publicTrustMeter: 0,
+    humanStabilityMeter: 0,
+    ...overrides,
+  }
+}
+
 describe('selectHumanImpactKpis', () => {
-  it('returns four KPI rows in order: welfare, approval, traced, control', () => {
-    const out = selectHumanImpactKpis({
-      humanWelfareMeter: 10,
-      silasApproval: 80,
-      ledgerLength: 3,
-      ownerControlMeter: 60,
-    })
-    expect(out.rows).toHaveLength(4)
+  it('returns six KPI rows in order: welfare, approval, traced, control, trust, stability', () => {
+    const out = selectHumanImpactKpis(
+      makeInput({
+        humanWelfareMeter: 10,
+        silasApproval: 80,
+        ledgerLength: 3,
+        ownerControlMeter: 60,
+      }),
+    )
+    expect(out.rows).toHaveLength(6)
     expect(out.rows.map((r) => r.key)).toEqual([
       'humanWelfare',
       'silasApproval',
       'consequencesTraced',
       'ownerControl',
+      'publicTrust',
+      'humanStability',
     ])
+  })
+
+  it('passes PUBLIC_TRUST meter through as the publicTrust value', () => {
+    const out = selectHumanImpactKpis(makeInput({ publicTrustMeter: 17 }))
+    expect(out.rows.find((r) => r.key === 'publicTrust')?.value).toBe(17)
+    expect(out.rows.find((r) => r.key === 'publicTrust')?.label).toBe(
+      'Public Trust',
+    )
+  })
+
+  it('tones publicTrust positive when value >= 0, negative below 0', () => {
+    const pos = selectHumanImpactKpis(makeInput({ publicTrustMeter: 0 }))
+    const neg = selectHumanImpactKpis(makeInput({ publicTrustMeter: -1 }))
+    expect(pos.rows.find((r) => r.key === 'publicTrust')?.tone).toBe('positive')
+    expect(neg.rows.find((r) => r.key === 'publicTrust')?.tone).toBe('negative')
+  })
+
+  it('passes HUMAN_STABILITY meter through as the humanStability value', () => {
+    const out = selectHumanImpactKpis(makeInput({ humanStabilityMeter: -9 }))
+    expect(out.rows.find((r) => r.key === 'humanStability')?.value).toBe(-9)
+    expect(out.rows.find((r) => r.key === 'humanStability')?.label).toBe(
+      'Human Stability',
+    )
+  })
+
+  it('tones humanStability positive when value >= 0, negative below 0', () => {
+    const pos = selectHumanImpactKpis(makeInput({ humanStabilityMeter: 0 }))
+    const neg = selectHumanImpactKpis(makeInput({ humanStabilityMeter: -2 }))
+    expect(pos.rows.find((r) => r.key === 'humanStability')?.tone).toBe(
+      'positive',
+    )
+    expect(neg.rows.find((r) => r.key === 'humanStability')?.tone).toBe(
+      'negative',
+    )
   })
 
   it('passes HUMAN_WELFARE meter through as the welfare value', () => {
@@ -203,6 +256,18 @@ describe('selectHumanImpactKpis', () => {
           label: 'Owner Control',
           value: 0,
           tone: 'negative',
+        },
+        {
+          key: 'publicTrust',
+          label: 'Public Trust',
+          value: 0,
+          tone: 'positive',
+        },
+        {
+          key: 'humanStability',
+          label: 'Human Stability',
+          value: 0,
+          tone: 'positive',
         },
       ],
     })

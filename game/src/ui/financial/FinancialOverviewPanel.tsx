@@ -17,11 +17,13 @@
  *   pick has stable identity across renders and only fires when its own value
  *   changes.
  *
+ * S1 (8-meter economy): AUTONOMY, TARGET_VARIANCE and DATA_INTEGRITY are real
+ * meters now — the panel subscribes to them and feeds the selector (the old
+ * AUTONOMY placeholder is resolved). The two new rows (Target Variance, Data
+ * Integrity) render only at maturity >= 3 — earlier stages keep the sparse
+ * silhouette look.
+ *
  * Placeholders (see selector for full rationale):
- *   - AUTONOMY meter does not exist yet (MeterKeySchema ships CAPITAL,
- *     HUMAN_WELFARE, OWNER_CONTROL). Selector falls back to the placeholder
- *     when autonomyMeter is undefined. Track A4 lands AUTONOMY; this file
- *     needs no change.
  *   - No quarter-calendar slice exists yet. Selector falls back to
  *     CURRENT_WEEK_PLACEHOLDER when currentWeek is undefined.
  *
@@ -95,17 +97,20 @@ export function FinancialOverviewPanel() {
   const { disclosed, maturity } = usePanelState('FINANCIAL')
 
   // Narrow scalar subscriptions — each fires only when its own field changes.
-  // AUTONOMY meter is not in the MeterKey enum yet, so it's undefined here;
-  // the selector will substitute the placeholder.
   const capitalMeter = useGameStore((s) => s.meters.CAPITAL)
+  const autonomyMeter = useGameStore((s) => s.meters.AUTONOMY)
+  const targetVarianceMeter = useGameStore((s) => s.meters.TARGET_VARIANCE)
+  const dataIntegrityMeter = useGameStore((s) => s.meters.DATA_INTEGRITY)
 
   if (!disclosed) return null
 
   const overview: FinancialOverview = selectFinancialOverview({
     capitalMeter,
-    // autonomyMeter and currentWeek are intentionally omitted — the selector
-    // falls back to its placeholders. Wiring them once real state exists is a
-    // Track A4 concern; the panel API and layout stay identical.
+    autonomyMeter,
+    targetVarianceMeter,
+    dataIntegrityMeter,
+    // currentWeek is intentionally omitted — the selector falls back to its
+    // placeholder until a quarter-calendar slice lands.
   })
 
   const varianceClass =
@@ -114,6 +119,16 @@ export function FinancialOverviewPanel() {
     overview.varianceM >= 0
       ? `Variance up ${overview.varianceM.toFixed(1)} million dollars`
       : `Variance down ${Math.abs(overview.varianceM).toFixed(1)} million dollars`
+
+  // S1: TARGET_VARIANCE meter row — same signed treatment as the computed
+  // Variance row (the computed row tracks cash vs quarter goal; this one is
+  // the narrative-driven meter that content deltas move directly).
+  const targetVarianceClass =
+    overview.targetVarianceM >= 0 ? 'text-emerald-400' : 'text-red-400'
+  const targetVarianceAriaLabel =
+    overview.targetVarianceM >= 0
+      ? `Target Variance up ${overview.targetVarianceM.toFixed(1)} million dollars`
+      : `Target Variance down ${Math.abs(overview.targetVarianceM).toFixed(1)} million dollars`
 
   return (
     <section
@@ -177,6 +192,18 @@ export function FinancialOverviewPanel() {
             <KpiRow
               label="Q1 Weeks Remaining"
               value={formatWeeks(overview.weeksRemaining)}
+            />
+            {/* S1 — 8-meter economy rows, stage 3 only. */}
+            <KpiRow
+              label="Target Variance"
+              value={formatM(overview.targetVarianceM)}
+              valueClassName={targetVarianceClass}
+              valueAriaLabel={targetVarianceAriaLabel}
+            />
+            <KpiRow
+              label="Data Integrity"
+              value={`${overview.dataIntegrityPct.toFixed(0)}%`}
+              valueAriaLabel={`Data Integrity ${overview.dataIntegrityPct.toFixed(0)} percent`}
             />
           </>
         )}

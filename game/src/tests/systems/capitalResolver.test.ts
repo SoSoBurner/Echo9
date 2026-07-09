@@ -16,6 +16,7 @@ import {
   fxChoiceId,
   fxTraceId,
   fxConsequenceId,
+  fxMeters,
 } from '@tests/schemas/fixtures'
 import { makeConsequenceId } from '@schemas/gameState.schema'
 
@@ -25,7 +26,7 @@ import { makeConsequenceId } from '@schemas/gameState.schema'
 
 function makeBaseState(overrides: Partial<CapitalState> = {}): CapitalState {
   return {
-    meters: { CAPITAL: 85, HUMAN_WELFARE: 50, OWNER_CONTROL: 50 },
+    meters: fxMeters({ CAPITAL: 85, HUMAN_WELFARE: 50, OWNER_CONTROL: 50 }),
     scheduledConsequences: [],
     ledger: [],
     flags: new Set<string>(),

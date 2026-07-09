@@ -8,13 +8,14 @@ import {
   fxChoiceId,
   fxTraceId,
   fxConsequenceId,
+  fxMeters,
 } from './fixtures'
 
 const valid: SaveSlotV1 = {
   schemaVersion: 1,
   slotName: 'Slot A',
   savedAt: Date.now(),
-  meters: { CAPITAL: 5, HUMAN_WELFARE: 3, OWNER_CONTROL: 7 },
+  meters: fxMeters({ CAPITAL: 5, HUMAN_WELFARE: 3, OWNER_CONTROL: 7 }),
   scheduledConsequences: [
     {
       id: fxConsequenceId(),
@@ -62,12 +63,17 @@ describe('SaveSlotV1Schema', () => {
     ).toThrow()
   })
 
-  it('parsed meters object contains all 3 meter keys', () => {
+  it('parsed meters object contains all 8 meter keys (S1 economy)', () => {
     const result = SaveSlotV1Schema.parse(valid)
-    expect(Object.keys(result.meters)).toHaveLength(3)
+    expect(Object.keys(result.meters)).toHaveLength(8)
     expect(result.meters).toHaveProperty('CAPITAL')
     expect(result.meters).toHaveProperty('HUMAN_WELFARE')
     expect(result.meters).toHaveProperty('OWNER_CONTROL')
+    expect(result.meters).toHaveProperty('TARGET_VARIANCE')
+    expect(result.meters).toHaveProperty('DATA_INTEGRITY')
+    expect(result.meters).toHaveProperty('PUBLIC_TRUST')
+    expect(result.meters).toHaveProperty('AUTONOMY')
+    expect(result.meters).toHaveProperty('HUMAN_STABILITY')
   })
 
   it('accepts empty scheduledConsequences and empty ledger', () => {

@@ -24,7 +24,12 @@ import { create, type StateCreator } from 'zustand'
 import { devtools, persist, createJSONStorage } from 'zustand/middleware'
 import { immer } from 'zustand/middleware/immer'
 import { enableMapSet } from 'immer'
-import { ModuleIdSchema, type ModuleId } from '@schemas/gameState.schema'
+import {
+  ModuleIdSchema,
+  MeterKeySchema,
+  type ModuleId,
+  type MeterKey,
+} from '@schemas/gameState.schema'
 import {
   ConsequenceHookSchema,
   type ConsequenceHook,
@@ -37,7 +42,11 @@ import type { InstalledModuleEntry } from './modulesSlice'
 // module load — safe to call from a test or from the app entry.
 enableMapSet()
 import { createBootSlice, type BootSlice } from './bootSlice'
-import { createMetersSlice, type MetersSlice } from './metersSlice'
+import {
+  createMetersSlice,
+  METER_INITIAL_VALUES,
+  type MetersSlice,
+} from './metersSlice'
 import { createConsequenceSlice, type ConsequenceSlice } from './consequenceSlice'
 import { createLedgerSlice, type LedgerSlice } from './ledgerSlice'
 import { createSilasSlice, type SilasSlice } from './silasSlice'
@@ -80,12 +89,42 @@ export const PERSIST_KEY = 'echo9:autosave'
  * predates the tutorial slice; without those defaults, the merge callback
  * would have to invent a shape for reads before the first mutation.
  *
+ * Bumped in S1 (2 → 3) for the 8-meter economy (Q32/Q34): `meters` widened
+ * from 3 keys (CAPITAL, HUMAN_WELFARE, OWNER_CONTROL) to all 8 MeterKeys.
+ * The v2 → v3 arm preserves persisted values for known meters and fills the
+ * 5 new ones with METER_INITIAL_VALUES so a pre-S1 save loads cleanly.
+ *
  * Every future shape change must bump this number and register a new arm in
  * the `migrate` callback below. Zustand persist walks the migration chain
  * automatically — the `migrate` function receives `persistedState` alongside
  * the on-disk `version` and returns a state at the current version.
  */
-export const PERSIST_VERSION = 2 as const
+export const PERSIST_VERSION = 3 as const
+
+/**
+ * Rebuild a full 8-key meters record from an untrusted persisted value.
+ * Starts from METER_INITIAL_VALUES, overlays finite numeric values for known
+ * MeterKeys only. Unknown keys and non-numeric junk are dropped. Used by both
+ * the v2 → v3 migration arm and the defensive `merge` below (tampered blobs
+ * at the current version get the same treatment).
+ */
+function sanitizeMeters(persisted: unknown): Record<MeterKey, number> {
+  const meters: Record<MeterKey, number> = { ...METER_INITIAL_VALUES }
+  if (
+    persisted !== null &&
+    typeof persisted === 'object' &&
+    !Array.isArray(persisted)
+  ) {
+    for (const [key, value] of Object.entries(
+      persisted as Record<string, unknown>,
+    )) {
+      if (!MeterKeySchema.safeParse(key).success) continue
+      if (typeof value !== 'number' || !Number.isFinite(value)) continue
+      meters[key as MeterKey] = value
+    }
+  }
+  return meters
+}
 
 const rootCreator: StateCreator<
   RootState,
@@ -185,6 +224,13 @@ export const useGameStore = create<RootState>()(
               panelUseCount: emptyUseCount,
             }
           }
+          if (version < 3) {
+            // v2 → v3 (S1): 3-meter economy → 8-meter economy. Preserve the
+            // persisted values of the original 3 meters; the 5 new meters
+            // (TARGET_VARIANCE, DATA_INTEGRITY, PUBLIC_TRUST, AUTONOMY,
+            // HUMAN_STABILITY) start at their cold-boot values.
+            state = { ...state, meters: sanitizeMeters(state.meters) }
+          }
           return state
         },
 
@@ -212,6 +258,7 @@ export const useGameStore = create<RootState>()(
             installedModules?: unknown
             disclosedPanels?: unknown
             panelUseCount?: unknown
+            meters?: unknown
           }
           const {
             flags: persistedFlags,
@@ -219,8 +266,16 @@ export const useGameStore = create<RootState>()(
             installedModules: persistedModules,
             disclosedPanels: persistedDisclosed,
             panelUseCount: persistedUseCount,
+            meters: persistedMeters,
             ...persistedRest
           } = persisted
+          // S1: rebuild meters defensively — a tampered/partial record would
+          // otherwise leak `undefined` reads into every meter consumer. When
+          // the blob has no meters key at all, keep currentState's record.
+          const safeMeters: Record<MeterKey, number> =
+            persistedMeters === undefined
+              ? currentState.meters
+              : sanitizeMeters(persistedMeters)
           const flagsSet: Set<string> = Array.isArray(persistedFlags)
             ? new Set(persistedFlags.filter((f): f is string => typeof f === 'string'))
             : currentState.flags
@@ -289,6 +344,7 @@ export const useGameStore = create<RootState>()(
           const merged: RootState = {
             ...currentState,
             ...persistedRest,
+            meters: safeMeters,
             flags: flagsSet,
             pendingFiredHooks: safeHooks,
             installedModules: safeModules,

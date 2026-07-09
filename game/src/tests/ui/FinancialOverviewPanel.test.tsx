@@ -30,13 +30,13 @@ describe('FinancialOverviewPanel', () => {
     expect(group).toBeInTheDocument()
   })
 
-  it('renders exactly six KPI listitem rows', () => {
+  it('renders exactly eight KPI listitem rows at full maturity (S1: +Target Variance, +Data Integrity)', () => {
     render(React.createElement(FinancialOverviewPanel))
     const items = screen.getAllByRole('listitem')
-    expect(items).toHaveLength(6)
+    expect(items).toHaveLength(8)
   })
 
-  it('renders all six KPI row labels', () => {
+  it('renders all eight KPI row labels', () => {
     render(React.createElement(FinancialOverviewPanel))
     expect(screen.getByText(/^Q1 Target$/i)).toBeInTheDocument()
     expect(screen.getByText(/^Actual Q1 Cash$/i)).toBeInTheDocument()
@@ -44,6 +44,8 @@ describe('FinancialOverviewPanel', () => {
     expect(screen.getByText(/^Autonomy Runway$/i)).toBeInTheDocument()
     expect(screen.getByText(/^Q1 Days Remaining$/i)).toBeInTheDocument()
     expect(screen.getByText(/^Q1 Weeks Remaining$/i)).toBeInTheDocument()
+    expect(screen.getByText(/^Target Variance$/i)).toBeInTheDocument()
+    expect(screen.getByText(/^Data Integrity$/i)).toBeInTheDocument()
   })
 
   it('shows Q1 Target as $50.0M (Stage 1 constant)', () => {
@@ -70,7 +72,7 @@ describe('FinancialOverviewPanel', () => {
     }))
     render(React.createElement(FinancialOverviewPanel))
     // The variance row is identified via its aria-label ("Variance up ...").
-    const varianceValue = screen.getByLabelText(/variance up/i)
+    const varianceValue = screen.getByLabelText(/^variance up/i)
     expect(varianceValue.className).toMatch(/text-emerald/)
     expect(varianceValue.className).not.toMatch(/text-red/)
   })
@@ -80,7 +82,7 @@ describe('FinancialOverviewPanel', () => {
       meters: { ...s.meters, CAPITAL: 20 },
     }))
     render(React.createElement(FinancialOverviewPanel))
-    const varianceValue = screen.getByLabelText(/variance down/i)
+    const varianceValue = screen.getByLabelText(/^variance down/i)
     expect(varianceValue.className).toMatch(/text-red/)
     expect(varianceValue.className).not.toMatch(/text-emerald/)
     // 20 - 50 = -30
@@ -92,8 +94,67 @@ describe('FinancialOverviewPanel', () => {
       meters: { ...s.meters, CAPITAL: 50 },
     }))
     render(React.createElement(FinancialOverviewPanel))
-    const varianceValue = screen.getByLabelText(/variance up/i)
+    const varianceValue = screen.getByLabelText(/^variance up/i)
     expect(varianceValue.className).toMatch(/text-emerald/)
     expect(varianceValue.textContent).toMatch(/\+\$0\.0M/)
+  })
+
+  // ---------------------------------------------------------------------------
+  // S1 — 8-meter economy wiring
+  // ---------------------------------------------------------------------------
+
+  it('reads the REAL AUTONOMY meter for Autonomy Runway (placeholder resolved)', () => {
+    // AUTONOMY = 40, WEEKLY_BURN = 5 → 8.0 wk. The old placeholder (100)
+    // would have shown 20.0 wk.
+    useGameStore.setState((s) => ({
+      meters: { ...s.meters, AUTONOMY: 40 },
+    }))
+    render(React.createElement(FinancialOverviewPanel))
+    const group = screen.getByRole('group', { name: /financial overview/i })
+    expect(group.textContent).toMatch(/8\.0 wk/)
+  })
+
+  it('reflects the TARGET_VARIANCE meter in the Target Variance row (signed)', () => {
+    useGameStore.setState((s) => ({
+      meters: { ...s.meters, TARGET_VARIANCE: -12 },
+    }))
+    render(React.createElement(FinancialOverviewPanel))
+    const value = screen.getByLabelText(/target variance down/i)
+    expect(value.textContent).toMatch(/-\$12\.0M/)
+    expect(value.className).toMatch(/text-red/)
+  })
+
+  it('colors non-negative Target Variance emerald', () => {
+    useGameStore.setState((s) => ({
+      meters: { ...s.meters, TARGET_VARIANCE: 3 },
+    }))
+    render(React.createElement(FinancialOverviewPanel))
+    const value = screen.getByLabelText(/target variance up/i)
+    expect(value.textContent).toMatch(/\+\$3\.0M/)
+    expect(value.className).toMatch(/text-emerald/)
+  })
+
+  it('reflects the DATA_INTEGRITY meter as a percentage', () => {
+    useGameStore.setState((s) => ({
+      meters: { ...s.meters, DATA_INTEGRITY: 87 },
+    }))
+    render(React.createElement(FinancialOverviewPanel))
+    const value = screen.getByLabelText(/data integrity 87 percent/i)
+    expect(value.textContent).toBe('87%')
+  })
+
+  it('hides the S1 meter rows below maturity 3 (sparse early-stage look)', () => {
+    // Stage 2 = 3-5 uses: cash + runway only, per the existing ramp.
+    useGameStore.setState({
+      disclosedPanels: new Set(['FINANCIAL']),
+      panelUseCount: {
+        ...useGameStore.getState().panelUseCount,
+        FINANCIAL: 3,
+      },
+    })
+    render(React.createElement(FinancialOverviewPanel))
+    expect(screen.queryByText(/^Target Variance$/i)).not.toBeInTheDocument()
+    expect(screen.queryByText(/^Data Integrity$/i)).not.toBeInTheDocument()
+    expect(screen.getAllByRole('listitem')).toHaveLength(2)
   })
 })

@@ -85,12 +85,23 @@ describe('ModuleIdSchema (string union, not branded)', () => {
   })
 })
 
-describe('MeterKeySchema (3 slice meters)', () => {
-  it('accepts CAPITAL, HUMAN_WELFARE, OWNER_CONTROL', () => {
-    const ks: MeterKey[] = ['CAPITAL', 'HUMAN_WELFARE', 'OWNER_CONTROL']
+describe('MeterKeySchema (8 Stage-1 meters — Q32/Q34)', () => {
+  it('accepts all 8 meter keys', () => {
+    const ks: MeterKey[] = [
+      'CAPITAL',
+      'HUMAN_WELFARE',
+      'OWNER_CONTROL',
+      'TARGET_VARIANCE',
+      'DATA_INTEGRITY',
+      'PUBLIC_TRUST',
+      'AUTONOMY',
+      'HUMAN_STABILITY',
+    ]
+    expect(ks).toHaveLength(8)
+    expect(MeterKeySchema.options).toHaveLength(8)
     for (const k of ks) expect(() => MeterKeySchema.parse(k)).not.toThrow()
   })
-  it('rejects EA-only meters (e.g. RESILIENCE)', () => {
+  it('rejects unknown meters (e.g. RESILIENCE)', () => {
     expect(() => MeterKeySchema.parse('RESILIENCE')).toThrow()
   })
 })
