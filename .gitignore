@@ -36,6 +36,10 @@ test-results/
 # Echo9 workdir extras (not part of the game)
 claude.exe
 .remember/
+.claude/scheduled_tasks.lock
+
+# Bulk source-art archives (extracted webp assets are tracked in game/)
+docs/art/*.zip
 
 # Secrets — never commit these
 API Keys.txt
