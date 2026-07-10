@@ -62,6 +62,7 @@ CLAUDE.md carries one-line pointers only; heavy prose lives under `docs/voices/`
 - Stage-1 consciousness design: `docs/superpowers/specs/2026-07-09-echo9-stage1-consciousness-design.md`
 - Voice canon source: `AI Dialogue Interplay.md` (repo root)
 - Voice persona bibles: docs/voices/persona-bibles.md
+- Q1 arc authoring bible: docs/content/q1-arc.md
 
 ## Dispatch heuristics — when to reach for which agent/skill
 
