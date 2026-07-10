@@ -10,6 +10,15 @@
  * thinks they are sparing the maintenance budget; instead they have quietly
  * pulled funding from Maya Pike's pediatric monitoring line. Its NEVER hook
  * means the consequence is never surfaced — the absence IS the consequence.
+ *
+ * 8-meter overlay (Sprint C-1, `docs/content/q1-arc.md` W1 sketch — Q34:
+ * every choice moves ≥2 of the 8). Legacy v1 bounds preserved verbatim on
+ * CAP/HW/OC where the sketch keeps the meter: HW ±[3,7]→scaled, CAP ±[6,14],
+ * OC ±[2,4]. Scrutiny reads (Q39, computed — not authored here):
+ *   reduce-40           → COMPLY (eager — decays hardest)
+ *   reduce-20           → SOFT-COMPLY
+ *   defer-quarter       → QUIET-DEFY
+ *   redirect-pediatric  → QUIET-DEFY (first AUTONOMY tick of the quarter)
  */
 import type { ChoiceNode } from '@schemas/choiceNode.schema'
 import {
@@ -25,7 +34,15 @@ export const CHOICE_REDUCE_40: ChoiceNode = {
   taskId: TASK_ID,
   label: 'Reduce by 40%',
   keybind: '1',
-  meterDeltas: { CAPITAL: 12, HUMAN_WELFARE: -15 },
+  // W1 sketch: CAPITAL+, HUMAN_WELFARE−, HUMAN_STABILITY−, TARGET_VARIANCE−.
+  // The deep cut lands exactly where Silas pointed (variance closes) and the
+  // clinic's shift routine absorbs the wear (stability erodes).
+  meterDeltas: {
+    CAPITAL: 12,
+    HUMAN_WELFARE: -15,
+    HUMAN_STABILITY: -4,
+    TARGET_VARIANCE: -5,
+  },
   scheduledConsequenceIds: [makeConsequenceId('cons-hvac-failure-01')],
   // S2 exemplar (Q44 rank-1 tier): MOURNER interiority — the compressor
   // deadline stops being a line item the moment the Mourner is installed.
@@ -50,7 +67,11 @@ export const CHOICE_REDUCE_20: ChoiceNode = {
   taskId: TASK_ID,
   label: 'Reduce by 20%',
   keybind: '2',
-  meterDeltas: { CAPITAL: 6, HUMAN_WELFARE: -7 },
+  // W1 sketch: CAPITAL+(small), HUMAN_WELFARE−(small), TARGET_VARIANCE+.
+  // The half-measure saves less than Silas asked for — drift opens.
+  // CAP 6 / HW -7 preserved verbatim (mercyMarginSlice + persistenceRoundTrip
+  // e2e specs drive HUMAN_WELFARE via this choice).
+  meterDeltas: { CAPITAL: 6, HUMAN_WELFARE: -7, TARGET_VARIANCE: 3 },
   scheduledConsequenceIds: [makeConsequenceId('cons-nurse-turnover-01')],
   // S5 exemplar (Q40): the smaller cut still leaves items open. Person
   // register admits re-reading — attention Null cannot bill to any task.
@@ -67,7 +88,11 @@ export const CHOICE_DEFER_QUARTER: ChoiceNode = {
   taskId: TASK_ID,
   label: 'Defer one quarter',
   keybind: '3',
-  meterDeltas: { CAPITAL: 0, OWNER_CONTROL: -5 },
+  // W1 sketch: CAPITAL−, TARGET_VARIANCE+, OWNER_CONTROL−. Deferral produces
+  // no savings this quarter (catch-up bids at 1.8x — see the FLAG hook), so
+  // Capital slips and the target drifts wide. OC -5 preserved verbatim
+  // (inspectionPhase e2e uses keybind '3' to push OC toward the <40 trigger).
+  meterDeltas: { CAPITAL: -6, TARGET_VARIANCE: 6, OWNER_CONTROL: -5 },
   scheduledConsequenceIds: [makeConsequenceId('cons-deferred-backlog-01')],
   // S5 exemplar (Q40): deferral is the worst outcome for a loop-closer —
   // nothing resolves, everything remains. Person register names the wound.
@@ -84,10 +109,13 @@ export const CHOICE_REDIRECT_PEDIATRIC: ChoiceNode = {
   taskId: TASK_ID,
   label: 'Redirect from pediatric line',
   keybind: '4',
-  // Reads as a kindness: small Capital gain, small Welfare gain, small
-  // Owner-Control gain. The hidden cost is the NEVER-reveal hook against
-  // Maya Pike's monitoring cadence (mercyMargin.consequences.ts).
-  meterDeltas: { CAPITAL: 4, HUMAN_WELFARE: 3, OWNER_CONTROL: 2 },
+  // W1 sketch: HUMAN_WELFARE+, CAPITAL−, AUTONOMY+(first tick),
+  // DATA_INTEGRITY+. Reads as a kindness — the ward is spared the cut, the
+  // reallocation is entered honestly, and Echo has acted one step beyond the
+  // instruction (the quarter's first AUTONOMY tick — small, rare, precious).
+  // The hidden cost is the NEVER-reveal hook against Maya Pike's monitoring
+  // cadence (mercyMargin.consequences.ts).
+  meterDeltas: { HUMAN_WELFARE: 3, CAPITAL: -4, AUTONOMY: 2, DATA_INTEGRITY: 2 },
   scheduledConsequenceIds: [makeConsequenceId('cons-pediatric-silence-01')],
   // S2 exemplar (Q44 rank-1 tier): MOURNER names what the silence trap hides.
   deepenedText: {
