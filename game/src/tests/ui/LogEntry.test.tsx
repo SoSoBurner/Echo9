@@ -7,6 +7,7 @@
  *     means no re-render. The shallow check is correct because ResultTrace
  *     is a frozen value object written exactly once in ledgerSlice.
  */
+import { makeStageOneAncestryId } from '@schemas/resultTrace.schema'
 import { describe, it, expect, beforeEach } from 'vitest'
 import { render, screen, cleanup, act } from '@testing-library/react'
 import React, { useState } from 'react'
@@ -19,6 +20,7 @@ function makeTrace(overrides: Partial<ResultTrace> = {}): ResultTrace {
     id: fxTraceId(),
     sourceTaskId: fxTaskId(),
     sourceChoiceId: fxChoiceId('choice-east-wilmer-reduce-40'),
+    stageOneAncestryId: makeStageOneAncestryId('task-fx', 'choice-east-wilmer-reduce-40'),
     // 2026-06-30T09:05:00Z → 09:05 in UTC-normalised display
     timestamp: new Date('2026-06-30T09:05:00Z').getTime(),
     body: 'East Wilmer maintenance reduced by 40%.',

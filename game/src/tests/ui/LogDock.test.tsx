@@ -10,6 +10,7 @@
  *   - VirtualLog is NOT imported eagerly (the lazy chunk is unrelated to
  *     LogDock's own bundle).
  */
+import { makeStageOneAncestryId } from '@schemas/resultTrace.schema'
 import { describe, it, expect, beforeEach } from 'vitest'
 import { render, screen, cleanup } from '@testing-library/react'
 import React from 'react'
@@ -26,6 +27,7 @@ function makeTraces(n: number): ResultTrace[] {
       id: fxTraceId(`trace-${String(i).padStart(4, '0')}`),
       sourceTaskId: fxTaskId(),
       sourceChoiceId: fxChoiceId(`choice-${i}`),
+      stageOneAncestryId: makeStageOneAncestryId('task-fx', `choice-${i}`),
       timestamp: 1_700_000_000_000 + i * 1000,
       body: `Trace body number ${i}`,
     })

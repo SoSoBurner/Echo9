@@ -22,6 +22,7 @@
  */
 import type { ConsequenceHook } from '@schemas/consequenceHook.schema'
 import type { ResultTrace } from '@schemas/resultTrace.schema'
+import { makeStageOneAncestryId } from '@schemas/resultTrace.schema'
 import type { CapitalCard } from '@schemas/capitalCard.schema'
 import {
   MeterKeySchema,
@@ -137,6 +138,7 @@ export function resolveCapital(
     id: ctx.traceId,
     sourceTaskId: ctx.sourceTaskId,
     sourceChoiceId: ctx.sourceChoiceId,
+    stageOneAncestryId: makeStageOneAncestryId(ctx.sourceTaskId, ctx.sourceChoiceId),
     timestamp: ctx.now,
     body: card.traceBody,
   }

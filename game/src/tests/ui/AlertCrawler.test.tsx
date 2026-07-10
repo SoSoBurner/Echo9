@@ -13,6 +13,7 @@
  * Store setup mirrors `FinancialOverviewPanel.test.tsx` — reset via
  * `useGameStore.setState`, then read back through the mounted component.
  */
+import { makeStageOneAncestryId } from '@schemas/resultTrace.schema'
 import { describe, it, expect, beforeEach } from 'vitest'
 import { render, screen, cleanup } from '@testing-library/react'
 import React from 'react'
@@ -30,6 +31,7 @@ function makeTrace(id: string, body: string, timestamp = 1700000000000): ResultT
     id: makeTraceId(id),
     sourceTaskId: makeTaskId('q1-w1-east-wilmer'),
     sourceChoiceId: makeChoiceId('mercy-margin'),
+    stageOneAncestryId: makeStageOneAncestryId('q1-w1-east-wilmer', 'mercy-margin'),
     timestamp,
     body,
   }

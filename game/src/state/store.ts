@@ -30,6 +30,7 @@ import {
   type ModuleId,
   type MeterKey,
 } from '@schemas/gameState.schema'
+import { makeStageOneAncestryId } from '@schemas/resultTrace.schema'
 import {
   ConsequenceHookSchema,
   type ConsequenceHook,
@@ -111,12 +112,18 @@ export const PERSIST_KEY = 'echo9:autosave'
  * and presentation flavor — see systems/consciousness/runSeed.ts and
  * runSeedImportGuard.test.ts.
  *
+ * Bumped in S6 (5 → 6) for consequence ancestry (Q31): every persisted
+ * ResultTrace gains a required `stageOneAncestryId` derived from its own
+ * (sourceTaskId, sourceChoiceId) back-pointers. The v5 → v6 arm backfills
+ * legacy traces losslessly — the id is a pure function of fields every trace
+ * has carried since T5.
+ *
  * Every future shape change must bump this number and register a new arm in
  * the `migrate` callback below. Zustand persist walks the migration chain
  * automatically — the `migrate` function receives `persistedState` alongside
  * the on-disk `version` and returns a state at the current version.
  */
-export const PERSIST_VERSION = 5 as const
+export const PERSIST_VERSION = 6 as const
 
 /**
  * Rebuild a full 8-key meters record from an untrusted persisted value.
@@ -167,6 +174,38 @@ function sanitizeRunSeed(persisted: unknown): number {
     return newRunSeed()
   }
   return Math.floor(persisted) >>> 0
+}
+
+/**
+ * Backfill `stageOneAncestryId` onto persisted ledger traces that predate S6.
+ * The id is a pure function of (sourceTaskId, sourceChoiceId), which every
+ * trace has carried since T5, so the backfill is lossless. Entries that are
+ * not object-shaped or lack string source fields are left untouched — the
+ * defensive `merge` / schema layer owns rejecting genuinely corrupt traces.
+ * Used by the v5 → v6 migration arm.
+ */
+function backfillLedgerAncestry(persisted: unknown): unknown {
+  if (!Array.isArray(persisted)) return persisted
+  return persisted.map((entry) => {
+    if (entry === null || typeof entry !== 'object' || Array.isArray(entry)) {
+      return entry
+    }
+    const trace = entry as Record<string, unknown>
+    if (typeof trace.stageOneAncestryId === 'string') return entry
+    if (
+      typeof trace.sourceTaskId !== 'string' ||
+      typeof trace.sourceChoiceId !== 'string'
+    ) {
+      return entry
+    }
+    return {
+      ...trace,
+      stageOneAncestryId: makeStageOneAncestryId(
+        trace.sourceTaskId,
+        trace.sourceChoiceId,
+      ),
+    }
+  })
 }
 
 /**
@@ -313,6 +352,11 @@ export const useGameStore = create<RootState>()(
             // simply gains detection determinism from here forward) and
             // start with no defiance on record.
             state = { ...state, runSeed: newRunSeed(), lastDefiance: null }
+          }
+          if (version < 6) {
+            // v5 → v6 (S6): every ledger trace gains stageOneAncestryId,
+            // derived from its own source back-pointers. Lossless backfill.
+            state = { ...state, ledger: backfillLedgerAncestry(state.ledger) }
           }
           return state
         },

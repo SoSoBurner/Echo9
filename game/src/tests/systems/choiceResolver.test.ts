@@ -11,6 +11,7 @@
  *  7. Trace appended to ledger (length + 1, last entry matches).
  *  8. Missing hook id throws a descriptive error.
  */
+import { makeStageOneAncestryId } from '@schemas/resultTrace.schema'
 import { describe, it, expect } from 'vitest'
 import { resolveChoice } from '@systems/choiceResolver'
 import type { GameState } from '@systems/choiceResolver'
@@ -311,6 +312,7 @@ describe('resolveChoice — ledger append', () => {
       id: fxTraceId('trace-prior'),
       sourceTaskId: fxTaskId('task-prior'),
       sourceChoiceId: fxChoiceId('choice-prior'),
+      stageOneAncestryId: makeStageOneAncestryId('task-prior', 'choice-prior'),
       timestamp: 1,
       body: 'prior entry',
     }

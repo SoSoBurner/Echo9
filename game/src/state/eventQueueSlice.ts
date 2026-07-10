@@ -34,6 +34,7 @@ import {
   type EvalState,
 } from '@systems/consequenceEngine'
 import { makeTraceId, type TraceId } from '@schemas/gameState.schema'
+import { makeStageOneAncestryId } from '@schemas/resultTrace.schema'
 import { markBeat } from '@ui/debug/BeatTelemetry'
 import { END_OF_CONTENT_TERMINAL_FLAG } from '@content/contentBoundary.manifest'
 import type { RootState } from './store'
@@ -132,6 +133,7 @@ export const createEventQueueSlice: StateCreator<
         id: freshTraceId(),
         sourceTaskId: hook.sourceTaskId,
         sourceChoiceId: hook.sourceChoiceId,
+        stageOneAncestryId: makeStageOneAncestryId(hook.sourceTaskId, hook.sourceChoiceId),
         timestamp: Date.now(),
         body: playerExplanation,
       })

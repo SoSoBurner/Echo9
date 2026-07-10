@@ -11,6 +11,7 @@
  *      10 → 11: added hidden `scrutiny`. S4 widened 11 → 13: added `runSeed`
  *      and `lastDefiance`.)
  */
+import { makeStageOneAncestryId } from '@schemas/resultTrace.schema'
 import { describe, it, expect, beforeEach } from 'vitest'
 import { useGameStore, PERSIST_KEY, PERSIST_VERSION } from '@state/store'
 import { METER_INITIAL_VALUES } from '@state/metersSlice'
@@ -169,6 +170,7 @@ describe('useGameStore — persistence partition (§11 guard)', () => {
       id: fxTraceId('trace-persist'),
       sourceTaskId: fxTaskId(),
       sourceChoiceId: fxChoiceId(),
+      stageOneAncestryId: makeStageOneAncestryId('task-fx', 'choice-fx'),
       timestamp: 1_700_000_000_000,
       body: 'persisted trace',
     })

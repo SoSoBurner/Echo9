@@ -15,6 +15,7 @@
  *      variant; with 1 installed it is the `waking` variant; a trace whose
  *      choice has no authored variants renders trace.body at any count.
  */
+import { makeStageOneAncestryId } from '@schemas/resultTrace.schema'
 import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 import { render, screen, cleanup } from '@testing-library/react'
 import React from 'react'
@@ -167,6 +168,7 @@ describe('ResultCard narration gradient', () => {
     id: makeTraceId('trace-narration-test-01'),
     sourceTaskId: makeTaskId('task-east-wilmer-01'),
     sourceChoiceId: makeChoiceId('choice-reduce-40'),
+    stageOneAncestryId: makeStageOneAncestryId('task-east-wilmer-01', 'choice-reduce-40'),
     timestamp: 1_700_000_000_000,
     body: CHOICE_REDUCE_40.label,
   }
@@ -204,6 +206,7 @@ describe('ResultCard narration gradient', () => {
       id: makeTraceId('trace-narration-test-02'),
       sourceTaskId: makeTaskId('task-unknown-99'),
       sourceChoiceId: makeChoiceId('choice-unknown-99'),
+      stageOneAncestryId: makeStageOneAncestryId('task-unknown-99', 'choice-unknown-99'),
       timestamp: 1_700_000_000_000,
       body: 'DIRECTIVE RESOLVED. NO VARIANCE.',
     }

@@ -21,6 +21,7 @@
  * scheduledConsequenceIds field in T11; the engine returns scheduled: [] for
  * uniform shape, asserted in section 1.
  */
+import { makeStageOneAncestryId } from '@schemas/resultTrace.schema'
 import { describe, it, expect } from 'vitest'
 import { resolveInspection } from '@systems/inspectionEngine'
 import type {
@@ -346,6 +347,7 @@ describe('resolveInspection — ledger append', () => {
       id: fxTraceId('trace-prior'),
       sourceTaskId: fxTaskId('task-prior'),
       sourceChoiceId: fxChoiceId('choice-prior'),
+      stageOneAncestryId: makeStageOneAncestryId('task-prior', 'choice-prior'),
       timestamp: 1,
       body: 'prior entry',
     }

@@ -5,6 +5,7 @@
  * Section order mirrors choiceResolver.test.ts and inspectionEngine.test.ts
  * so reviewers find the same proof-points in the same place.
  */
+import { makeStageOneAncestryId } from '@schemas/resultTrace.schema'
 import { describe, it, expect } from 'vitest'
 import { resolveCapital } from '@systems/capitalResolver'
 import type { CapitalState, ResolveCapitalCtx } from '@systems/capitalResolver'
@@ -305,6 +306,7 @@ describe('resolveCapital — ledger append', () => {
       id: fxTraceId('trace-prior'),
       sourceTaskId: fxTaskId('task-prior'),
       sourceChoiceId: fxChoiceId('choice-prior'),
+      stageOneAncestryId: makeStageOneAncestryId('task-prior', 'choice-prior'),
       timestamp: 1,
       body: 'prior entry',
     }

@@ -1,3 +1,4 @@
+import { makeStageOneAncestryId } from '@schemas/resultTrace.schema'
 import { describe, it, expect } from 'vitest'
 import {
   ResultTraceSchema,
@@ -9,6 +10,7 @@ const valid: ResultTrace = {
   id: fxTraceId(),
   sourceTaskId: fxTaskId(),
   sourceChoiceId: fxChoiceId(),
+  stageOneAncestryId: makeStageOneAncestryId('task', 'choice'),
   timestamp: Date.now(),
   body: 'You pushed the workers; one of them broke down crying.',
 }

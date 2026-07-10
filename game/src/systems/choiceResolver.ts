@@ -24,6 +24,7 @@
 import type { ConsequenceHook } from '@schemas/consequenceHook.schema'
 import type { ChoiceNode } from '@schemas/choiceNode.schema'
 import type { ResultTrace } from '@schemas/resultTrace.schema'
+import { makeStageOneAncestryId } from '@schemas/resultTrace.schema'
 import {
   MeterKeySchema,
   type MeterKey,
@@ -134,6 +135,7 @@ export function resolveChoice(
     id: ctx.traceId,
     sourceTaskId: choice.taskId,
     sourceChoiceId: choice.id,
+    stageOneAncestryId: makeStageOneAncestryId(choice.taskId, choice.id),
     timestamp: ctx.now,
     body: choice.label,
   }

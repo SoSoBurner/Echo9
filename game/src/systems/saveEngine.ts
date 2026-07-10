@@ -19,23 +19,43 @@
  * deserialize on a non-current schemaVersion that has no registered
  * migration throws; this is the safe default until V2 ships.
  */
-import { SaveSlotV1Schema, type SaveSlotV1 } from '@schemas/saveSlot.schema'
+import {
+  SaveSlotV1Schema,
+  SaveSlotV2Schema,
+  type SaveSlotV2,
+} from '@schemas/saveSlot.schema'
+import { makeStageOneAncestryId } from '@schemas/resultTrace.schema'
 import type { RootState } from '@state/store'
 
-export const CURRENT_SCHEMA_VERSION = 1 as const
+export const CURRENT_SCHEMA_VERSION = 2 as const
 
 /**
  * Future migrations live here. Each entry maps a SOURCE version number to a
  * function that lifts a payload from that version to the next. The loader
- * walks the chain: vN → vN+1 → ... → CURRENT_SCHEMA_VERSION. Empty for V1
- * because there is no prior version to lift from.
+ * walks the chain: vN → vN+1 → ... → CURRENT_SCHEMA_VERSION. Migration must
+ * return an object whose schemaVersion is the NEXT version (so the chain
+ * walker advances). The loop guard throws if a migration fails to advance.
  */
-// To add a V2 migration: write `1: (raw) => { ... return v2Shape }` and bump
-// CURRENT_SCHEMA_VERSION to 2. Migration must return an object whose
-// schemaVersion is the NEXT version (so the chain walker advances). The loop
-// guard throws if a migration fails to advance; you do not need to defend
-// against infinite loops manually.
-export const MIGRATION_MAP: Record<number, (raw: unknown) => unknown> = {}
+export const MIGRATION_MAP: Record<number, (raw: unknown) => unknown> = {
+  // V1 → V2 (S6, Q31): every ledger trace gains stageOneAncestryId, derived
+  // losslessly from its own (sourceTaskId, sourceChoiceId) back-pointers.
+  // Validate the payload as V1 FIRST so corrupt exports fail with a schema
+  // error rather than a mid-map crash.
+  1: (raw) => {
+    const v1 = SaveSlotV1Schema.parse(raw)
+    return {
+      ...v1,
+      schemaVersion: 2,
+      ledger: v1.ledger.map((trace) => ({
+        ...trace,
+        stageOneAncestryId: makeStageOneAncestryId(
+          trace.sourceTaskId,
+          trace.sourceChoiceId,
+        ),
+      })),
+    }
+  },
+}
 
 /**
  * Narrowed view of RootState that the engine actually reads. Keeps the engine
@@ -55,7 +75,7 @@ type SerializeInput = Pick<
  * SaveSlotV1Schema.parse().
  */
 export function serialize(state: SerializeInput, slotName: string): string {
-  const payload: SaveSlotV1 = {
+  const payload: SaveSlotV2 = {
     schemaVersion: CURRENT_SCHEMA_VERSION,
     slotName,
     savedAt: Date.now(),
@@ -66,7 +86,7 @@ export function serialize(state: SerializeInput, slotName: string): string {
   }
   // Round-trip validate at write time — fail loud if the live state somehow
   // contains values the schema rejects (e.g. an unknown meter key).
-  const validated = SaveSlotV1Schema.parse(payload)
+  const validated = SaveSlotV2Schema.parse(payload)
   return JSON.stringify(validated)
 }
 
@@ -94,7 +114,7 @@ const readVersion = (value: unknown): number => {
   return v
 }
 
-export function deserialize(json: string): SaveSlotV1 {
+export function deserialize(json: string): SaveSlotV2 {
   const raw: unknown = JSON.parse(json)
 
   let current: unknown = raw
@@ -121,5 +141,5 @@ export function deserialize(json: string): SaveSlotV1 {
     version = nextVersion
   }
 
-  return SaveSlotV1Schema.parse(current)
+  return SaveSlotV2Schema.parse(current)
 }

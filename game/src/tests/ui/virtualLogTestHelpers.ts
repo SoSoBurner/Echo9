@@ -16,6 +16,7 @@
  * jsdom prototype mutations don't leak to other files in the same
  * Vitest worker.
  */
+import { makeStageOneAncestryId } from '@schemas/resultTrace.schema'
 import type { ResultTrace } from '@schemas/resultTrace.schema'
 import { fxTaskId, fxChoiceId, fxTraceId } from '@tests/schemas/fixtures'
 
@@ -26,6 +27,7 @@ export function makeTraces(n: number): ResultTrace[] {
       id: fxTraceId(`trace-${String(i).padStart(4, '0')}`),
       sourceTaskId: fxTaskId(),
       sourceChoiceId: fxChoiceId(`choice-${i}`),
+      stageOneAncestryId: makeStageOneAncestryId('task-fx', `choice-${i}`),
       timestamp: 1_700_000_000_000 + i * 1000,
       body: `Trace body number ${i}`,
     })

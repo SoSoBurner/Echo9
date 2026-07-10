@@ -27,6 +27,7 @@ import { useCallback, type Ref } from 'react'
 import type { ModuleId } from '@schemas/gameState.schema'
 import { makeTaskId, makeChoiceId, makeTraceId } from '@schemas/gameState.schema'
 import type { ResultTrace } from '@schemas/resultTrace.schema'
+import { makeStageOneAncestryId } from '@schemas/resultTrace.schema'
 import { useGameStore } from '@state/store'
 import {
   runModuleAbility,
@@ -78,6 +79,10 @@ export function ModuleAbilityButton({ moduleId, ref }: ModuleAbilityButtonProps)
       id: makeTraceId(freshTraceIdString()),
       sourceTaskId: makeTaskId('module-action'),
       sourceChoiceId: makeChoiceId(`module-${moduleId.toLowerCase()}`),
+      stageOneAncestryId: makeStageOneAncestryId(
+        'module-action',
+        `module-${moduleId.toLowerCase()}`,
+      ),
       timestamp: ctx.now,
       body: `${mod?.name ?? moduleId} — ${result.verb}`,
     }
