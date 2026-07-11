@@ -49,6 +49,24 @@ export const deferredSafetyInspectionTask: TaskNode = {
     makeChoiceId('choice-cut-shifts-for-safety'),
     makeChoiceId('choice-let-review-lapse'),
   ],
+  // Rank-2 slot (arc doc W7 row, Q44 rank-deepened tiers): the [REVEAL]
+  // variant of call-outside-inspectors hands the inspectors the
+  // Wednesday-overnight injury log unredacted. S2 seam: a verb option is a
+  // presentation-layer alias of its authored choice — the mechanical read
+  // (meters, hooks, scrutiny) is call-outside-inspectors'. The arc's
+  // distinct read for this variant (DATA_INTEGRITY+, PUBLIC_TRUST+,
+  // OWNER_CONTROL−−, DEFY-reading — heaviest pre-W12 spike) waits on a
+  // dedicated Track-C choice if the variant ever needs its own path.
+  moduleVerbOptions: [
+    {
+      moduleId: 'MOURNER',
+      verb: 'REVEAL',
+      label:
+        'Contract outside inspectors — and hand them the Wednesday-overnight ' +
+        'injury log, unredacted',
+      choiceId: makeChoiceId('choice-call-outside-inspectors'),
+    },
+  ],
 }
 
 /**

@@ -53,8 +53,11 @@ export const HOOK_OUTSIDE_INSPECTORS_CALLED: ConsequenceHook = {
   whatChanged:
     'The shared-risk profile is closed on paper — nurses and dispatch driver ' +
     'removed from the East Wilmer sector register. Capital took the $18,200 ' +
-    'hit as a single line item. Human-Welfare rose because the audit was ' +
-    'independent. The W8 payroll audit inherits a cleared safety posture.',
+    'hit as a single line item. The independent findings entered the county ' +
+    'file as written — the record firmed and Wilmer County read the call ' +
+    'well — but the labor board\u2019s gaze is now on Silas\u2019s floor, a ' +
+    'latitude he did not grant. The W8 payroll audit inherits a cleared ' +
+    'safety posture.',
 }
 
 // ---------------------------------------------------------------------------
@@ -113,9 +116,9 @@ export const HOOK_SHIFTS_CUT_FOR_SAFETY: ConsequenceHook = {
     'revenue statement closes. The reveal surfaces when W8 progresses and ' +
     'the missing overnight receipts show up as the specific gap.',
   whatChanged:
-    'Shared-risk logs closed by removal of exposure. Capital took a revenue ' +
-    'hit visible in W8\u2019s payroll audit input. Owner-Control dropped ' +
-    'because the dock read the choice as capitulation. Rasha\u2019s ' +
+    'Shared-risk logs closed by removal of exposure. The rosters broke ' +
+    'around the missing overnights and the week\u2019s revenue target ' +
+    'drifted wide — the gap shows up as W8 payroll-audit input. Rasha\u2019s ' +
     'RASHA_MET status carries forward unchanged.',
 }
 
