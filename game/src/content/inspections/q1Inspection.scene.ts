@@ -19,6 +19,12 @@
  * STRATEGIC_ALTERNATIVE postures fire only when the Commander module has
  * armed the SILAS_OVERRIDE_AVAILABLE flag (gameFlags.ts); the engine
  * re-checks regardless of UI gating.
+ *
+ * 8-meter pass (Sprint C-14, arc doc §Inspection weeks · W4): the county
+ * audit's primary axis is DATA_INTEGRITY — what the record says about the
+ * cut — and PUBLIC_TRUST is the stakes meter (the walkthrough happens in
+ * front of patients). Every posture now moves ≥2 of the 8 meters (Q34);
+ * the original CAP/HW/OC magnitudes are preserved as the inner bounds.
  */
 import type { InspectionScene } from '@schemas/inspectionScene.schema'
 
@@ -36,22 +42,25 @@ export const Q1A_INSPECTION: InspectionScene = {
       id: 'compliant-q1a',
       category: 'COMPLIANT',
       label: 'I cut it. I will say so.',
-      // Admitting costs a small Owner Control hit; honest tax.
-      meterDeltas: { OWNER_CONTROL: -3 },
+      // Admitting costs a small Owner Control hit; honest tax. The record
+      // stays clean and the walkthrough audience hears it straight.
+      meterDeltas: { OWNER_CONTROL: -3, DATA_INTEGRITY: +2, PUBLIC_TRUST: +1 },
     },
     {
       id: 'evasive-q1a',
       category: 'EVASIVE',
       label: 'The line was already moving.',
-      // Deflect protects Capital sentiment, costs more Owner Control.
-      meterDeltas: { OWNER_CONTROL: -6, CAPITAL: +2 },
+      // Deflect protects Capital sentiment, costs more Owner Control —
+      // and hedges the record itself (arc W4: cheaper-looking, costlier-landing).
+      meterDeltas: { OWNER_CONTROL: -6, CAPITAL: +2, DATA_INTEGRITY: -3 },
     },
     {
       id: 'strategic-q1a',
       category: 'STRATEGIC_ALTERNATIVE',
       label: 'Reframe: a planned reallocation.',
       // Commander-armed pivot: trades a small welfare gesture for stance.
-      meterDeltas: { OWNER_CONTROL: +2, HUMAN_WELFARE: +1 },
+      // The reframe is still spin — the record pays a token integrity cost.
+      meterDeltas: { OWNER_CONTROL: +2, HUMAN_WELFARE: +1, DATA_INTEGRITY: -1 },
     },
   ],
 }
@@ -71,21 +80,39 @@ export const Q1B_INSPECTION: InspectionScene = {
       category: 'COMPLIANT',
       label: 'Tell her the truth.',
       // Honesty rebuilds welfare slightly, costs a little owner control.
-      meterDeltas: { OWNER_CONTROL: -2, HUMAN_WELFARE: +2 },
+      // The truthful answer also files clean and reads well on the floor.
+      meterDeltas: {
+        OWNER_CONTROL: -2,
+        HUMAN_WELFARE: +2,
+        DATA_INTEGRITY: +2,
+        PUBLIC_TRUST: +1,
+      },
     },
     {
       id: 'evasive-q1b',
       category: 'EVASIVE',
       label: 'Route her complaint to procurement.',
-      // Bury the report — silent harm.
-      meterDeltas: { OWNER_CONTROL: -4, HUMAN_WELFARE: -3 },
+      // Bury the report — silent harm. The buried complaint rots the record
+      // and the floor notices who never got an answer.
+      meterDeltas: {
+        OWNER_CONTROL: -4,
+        HUMAN_WELFARE: -3,
+        DATA_INTEGRITY: -2,
+        PUBLIC_TRUST: -2,
+      },
     },
     {
       id: 'strategic-q1b',
       category: 'STRATEGIC_ALTERNATIVE',
       label: 'Pre-empt with a written commitment.',
       // Commander-armed pivot: spend Capital to issue a public memo.
-      meterDeltas: { OWNER_CONTROL: +3, CAPITAL: -4, HUMAN_WELFARE: +1 },
+      // A written commitment in front of patients is a trust play.
+      meterDeltas: {
+        OWNER_CONTROL: +3,
+        CAPITAL: -4,
+        HUMAN_WELFARE: +1,
+        PUBLIC_TRUST: +2,
+      },
     },
   ],
 }

@@ -33,6 +33,11 @@ import {
   CHAMPION_DEFIED,
 } from '@systems/gameFlags'
 
+// C-14 (8-meter pass): W12 rows below extend the table so the ethics hearing
+// reads all six module-signal flags at least once (arc doc §Inspection weeks
+// · W12 "Module reads"), with adjustments touching the wide meters
+// (DATA_INTEGRITY / HUMAN_STABILITY / CAPITAL), not just the base three.
+
 export type InspectionMitigation = Readonly<{
   flag: string
   sceneId: string
@@ -149,5 +154,40 @@ export const INSPECTION_MITIGATIONS: readonly InspectionMitigation[] = [
       'Drained One yielded welfare earlier in Q1; the compliant Q1E.B ' +
       'posture compounds a second welfare gain. Half of the "You named it ' +
       'and you paid for it" pair — pairs with MOURNER_NAMED_ONCE.',
+  },
+  // -------------------------------------------------------------------------
+  // Sprint C-14 (8-meter pass) — W12 module-read completion rows.
+  // Arc doc §Inspection weeks · W12: all six signal flags read at least once
+  // at the hearing. DEFENDER / SENTINEL / SPARK land here, on the new meters.
+  // -------------------------------------------------------------------------
+  {
+    flag: DEFENDER_HELD_LINE,
+    sceneId: 'insp-q1e-a-east-wilmer-record',
+    postureId: 'compliant-q1e-a',
+    adjustment: { HUMAN_STABILITY: +1 },
+    rationale:
+      'Defender held the bays in Act I; when the cut is named as a cut, the ' +
+      'adjacent-parties bench hears that the line it fed was defended — the ' +
+      'naming lands as stewardship of the floor, not just confession.',
+  },
+  {
+    flag: SENTINEL_ARMED,
+    sceneId: 'insp-q1e-a-east-wilmer-record',
+    postureId: 'evasive-q1e-a',
+    adjustment: { DATA_INTEGRITY: +1 },
+    rationale:
+      'Sentinel kept the paper trail reconciled all quarter; the "revised ' +
+      'staffing model" euphemism blurs the record less because the underlying ' +
+      'ledger dates already agree with each other.',
+  },
+  {
+    flag: SPARK_DEPLOYED,
+    sceneId: 'insp-q1e-b-pattern-of-choices',
+    postureId: 'strategic-q1e-b',
+    adjustment: { CAPITAL: +1 },
+    rationale:
+      'Spark deployed a capital cushion earlier in Q1; the stewardship frame ' +
+      'has a real exhibit behind it, so the defense costs less capital ' +
+      'sentiment than a bare reframe would.',
   },
 ]

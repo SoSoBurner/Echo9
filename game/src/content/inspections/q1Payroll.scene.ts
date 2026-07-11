@@ -23,6 +23,14 @@
  * Voice rules (§10): Silas question ≤2 sentences, operationally specific —
  * names Rasha, names $180K, names Friday, names "warehouse". Posture labels
  * are short imperatives so the radio panel stays compact.
+ *
+ * 8-meter pass (Sprint C-14, arc doc §Inspection weeks · W8): every delta
+ * sits inside ±[1,3] — W8 is a posture beat, not an aggregation beat. The
+ * auditors' pincer is CAPITAL × TARGET_VARIANCE (the money moved between W3
+ * and W5 is legible exactly where targets were hit by shuffles);
+ * DATA_INTEGRITY decides whether the shuffles surface as reconciliation
+ * notes or findings; HUMAN_STABILITY is the witness bench (the six-driver
+ * roster testifies whether anyone asks it to or not).
  */
 import type { InspectionScene } from '@schemas/inspectionScene.schema'
 
@@ -40,22 +48,40 @@ export const Q1P_A_INSPECTION: InspectionScene = {
       id: 'compliant-q1p-a',
       category: 'COMPLIANT',
       label: 'Show the reallocation.',
-      // Owning the source costs Owner Control but keeps welfare intact.
-      meterDeltas: { OWNER_CONTROL: -4, HUMAN_WELFARE: +1 },
+      // Owning the source: the ledger reconciles cleanly, but the shown
+      // reallocation exposes exactly where the target was made by a shuffle.
+      meterDeltas: {
+        OWNER_CONTROL: -3,
+        DATA_INTEGRITY: +3,
+        TARGET_VARIANCE: -2,
+        HUMAN_WELFARE: +1,
+      },
     },
     {
       id: 'evasive-q1p-a',
       category: 'EVASIVE',
       label: 'Call it a timing accrual.',
-      // Deflect protects Capital sentiment, costs more Owner Control.
-      meterDeltas: { OWNER_CONTROL: -7, CAPITAL: +3 },
+      // Deflect: capital sentiment holds and the quarter still reads
+      // on-target — but the accrual story is a finding waiting to happen.
+      meterDeltas: {
+        OWNER_CONTROL: -3,
+        CAPITAL: +2,
+        DATA_INTEGRITY: -3,
+        TARGET_VARIANCE: +1,
+      },
     },
     {
       id: 'strategic-q1p-a',
       category: 'STRATEGIC_ALTERNATIVE',
       label: 'Frame it as forecasted variance.',
-      // Commander-armed pivot: spend welfare to buy owner-control ground.
-      meterDeltas: { OWNER_CONTROL: +3, HUMAN_WELFARE: -2 },
+      // Commander-armed pivot: claim the variance was planned. Buys ground
+      // with Silas and the target line — the frame bends the record a notch.
+      meterDeltas: {
+        OWNER_CONTROL: +2,
+        TARGET_VARIANCE: +2,
+        DATA_INTEGRITY: -1,
+        HUMAN_WELFARE: -1,
+      },
     },
   ],
 }
@@ -74,22 +100,40 @@ export const Q1P_B_INSPECTION: InspectionScene = {
       id: 'compliant-q1p-b',
       category: 'COMPLIANT',
       label: 'Name the connection.',
-      // Honest naming: welfare gain, Owner Control tax.
-      meterDeltas: { OWNER_CONTROL: -3, HUMAN_WELFARE: +3 },
+      // Honest naming: the ledger dates reconcile as one story, and the
+      // witness bench — Rasha's roster — gets its answer on the record.
+      meterDeltas: {
+        OWNER_CONTROL: -2,
+        HUMAN_WELFARE: +1,
+        DATA_INTEGRITY: +2,
+        HUMAN_STABILITY: +2,
+      },
     },
     {
       id: 'evasive-q1p-b',
       category: 'EVASIVE',
       label: 'Two unrelated line items.',
-      // Bury the tie — welfare pays.
-      meterDeltas: { OWNER_CONTROL: -5, HUMAN_WELFARE: -3 },
+      // Bury the tie — the record splits one story into two, and the
+      // dispatch floor learns its 12 hours were never connected to anything.
+      meterDeltas: {
+        OWNER_CONTROL: -2,
+        DATA_INTEGRITY: -3,
+        HUMAN_STABILITY: -2,
+        HUMAN_WELFARE: -1,
+      },
     },
     {
       id: 'strategic-q1p-b',
       category: 'STRATEGIC_ALTERNATIVE',
       label: 'Refile the dispatch cut as capex.',
-      // Commander-armed pivot: reclassify at capital cost.
-      meterDeltas: { OWNER_CONTROL: +4, CAPITAL: -5 },
+      // Commander-armed pivot: reclassify at capital cost. The refile keeps
+      // the target line intact but the recategorisation is itself a hedge.
+      meterDeltas: {
+        OWNER_CONTROL: +2,
+        CAPITAL: -3,
+        TARGET_VARIANCE: +2,
+        DATA_INTEGRITY: -1,
+      },
     },
   ],
 }

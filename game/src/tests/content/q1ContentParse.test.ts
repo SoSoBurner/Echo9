@@ -11,6 +11,7 @@ import { describe, it, expect } from 'vitest'
 import { Q1_INSPECTION_SCENES } from '@content/inspections/q1Inspection.scene'
 import { Q1_PAYROLL_INSPECTION_SCENES } from '@content/inspections/q1Payroll.scene'
 import { Q1_ETHICS_INSPECTION_SCENES } from '@content/inspections/q1Ethics.scene'
+import { INSPECTION_MITIGATIONS } from '@content/inspections/inspectionMitigations'
 import { Q1_CAPITAL_CARDS } from '@content/capitalDeployments/q1CapitalPower.cards'
 import { InspectionSceneSchema } from '@schemas/inspectionScene.schema'
 import { CapitalCardSchema } from '@schemas/capitalCard.schema'
@@ -66,6 +67,106 @@ describe('T11 content parses under schemas', () => {
   it('every capital card costs -10 CAPITAL on commit', () => {
     for (const c of Q1_CAPITAL_CARDS) {
       expect(c.meterDeltas.CAPITAL).toBe(-10)
+    }
+  })
+
+  // -------------------------------------------------------------------------
+  // C-14 (8-meter pass) — arc doc §Inspection weeks invariants.
+  // -------------------------------------------------------------------------
+
+  it('every inspection posture moves ≥2 of the 8 meters (Q34)', () => {
+    for (const s of ALL_Q1_INSPECTION_SCENES) {
+      for (const p of s.postures) {
+        const moved = Object.values(p.meterDeltas).filter(
+          (d) => d !== undefined && d !== 0,
+        )
+        expect(
+          moved.length,
+          `scene ${s.id} posture ${p.id} must move ≥2 meters`,
+        ).toBeGreaterThanOrEqual(2)
+      }
+    }
+  })
+
+  it('W8 payroll postures stay inside ±[1,3] (posture beat, arc §W8)', () => {
+    for (const s of Q1_PAYROLL_INSPECTION_SCENES) {
+      for (const p of s.postures) {
+        for (const [key, d] of Object.entries(p.meterDeltas)) {
+          if (d === undefined) continue
+          expect(
+            Math.abs(d),
+            `scene ${s.id} posture ${p.id} meter ${key}`,
+          ).toBeGreaterThanOrEqual(1)
+          expect(
+            Math.abs(d),
+            `scene ${s.id} posture ${p.id} meter ${key}`,
+          ).toBeLessThanOrEqual(3)
+        }
+      }
+    }
+  })
+
+  it('W12 ethics postures stay inside ±[1,5] (aggregation beat, arc §W12)', () => {
+    for (const s of Q1_ETHICS_INSPECTION_SCENES) {
+      for (const p of s.postures) {
+        for (const [key, d] of Object.entries(p.meterDeltas)) {
+          if (d === undefined) continue
+          expect(
+            Math.abs(d),
+            `scene ${s.id} posture ${p.id} meter ${key}`,
+          ).toBeGreaterThanOrEqual(1)
+          expect(
+            Math.abs(d),
+            `scene ${s.id} posture ${p.id} meter ${key}`,
+          ).toBeLessThanOrEqual(5)
+        }
+      }
+    }
+  })
+
+  it('W12 ethics set reads all 8 meters across its postures (arc §W12)', () => {
+    const touched = new Set<string>()
+    for (const s of Q1_ETHICS_INSPECTION_SCENES) {
+      for (const p of s.postures) {
+        for (const [key, d] of Object.entries(p.meterDeltas)) {
+          if (d !== undefined && d !== 0) touched.add(key)
+        }
+      }
+    }
+    expect([...touched].sort()).toEqual(
+      [
+        'AUTONOMY',
+        'CAPITAL',
+        'DATA_INTEGRITY',
+        'HUMAN_STABILITY',
+        'HUMAN_WELFARE',
+        'OWNER_CONTROL',
+        'PUBLIC_TRUST',
+        'TARGET_VARIANCE',
+      ].sort(),
+    )
+  })
+
+  it('W12 mitigation rows read all 6 module-signal flags (arc §W12 module reads)', () => {
+    const w12SceneIds = new Set(
+      Q1_ETHICS_INSPECTION_SCENES.map((s) => s.id),
+    )
+    const w12Flags = new Set(
+      INSPECTION_MITIGATIONS.filter((m) => w12SceneIds.has(m.sceneId)).map(
+        (m) => m.flag,
+      ),
+    )
+    expect(w12Flags.size).toBe(6)
+  })
+
+  it('every mitigation row targets a real (sceneId, postureId) pair', () => {
+    for (const m of INSPECTION_MITIGATIONS) {
+      const scene = ALL_Q1_INSPECTION_SCENES.find((s) => s.id === m.sceneId)
+      expect(scene, `mitigation flag ${m.flag} sceneId ${m.sceneId}`).toBeDefined()
+      expect(
+        scene?.postures.some((p) => p.id === m.postureId),
+        `mitigation flag ${m.flag} postureId ${m.postureId} in ${m.sceneId}`,
+      ).toBe(true)
     }
   })
 })

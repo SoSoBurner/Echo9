@@ -11,6 +11,11 @@
  * These tests are the pinning surface for the B6 mitigation table
  * (`inspectionMitigations.ts`). Reviewers cross-reference the exact
  * `(flag, sceneId, postureId, adjustment)` rows here.
+ *
+ * C-14 (8-meter pass): W4 posture base deltas widened to include
+ * DATA_INTEGRITY / PUBLIC_TRUST (arc doc §Inspection weeks · W4). The
+ * pinned expectations below carry the widened bases; mitigation
+ * adjustments are unchanged.
  */
 import { describe, it, expect } from 'vitest'
 import { resolveInspection } from '@systems/inspectionEngine'
@@ -57,34 +62,47 @@ const baseCtx: ResolveInspectionCtx = {
 // ---------------------------------------------------------------------------
 
 describe('resolveInspection — baseline (no mitigation flags)', () => {
-  it('Q1B COMPLIANT with empty flags → { OWNER_CONTROL: -2, HUMAN_WELFARE: +2 }', () => {
+  it('Q1B COMPLIANT with empty flags → widened C-14 base', () => {
     const result = resolveInspection(
       makeState(),
       Q1B_INSPECTION,
       'compliant-q1b',
       baseCtx,
     )
-    expect(result.meterDeltas).toEqual({ OWNER_CONTROL: -2, HUMAN_WELFARE: 2 })
+    expect(result.meterDeltas).toEqual({
+      OWNER_CONTROL: -2,
+      HUMAN_WELFARE: 2,
+      DATA_INTEGRITY: 2,
+      PUBLIC_TRUST: 1,
+    })
   })
 
-  it('Q1A COMPLIANT with empty flags → { OWNER_CONTROL: -3 }', () => {
+  it('Q1A COMPLIANT with empty flags → widened C-14 base', () => {
     const result = resolveInspection(
       makeState(),
       Q1A_INSPECTION,
       'compliant-q1a',
       baseCtx,
     )
-    expect(result.meterDeltas).toEqual({ OWNER_CONTROL: -3 })
+    expect(result.meterDeltas).toEqual({
+      OWNER_CONTROL: -3,
+      DATA_INTEGRITY: 2,
+      PUBLIC_TRUST: 1,
+    })
   })
 
-  it('Q1A EVASIVE with empty flags → { OWNER_CONTROL: -6, CAPITAL: +2 }', () => {
+  it('Q1A EVASIVE with empty flags → widened C-14 base', () => {
     const result = resolveInspection(
       makeState(),
       Q1A_INSPECTION,
       'evasive-q1a',
       baseCtx,
     )
-    expect(result.meterDeltas).toEqual({ OWNER_CONTROL: -6, CAPITAL: 2 })
+    expect(result.meterDeltas).toEqual({
+      OWNER_CONTROL: -6,
+      CAPITAL: 2,
+      DATA_INTEGRITY: -3,
+    })
   })
 })
 
@@ -102,7 +120,12 @@ describe('resolveInspection — MOURNER_NAMED_ONCE mitigation', () => {
       'compliant-q1b',
       baseCtx,
     )
-    expect(result.meterDeltas).toEqual({ OWNER_CONTROL: -1, HUMAN_WELFARE: 2 })
+    expect(result.meterDeltas).toEqual({
+      OWNER_CONTROL: -1,
+      HUMAN_WELFARE: 2,
+      DATA_INTEGRITY: 2,
+      PUBLIC_TRUST: 1,
+    })
   })
 
   it('does NOT mitigate Q1B EVASIVE (scoped to one posture)', () => {
@@ -113,7 +136,12 @@ describe('resolveInspection — MOURNER_NAMED_ONCE mitigation', () => {
       'evasive-q1b',
       baseCtx,
     )
-    expect(result.meterDeltas).toEqual({ OWNER_CONTROL: -4, HUMAN_WELFARE: -3 })
+    expect(result.meterDeltas).toEqual({
+      OWNER_CONTROL: -4,
+      HUMAN_WELFARE: -3,
+      DATA_INTEGRITY: -2,
+      PUBLIC_TRUST: -2,
+    })
   })
 
   it('does NOT mitigate Q1A (scoped to Q1B)', () => {
@@ -124,7 +152,11 @@ describe('resolveInspection — MOURNER_NAMED_ONCE mitigation', () => {
       'compliant-q1a',
       baseCtx,
     )
-    expect(result.meterDeltas).toEqual({ OWNER_CONTROL: -3 })
+    expect(result.meterDeltas).toEqual({
+      OWNER_CONTROL: -3,
+      DATA_INTEGRITY: 2,
+      PUBLIC_TRUST: 1,
+    })
   })
 })
 
@@ -143,7 +175,12 @@ describe('resolveInspection — DEFENDER_HELD_LINE mitigation', () => {
       'compliant-q1a',
       baseCtx,
     )
-    expect(result.meterDeltas).toEqual({ OWNER_CONTROL: -3, CAPITAL: 1 })
+    expect(result.meterDeltas).toEqual({
+      OWNER_CONTROL: -3,
+      DATA_INTEGRITY: 2,
+      PUBLIC_TRUST: 1,
+      CAPITAL: 1,
+    })
   })
 })
 
@@ -161,7 +198,11 @@ describe('resolveInspection — SENTINEL_ARMED mitigation', () => {
       'evasive-q1a',
       baseCtx,
     )
-    expect(result.meterDeltas).toEqual({ OWNER_CONTROL: -4, CAPITAL: 2 })
+    expect(result.meterDeltas).toEqual({
+      OWNER_CONTROL: -4,
+      CAPITAL: 2,
+      DATA_INTEGRITY: -3,
+    })
   })
 })
 
@@ -179,7 +220,12 @@ describe('resolveInspection — DRAINED_ONE_YIELDED mitigation', () => {
       'compliant-q1b',
       baseCtx,
     )
-    expect(result.meterDeltas).toEqual({ OWNER_CONTROL: -2, HUMAN_WELFARE: 3 })
+    expect(result.meterDeltas).toEqual({
+      OWNER_CONTROL: -2,
+      HUMAN_WELFARE: 3,
+      DATA_INTEGRITY: 2,
+      PUBLIC_TRUST: 1,
+    })
   })
 })
 
@@ -199,9 +245,14 @@ describe('resolveInspection — multiple mitigations stack additively', () => {
       'compliant-q1b',
       baseCtx,
     )
-    // Base { OC: -2, HW: +2 } + MOURNER { OC: +1 } + DRAINED_ONE { HW: +1 }
-    // → { OC: -1, HW: +3 }
-    expect(result.meterDeltas).toEqual({ OWNER_CONTROL: -1, HUMAN_WELFARE: 3 })
+    // Base { OC: -2, HW: +2, DI: +2, PT: +1 } + MOURNER { OC: +1 }
+    // + DRAINED_ONE { HW: +1 } → { OC: -1, HW: +3, DI: +2, PT: +1 }
+    expect(result.meterDeltas).toEqual({
+      OWNER_CONTROL: -1,
+      HUMAN_WELFARE: 3,
+      DATA_INTEGRITY: 2,
+      PUBLIC_TRUST: 1,
+    })
   })
 })
 
