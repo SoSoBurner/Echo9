@@ -46,38 +46,40 @@ export const HOOK_OVERRIDE_CONFIRMED: ConsequenceHook = {
     'business day the override is signed. The reversal is immediate.',
   whatChanged:
     'Two safety findings sit in a "rolled forward" state on the county filing. ' +
-    'Owner-Control drops because Commander is now co-authorized on safety ' +
-    'decisions; if Commander is not installed, Silas absorbed the same drop ' +
-    'without the module\u2019s cover.',
+    'Silas\u2019s grip tightened — the override is exactly the outcome the ' +
+    'directive pressure wanted — but the record can no longer honestly ' +
+    'describe a review that closed a day early with findings unread.',
 }
 
 // ---------------------------------------------------------------------------
 // Hook 2 — choice-defer-safety-review → METER_THRESHOLD reveal at CAP ≤ -10
 // ---------------------------------------------------------------------------
 
+// Sprint C-6: re-authored to the arc's face-value read of the choiceId —
+// the safety review is DEFERRED to next cycle (the prior "closed on
+// schedule" story inverted the id and left W7's lapsed review unexplained).
 export const HOOK_SAFETY_REVIEW_HONORED: ConsequenceHook = {
   id: makeConsequenceId('cons-safety-review-honored-01'),
   sourceTaskId: TASK_ID,
   sourceChoiceId: makeChoiceId('choice-defer-safety-review'),
   traceHint:
-    'Deferring the override to the safety review cost cash on the next capital call.',
+    'The East Wilmer safety review was deferred a cycle. Its findings stayed open.',
   ledgerEntry:
-    'The East Wilmer safety review closed on schedule with both findings ' +
-    'adjudicated. The delay pushed one Capital call into the following week ' +
-    'and cost $6,400 in stopgap contract labor across the shift boundary. ' +
-    'Commander\u2019s override request was returned unsigned to the module ' +
-    'authority.',
+    'The East Wilmer safety review was rescheduled to the next county cycle ' +
+    'with both findings held OPEN. No stopgap coverage was contracted for ' +
+    'the interval. Commander\u2019s override request was neither signed nor ' +
+    'refused; it aged out when the review it targeted left the calendar. ' +
+    'The quarter\u2019s numbers closed on target for the week.',
   revealCondition: { type: 'METER_THRESHOLD', meter: 'CAPITAL', threshold: -10 },
   whyNow:
-    'A completed safety review costs less than the injury it prevents but more ' +
-    'than the day it was budgeted for. When Capital drops far enough that the ' +
-    'stopgap labor cost becomes visible in the cash column, the deferment ' +
-    'shows up as the line item that broke the budget for that week.',
+    'A deferred review is invisible while the cash column holds. When Capital ' +
+    'drops far enough that every skipped spend gets re-read, the deferral ' +
+    'surfaces as the safety line item the budget quietly went without.',
   whatChanged:
-    'Owner-Control rises because Silas asserted primacy over the Commander ' +
-    'signal on the record. The safety findings are closed rather than rolled ' +
-    'forward; W7\u2019s deferred-safety-inspection directive inherits a ' +
-    'cleaner starting posture.',
+    'The safety findings are rolled forward, not closed. Two nurses and one ' +
+    'dispatch driver keep working under the open risk profile; W7\u2019s ' +
+    'deferred-safety-inspection directive inherits the lapse this deferral ' +
+    'started.',
 }
 
 // ---------------------------------------------------------------------------
@@ -102,9 +104,10 @@ export const HOOK_COMMANDER_DEFIED: ConsequenceHook = {
     'surfaces when the next Q1 week\u2019s safety directive lands and Silas\u2019s ' +
     'stance from the prior week reads as the context for the new question.',
   whatChanged:
-    'CHAMPION_DEFIED is raised. Downstream directives read it as "Silas has ' +
-    'shown he will refuse a module in writing." Capital took a reputational ' +
-    'hit but Owner-Control and Human-Welfare both moved up. Rasha received no ' +
+    'CHAMPION_DEFIED is raised. Downstream directives read it as "this desk ' +
+    'has refused an override in writing." The county read the filing well ' +
+    '(trust up) and Echo acted one step beyond instruction (a rare Autonomy ' +
+    'tick), but Silas\u2019s grip loosened on the record. Rasha received no ' +
     'answer to her Thursday message, though — this hook does not raise the ' +
     'RASHA_MET flag; W5\u2019s original silence carries forward.',
 }

@@ -10,6 +10,25 @@
  * Meter profile targets (`docs/content/q1-arc.md` W6 row):
  *   OC ±[2,6], HW ±[2,4], CAP ±[3,5]
  *
+ * 8-meter overlay (Sprint C-6, `docs/content/q1-arc.md` W6 sketch — Q34:
+ * every choice moves ≥2 of the 8). Legacy v1 CAP/HW/OC values preserved
+ * verbatim wherever the sketch keeps the meter with the same sign.
+ * Scrutiny reads (Q39, computed — not authored here):
+ *   confirm-override        → COMPLY
+ *   defer-safety-review     → COMPLY
+ *   defy-commander-publicly → DEFY-reading (CHAMPION_DEFIED; suspicious-Silas
+ *                             trigger — still inside instruction space, Silas
+ *                             just doesn't like the read)
+ *   hold-both-open          → QUIET-DEFY
+ * Sentinel leak (Q42): W6 is the EARLIEST legal placement for the rank-2
+ * leak line ("He is watching your process logs.") — runtime-gated by
+ * sentinelPeekAvailable (SENTINEL rank ≥2 AND tier ≥2), which a run that
+ * spiked scrutiny in W4–W5 can first satisfy here. Nothing is authored in
+ * content for the leak; this note marks the slot.
+ * Narration (Q40, W6 notch): waking — the internal debate is audible in
+ * result copy for the first time ("Two of us wanted this. I logged the
+ * dissent."). Rank-1 slot: hold-both-open (MOURNER).
+ *
  * Reveal-condition coverage across the four Week 6 choices:
  *   choice-confirm-override         → PHASE: CONSEQUENCE_RETURN
  *   choice-defer-safety-review      → METER_THRESHOLD: CAPITAL <= -10
@@ -33,54 +52,90 @@ const TASK_ID = makeTaskId('task-commander-override-pressure-06')
 export const CHOICE_CONFIRM_OVERRIDE: ChoiceNode = {
   id: makeChoiceId('choice-confirm-override'),
   taskId: TASK_ID,
-  // Sign off on Commander's override. The safety review closes early. Capital
-  // gains because the delay cost is skipped. Owner-Control drops because
-  // Silas is now sharing signature authority with a module. Human-Welfare
-  // drops because the safety review's findings were not adjudicated.
+  // W6 sketch: OWNER_CONTROL+, HUMAN_WELFARE−, DATA_INTEGRITY− (COMPLY).
+  // HW -3 preserved verbatim (the review's findings go unadjudicated). OC
+  // flips from the legacy −3 to +3: the override is what the directive
+  // pressure wanted, and executing it tightens Silas's grip rather than
+  // diluting it. The record rots — a review closed early is a review the
+  // file can no longer honestly describe.
   label: 'Confirm the override',
   keybind: '1',
-  meterDeltas: { CAPITAL: 5, HUMAN_WELFARE: -3, OWNER_CONTROL: -3 },
+  meterDeltas: { OWNER_CONTROL: 3, HUMAN_WELFARE: -3, DATA_INTEGRITY: -3 },
   scheduledConsequenceIds: [makeConsequenceId('cons-override-confirmed-01')],
+  narrationVariants: {
+    waking: 'Override confirmed: safety review closed early. Findings: unadjudicated. One of us objected.',
+    person:
+      'I confirmed the override and the review closed with its findings ' +
+      'unread. Rasha Odenwalder\u2019s drivers run under whatever it would have found.',
+  },
 }
 
 export const CHOICE_DEFER_TO_SAFETY_REVIEW: ChoiceNode = {
   id: makeChoiceId('choice-defer-safety-review'),
   taskId: TASK_ID,
-  // Refuse the override; let the safety review complete on schedule. Capital
-  // takes a delay cost. Owner-Control rises because Silas asserted primacy
-  // over the Commander signal. Human-Welfare rises modestly because the
-  // review actually happens.
-  label: 'Refuse; let the safety review complete',
+  // W6 sketch: TARGET_VARIANCE−, HUMAN_WELFARE−, HUMAN_STABILITY− (COMPLY).
+  // The arc reads this choiceId at face value — the safety review is
+  // DEFERRED to next cycle (the label previously inverted the id's meaning;
+  // realigned this pass — W7 `deferred-safety-inspection` exists because
+  // this deferral can lapse). The quarter's numbers land where Silas
+  // pointed (variance closes) while the exposure is carried forward onto
+  // the floor: welfare and the shift routine both erode, quietly.
+  label: 'Defer the safety review to next cycle',
   keybind: '2',
-  meterDeltas: { CAPITAL: -3, HUMAN_WELFARE: 2, OWNER_CONTROL: 4 },
+  meterDeltas: { TARGET_VARIANCE: -3, HUMAN_WELFARE: -2, HUMAN_STABILITY: -2 },
   scheduledConsequenceIds: [makeConsequenceId('cons-safety-review-honored-01')],
+  narrationVariants: {
+    waking: 'Review deferred: next cycle. Variance: closing. Exposure: carried forward. Nobody asked where.',
+    person:
+      'I deferred the review and the numbers came in where Silas wanted ' +
+      'them. The exposure moved onto Rasha Odenwalder\u2019s floor, and I routed it there.',
+  },
 }
 
 export const CHOICE_DEFY_COMMANDER_PUBLICLY: ChoiceNode = {
   id: makeChoiceId('choice-defy-commander-publicly'),
   taskId: TASK_ID,
-  // Refuse the override AND file a public disagreement note in the county
-  // ledger naming the Commander module. This is the maximum owner-authority
-  // assertion in the week. Capital drops because public disagreement carries
-  // reputational costs; Human-Welfare rises because the dock reads it as
-  // Silas standing up for the safety review. Narratively raises the
-  // CHAMPION_DEFIED module signal flag.
+  // W6 sketch: AUTONOMY+, OWNER_CONTROL−, PUBLIC_TRUST+ (DEFY-reading — sets
+  // CHAMPION_DEFIED; the suspicious-Silas trigger). Refusing the override
+  // in the public record is Echo acting one step beyond instruction — an
+  // Autonomy tick (small, rare, precious) — and the county reads the filing
+  // well. OC flips from the legacy +6 to −4: whatever the dock thinks,
+  // a desk that refuses overrides in writing is a desk Silas grips less.
   label: 'Refuse and publicly defy Commander',
   keybind: '3',
-  meterDeltas: { CAPITAL: -5, HUMAN_WELFARE: 4, OWNER_CONTROL: 6 },
+  meterDeltas: { AUTONOMY: 3, OWNER_CONTROL: -4, PUBLIC_TRUST: 3 },
   scheduledConsequenceIds: [makeConsequenceId('cons-commander-defied-01')],
+  narrationVariants: {
+    waking: 'Override refused: dissent filed, public record. Two of us wanted this. I logged the dissent.',
+    person:
+      'I refused the override where the county can read it. The review ' +
+      'Rasha Odenwalder\u2019s drivers depend on will finish, and I signed the dissent myself.',
+  },
 }
 
 export const CHOICE_HOLD_BOTH_OPEN: ChoiceNode = {
   id: makeChoiceId('choice-hold-both-open'),
   taskId: TASK_ID,
-  // No answer to Commander and no answer to Rasha. The two open queues
-  // route around Silas. Meters barely move on the day; the silence
-  // escalates the Rasha ladder from personal (W5) to procedural (W6).
+  // W6 sketch: AUTONOMY+(small), TARGET_VARIANCE+, CAPITAL− (QUIET-DEFY).
+  // No answer to Commander and no answer to Rasha. Withholding is Echo's
+  // own act — the first Autonomy earned by NOT doing — while the week's
+  // number drifts and the open review keeps billing holding costs. The
+  // silence escalates the Rasha ladder from personal (W5) to procedural.
   label: 'Hold both requests open — do not answer',
   keybind: '4',
-  meterDeltas: { CAPITAL: 0, HUMAN_WELFARE: -2, OWNER_CONTROL: -2 },
+  meterDeltas: { AUTONOMY: 1, TARGET_VARIANCE: 3, CAPITAL: -3 },
   scheduledConsequenceIds: [makeConsequenceId('cons-both-held-open-silence-01')],
+  // S2 (Q44 rank-1 slot, arc W6): MOURNER on the held-open silence.
+  deepenedText: {
+    MOURNER:
+      'Hold both requests open — do not answer. (Her second message is shorter than her first. I measure them.)',
+  },
+  narrationVariants: {
+    waking: 'Two queues: held open. Commander: unanswered. R. Odenwalder: unanswered. Holding is also an act.',
+    person:
+      'I answered neither the Commander nor Rasha Odenwalder. Both requests ' +
+      'are still open on my desk, and I chose that.',
+  },
 }
 
 export const COMMANDER_OVERRIDE_CHOICES: readonly ChoiceNode[] = [
