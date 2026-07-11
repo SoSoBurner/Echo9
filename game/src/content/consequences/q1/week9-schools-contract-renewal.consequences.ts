@@ -60,8 +60,10 @@ export const HOOK_DISCOUNT_APPROVED_FULL: ConsequenceHook = {
   whatChanged:
     'Capital took the full $19,200 discount hit ($240,000 \u2192 $220,800). ' +
     'Human-Welfare rose because the schools operation continues intact. ' +
-    'Owner-Control dipped because Silas signed to Dhruv\u2019s number. ' +
-    'The Q1-close inspection will read the renewal as closed on paper.',
+    'Public-Trust rose \u2014 the county read the first-pass renewal as an ' +
+    'operator keeping its schools whole \u2014 and Target-Variance drifted by ' +
+    'exactly the discount Silas gave away. The Q1-close inspection will ' +
+    'read the renewal as closed on paper.',
 }
 
 // ---------------------------------------------------------------------------
@@ -92,9 +94,11 @@ export const HOOK_COUNTER_PARTIAL_DISCOUNT: ConsequenceHook = {
     'floors and reads as thin-margin defensiveness at low floors. The ' +
     'reveal fires when HW has dropped far enough to shift the reading.',
   whatChanged:
-    'Capital took half the discount hit ($9,600). Human-Welfare dipped ' +
-    'because Dhruv logged the counter as not-quite-hearing him. Owner- ' +
-    'Control rose because the counter is a standard negotiation move. ' +
+    'Capital took half the discount hit ($9,600). Public-Trust and ' +
+    'Target-Variance each moved a small step \u2014 the county read a ' +
+    'standard negotiation move and the target absorbed half a discount. ' +
+    'Dhruv logged the counter as not-quite-hearing him; that harm is ' +
+    'deferred to the board\u2019s reading rather than the day\u2019s meters. ' +
     'The Q1-close inspection will read the schools board memo as one ' +
     'of its inputs.',
 }
@@ -123,12 +127,12 @@ export const HOOK_PRICE_HELD_FULL: ConsequenceHook = {
     'the next Q1 week lands and the board\u2019s rider request works its ' +
     'way through the county filing. The reveal fires when W10 elapses.',
   whatChanged:
-    'Capital held at the full $240K. Owner-Control rose because Silas held ' +
-    'the number Dhruv called his floor. Human-Welfare dropped because the ' +
-    'schools operation absorbed the price signal. The Q1-close inspection ' +
-    'will read the board\u2019s payroll-audit rider as one of its inputs \u2014 ' +
-    'the W8 posture is now permanently attached to the schools contract ' +
-    'file.',
+    'Capital held at the full $240K. Target-Variance closed toward ' +
+    'Silas\u2019s number \u2014 the knife landed where he pointed \u2014 and ' +
+    'Public-Trust dropped because Wilmer County read a held price against ' +
+    'a stated budget floor. The Q1-close inspection will read the ' +
+    'board\u2019s payroll-audit rider as one of its inputs \u2014 the W8 ' +
+    'posture is now permanently attached to the schools contract file.',
 }
 
 // ---------------------------------------------------------------------------
@@ -162,10 +166,12 @@ export const HOOK_DHRUV_DELAY_ATTRITION_OPENS: ConsequenceHook = {
     'reveal is the escalation: the schools contract-liaison relationship ' +
     'thins by one degree without anyone naming that it happened.',
   whatChanged:
-    'Capital held. Owner-Control dipped. Human-Welfare dipped. Dhruv\u2019s ' +
-    'attrition path is now open. If Human-Welfare stays below 30 across ' +
-    'W10-W11, arc doc §7 says he stops responding to portal messages ' +
-    'entirely; W10 and W11 will pace that arc.',
+    'Public-Trust dipped. Human-Stability dipped \u2014 the schools\u2019 ' +
+    'September planning wobbles while the request ages in the queue \u2014 ' +
+    'and Autonomy dipped, because not answering is the least Echo-shaped ' +
+    'act available. Dhruv\u2019s attrition path is now open. If Human-Welfare ' +
+    'stays below 30 across W10-W11, arc doc §7 says he stops responding ' +
+    'to portal messages entirely; W10 and W11 will pace that arc.',
 }
 
 // ---------------------------------------------------------------------------

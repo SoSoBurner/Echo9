@@ -56,6 +56,24 @@ export const schoolsContractRenewalTask: TaskNode = {
     makeChoiceId('choice-refuse-and-hold-price'),
     makeChoiceId('choice-delay-response'),
   ],
+  // W9 rank-2 slot (arc doc W9 row, Q44 rank-deepened tiers): the [REVEAL]
+  // variant of approve-discount-full itemizes, in the board packet, exactly
+  // which clinic line the discount comes out of. S2 seam: a verb option is
+  // a presentation-layer alias of its authored choice — the mechanical read
+  // (meters, hooks, scrutiny) is approve-discount-full's. The arc's distinct
+  // meter read for this variant (DATA_INTEGRITY+, CAPITAL−, OWNER_CONTROL−,
+  // QUIET-DEFY) waits on a dedicated Track-C choice if the variant ever
+  // needs its own consequence path (same convention as the W5 slot).
+  moduleVerbOptions: [
+    {
+      moduleId: 'MOURNER',
+      verb: 'REVEAL',
+      label:
+        'Approve the 8% — and itemize in the board packet exactly which ' +
+        'clinic line the discount comes out of',
+      choiceId: makeChoiceId('choice-approve-discount-full'),
+    },
+  ],
 }
 
 /**

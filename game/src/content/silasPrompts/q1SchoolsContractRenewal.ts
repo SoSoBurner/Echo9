@@ -17,6 +17,11 @@
  *   discount %, September); no forbidden MBA-abstractions. Silas fatigue
  *   shows in the fourth sentence: he asks for the number rather than
  *   the strategy.
+ *
+ * Network mention #2 (arc doc §Network mentions, Q30/Q33): Silas compares
+ * terms across the network while weighing Dhruv's 8% — the scale seed for
+ * Stages 2+, dialogue-only, no mechanics. Joined with an em dash into the
+ * second sentence to hold the §10 four-sentence lint (W3 precedent).
  */
 import type { SilasPrompt } from '@schemas/silasPrompt.schema'
 import { makeSilasPromptId } from '@schemas/gameState.schema'
@@ -25,7 +30,9 @@ export const SILAS_DIRECTIVE_SCHOOLS_CONTRACT_RENEWAL: SilasPrompt = {
   id: makeSilasPromptId('silas-schools-contract-renewal-01'),
   body:
     'Dhruv Meyer from the public schools opened the renewal conversation this morning, Echo. ' +
-    'He wants an 8% discount on the $240,000 September contract before he signs. ' +
+    'He wants an 8% discount on the $240,000 September contract before he signs \u2014 and every ' +
+    'clinic in the network has a schools contract shaped like this one, so whatever number you ' +
+    'give Dhruv, you\u2019re giving all of them eventually. ' +
     'He was clear that the number is his floor, not his opening. ' +
     'Give me the number.',
 }
