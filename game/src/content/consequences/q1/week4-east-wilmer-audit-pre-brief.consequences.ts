@@ -99,8 +99,8 @@ export const HOOK_MITIGATION_PACKET_SENT: ConsequenceHook = {
     'week as the audit rolls into Q2 planning.',
   whatChanged:
     'East Wilmer audit posture inherits an "operator engagement" framing. ' +
-    'Owner-Control posts a small gain because the frame was set by Echo. ' +
-    'Silas was not asked to improvise in the room.',
+    'PUBLIC_TRUST posts a gain because the frame was set before the county ' +
+    'walked the floor. Silas was not asked to improvise in the room.',
 }
 
 // ---------------------------------------------------------------------------
