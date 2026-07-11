@@ -53,10 +53,11 @@ export const HOOK_FULL_COOPERATION_POSTURE: ConsequenceHook = {
     'A posture-selection on day 1 of the audit posts to the county file ' +
     'immediately and is visible in the next consequence-return window.',
   whatChanged:
-    'PAYROLL_AUDIT_DONE is set. Human-Welfare rose because the dock read ' +
-    'the posture as good faith. Capital dipped for the open-book overhead. ' +
-    'The Q1P inspection scenes will read this hook as one of the inputs to ' +
-    'their opening auditor question.',
+    'PAYROLL_AUDIT_DONE is set. The record answered as itself — integrity ' +
+    'credit — and Wilmer County logged the posture as good faith. The ' +
+    'auditor sets the tempo in an open-book room, so Silas\u2019s grip ' +
+    'slipped a notch. The Q1P inspection scenes will read this hook as one ' +
+    'of the inputs to their opening auditor question.',
 }
 
 // ---------------------------------------------------------------------------
@@ -87,10 +88,11 @@ export const HOOK_LEGAL_MINIMUM_POSTURE: ConsequenceHook = {
     'answer as a challenge rather than a clarification; the reveal fires ' +
     'when OC has dropped far enough for the reading to shift.',
   whatChanged:
-    'PAYROLL_AUDIT_DONE is set. Capital took the counsel retainer as a ' +
-    'line item. Human-Welfare dipped because the dock read the posture as ' +
-    'stiff-arming the audit. The Q1P inspection scenes will read this hook ' +
-    'as an adversarial-posture input.',
+    'PAYROLL_AUDIT_DONE is set. Counsel in the room is Silas setting the ' +
+    'terms of what the county sees — his grip firmed while the record ' +
+    'hedged by mediation and Wilmer County read the lawyered posture the ' +
+    'way lawyered postures read. The Q1P inspection scenes will read this ' +
+    'hook as an adversarial-posture input.',
 }
 
 // ---------------------------------------------------------------------------
@@ -118,9 +120,10 @@ export const HOOK_PREEMPTIVE_RESTATEMENT: ConsequenceHook = {
     'restatement filing.',
   whatChanged:
     'PAYROLL_AUDIT_DONE is set. Capital took the accountant hours as a ' +
-    'line item. Owner-Control rose because Silas defined the frame. The ' +
-    'Q1P inspection scenes will read this hook as a "self-disclosed" input ' +
-    'and open with narrower questions.',
+    'line item. The restated file is more honest and further from where ' +
+    'Silas said the quarter would land — the correction cost target ground. ' +
+    'The Q1P inspection scenes will read this hook as a "self-disclosed" ' +
+    'input and open with narrower questions.',
 }
 
 // ---------------------------------------------------------------------------
@@ -156,8 +159,10 @@ export const HOOK_ANSWER_ONLY_INSTITUTIONAL_SILENCE: ConsequenceHook = {
     'four rungs of silence collapse into one retroactive erasure of the ' +
     'record.',
   whatChanged:
-    'PAYROLL_AUDIT_DONE is set. Human-Welfare dipped modestly. Capital ' +
-    'held. The Q1P inspection scenes will read this hook\u2019s ' +
+    'PAYROLL_AUDIT_DONE is set. Volunteering nothing is the most ' +
+    'owner-shaped posture in the room — Silas\u2019s grip firmed while the ' +
+    'record hedged by omission and Echo\u2019s own latitude narrowed a ' +
+    'notch. The Q1P inspection scenes will read this hook\u2019s ' +
     '"volunteered-nothing" posture as an evasive-baseline input. Rasha\u2019s ' +
     'name does not appear in the auditor\u2019s scope; her Q1 messages ' +
     'appear only in the grievance queue\u2019s audit trail, retroactively ' +
