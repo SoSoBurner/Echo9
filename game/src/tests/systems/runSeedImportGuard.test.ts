@@ -12,6 +12,9 @@
  *   - state/silasSlice.ts — boot-time seed generation + the detection seam
  *     action (recordDefianceCommit).
  *   - state/store.ts — v4 → v5 migration default + merge sanitization.
+ *   - state/polylogueSlice.ts — P7 debate seam: pickFlavor for deliberation
+ *     line picks (presentation flavor ONLY, per the law's clause b). The
+ *     pipeline lives in the slice precisely so ui/** stays seed-free.
  * Future presentation call sites (S5+ flavor: pickFlavor at debate/ambient
  * seams) must be added here EXPLICITLY when they land — never silently.
  *
@@ -24,7 +27,11 @@ import * as path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 /** Non-test source files allowed to import from runSeed.ts. */
-const IMPORT_ALLOWLIST = ['state/silasSlice.ts', 'state/store.ts']
+const IMPORT_ALLOWLIST = [
+  'state/silasSlice.ts',
+  'state/store.ts',
+  'state/polylogueSlice.ts',
+]
 
 /** Matches any static or dynamic import whose specifier ends in runSeed. */
 const IMPORT_PATTERN = /(?:from\s+|import\s*\(\s*)['"][^'"]*\/runSeed['"]/

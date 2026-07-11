@@ -123,6 +123,13 @@ export function Layout() {
   // Track C consequence path. The seed itself never enters ui/** —
   // runSeedImportGuard.test.ts enforces that.
   const recordDefianceCommit = useGameStore((s) => s.recordDefianceCommit)
+  // P7 polylogue seam. The activation pipeline runs OUTSIDE resolveChoice
+  // (Q17), BEFORE it, from handleChoiceCommit step 1b. The pipeline itself
+  // lives in polylogueSlice.runPolylogue (not here) because its flavor pick
+  // reads the run seed and no ui/** file may import runSeed.ts
+  // (runSeedImportGuard.test.ts) — same routing discipline as the S4
+  // detection seam above.
+  const runPolylogue = useGameStore((s) => s.runPolylogue)
   const silasEscalationTier = useGameStore(selectSilasEscalationTier)
 
   // INSPECTION panel state — cursor + key + flags drive both the open
@@ -232,6 +239,14 @@ export function Layout() {
         }
         return
       }
+
+      // 1b. P7 polylogue seam — BEFORE resolveChoice (Q17). An authored
+      //     scene (task.polylogueSceneId) wins; otherwise the four-engine
+      //     chain composes the debate from installedModules + Null (Q9).
+      //     FAIL-LOUD CONTRACT: a dangling scene id or an engine error
+      //     throws HERE, before any store mutation below — the commit
+      //     aborts atomically and the resolve path is never corrupted.
+      runPolylogue(currentEntry.task, currentEntry.week)
 
       // 2. Build a fresh GameState snapshot for the pure resolver.
       //    Read live state from the store (not render-time selectors) so
@@ -371,6 +386,7 @@ export function Layout() {
       installedModules,
       recordScrutinyEvent,
       recordDefianceCommit,
+      runPolylogue,
     ],
   )
 

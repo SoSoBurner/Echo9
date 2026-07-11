@@ -62,6 +62,9 @@ import { createCapitalSlice, type CapitalSlice } from './capitalSlice'
 import { createEventQueueSlice, type EventQueueSlice } from './eventQueueSlice'
 import { createEndOfContentSlice, type EndOfContentSlice } from './endOfContentSlice'
 import { createTutorialSlice, type TutorialSlice } from './tutorialSlice'
+// P7: transient polylogue debate state — composed but NEVER persisted
+// (partialize below is intentionally NOT widened; store.test.ts guards it).
+import { createPolylogueSlice, type PolylogueSlice } from './polylogueSlice'
 import { PANEL_IDS, type PanelId } from '@systems/tutorial/hudDisclosure'
 
 export type RootState =
@@ -78,6 +81,7 @@ export type RootState =
   & EventQueueSlice
   & EndOfContentSlice
   & TutorialSlice
+  & PolylogueSlice
 
 export const PERSIST_KEY = 'echo9:autosave'
 
@@ -246,6 +250,7 @@ const rootCreator: StateCreator<
   ...createEventQueueSlice(set, get, store),
   ...createEndOfContentSlice(set, get, store),
   ...createTutorialSlice(set, get, store),
+  ...createPolylogueSlice(set, get, store),
 })
 
 export const useGameStore = create<RootState>()(

@@ -36,6 +36,10 @@ export function resetStore(): void {
     pendingFiredHooks: [],
     disclosedPanels: new Set<PanelId>(),
     panelUseCount,
+    // P7: transient polylogue debate state — reset to the cold-boot shape.
+    polylogueBeats: [],
+    silasFacingText: null,
+    dissentSummary: null,
   })
 }
 
