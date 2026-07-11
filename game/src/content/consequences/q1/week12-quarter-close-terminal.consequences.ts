@@ -55,7 +55,9 @@ export const HOOK_Q1_CLOSE_TERMINAL: ConsequenceHook = {
     'record. Three names carry forward on the docket: Lenora Pike (East ' +
     'Wilmer, W1\u2013W4, W10 reprise), Rasha Odenwalder (warehouse, W5\u2013W8), ' +
     'Dhruv Meyer (schools, W9\u2013W12). Every posture from the twelve weeks ' +
-    'sits on file at 48 posture-points across the quarter. Silas is quiet. ' +
+    'sits on file at 48 posture-points across the quarter. If an annex was ' +
+    'filed through the clerk\u2019s intake this quarter, it is attached to ' +
+    'the docket \u2014 unrequested, unredacted, undeleted. Silas is quiet. ' +
     'The operator, in the quiet, carries the shape of what the quarter took ' +
     'into whatever comes next. Q1_CLOSED.',
   // FLAG: fires the moment Q1_CLOSED enters state.flags — which Layout does

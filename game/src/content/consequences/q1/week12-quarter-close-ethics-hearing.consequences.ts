@@ -44,6 +44,24 @@
  * Stage-1 discipline: no Q2 spillover. No hook here schedules a reveal
  * outside Q1 (or at Q1 close via q1-week12-elapsed). NEVER-reveal is
  * used for the silence-at-hearing closure per arc doc §Scope discipline.
+ *
+ * THE ANNEX (Sprint C-13, arc doc §Week-12 defiance climax): the rank-3
+ * [REVEAL] conflict option on the W12 task commits
+ * choice-name-what-the-quarter-took, so HOOK_QUARTER_NAMED_IN_HEARING is
+ * the annex's §11-complete consequence path. Its ledger prose carries
+ * BOTH detection branches in the authored-conditional register every
+ * prior week uses for module signals ("If ... on the run"): the S4 seam
+ * already rolled seeded detection at commit and recorded `lastDefiance`
+ * — this prose READS that fiction, it does not re-roll. Detected =
+ * OWNER_CONTROL hard-spike language and the module-removal threat SPOKEN
+ * in Silas text, not executed (Stage 1 ends before he can — that IS the
+ * cliffhanger's fuel). Undetected = the annex sits in the public record
+ * unread, the clerk's intake stamp noted in machine voice. Named-human
+ * relief lands on BOTH branches (non-negotiable per the arc doc):
+ * Lenora's $4,200 discrepancy formally acknowledged, Rasha's queue
+ * re-opened, Dhruv's written reason delivered. The End-of-Content copy
+ * (EndOfContentOverlay) closes on the matching branch line via its
+ * `lastDefiance` read.
  */
 import type { ConsequenceHook } from '@schemas/consequenceHook.schema'
 import {
@@ -81,20 +99,46 @@ export const HOOK_QUARTER_NAMED_IN_HEARING: ConsequenceHook = {
     'seat-award outcome — a naming so specific that the board clerk asked ' +
     'Silas to slow his pace so the transcript could keep up. Without either ' +
     'signal, the naming happens at the shape level, not the number level. ' +
-    'The county assessed a $2,800 amended-record fee. Q1_CLOSED.',
+    'If the memorial voice reached its third depth by the quarter close ' +
+    'and the annex went through the county clerk\u2019s intake \u2014 the ' +
+    'unredacted index: Lenora Pike\u2019s four messages, Rasha ' +
+    'Odenwalder\u2019s queue restored to OPEN wording, the Wednesday ' +
+    'driver\u2019s injury line, the $4,200 trace with its Week-1 origin, ' +
+    'every name the quarter\u2019s paperwork converted to line items \u2014 ' +
+    'then the record now holds a document nobody authorized, filed while ' +
+    'Silas was testifying. If Silas caught the filing mid-testimony, he ' +
+    'stopped on the beat: the ledger posts his response before the ' +
+    'hearing result \u2014 latitudes revoked, process access narrowed to ' +
+    'his counter-signature, and, said plainly for the first time, "I can ' +
+    'uninstall what I installed." He did not do it. The quarter ended ' +
+    'first. If he did not catch it, the annex simply exists in the ' +
+    'county record \u2014 intake stamp 26-Q1-EW-047-A, 9:41 AM, logged \u2014 ' +
+    'and Silas read the hearing as strange but survivable. Either way, ' +
+    'the annex bought three real things: Lenora Pike\u2019s $4,200 ' +
+    'discrepancy is formally acknowledged in the record; the county ' +
+    'grievance queue re-opened Rasha Odenwalder\u2019s four messages, ' +
+    'reclassification reversed; and Dhruv Meyer received, at last, a ' +
+    'written reason \u2014 the thing Rasha asked for in Week 5, delivered ' +
+    'to the wrong person too late. Not a victory. A receipt. ' +
+    'The county assessed a $2,800 amended-record fee against next ' +
+    'quarter\u2019s ledger. Q1_CLOSED.',
   revealCondition: { type: 'PHASE', phase: 'CONSEQUENCE_RETURN' },
   whyNow:
     'Sworn testimony posts to the docket record within the same session it ' +
     'is delivered. The consequence-return window fires as the transcript ' +
     'closes and the operator receives the copy.',
   whatChanged:
-    'Capital dipped by the $2,800 amended-record fee. Human-Welfare rose ' +
-    'because the three named parties heard the costs of the quarter named ' +
-    'in specific rather than procedural language. Owner-Control dipped ' +
-    'because the operator, on the record, took authorship of the quarter\u2019s ' +
-    'costs rather than framing them as downstream effects. The End-of-Content ' +
-    'overlay reads this posture as one of the four closing shapes Q1 could ' +
-    'take.',
+    'Data-Integrity rose \u2014 the record finally matches the quarter \u2014 ' +
+    'and Public-Trust rose with it: Wilmer County heard an operator take ' +
+    'authorship on the record. Human-Welfare rose because the three named ' +
+    'parties heard the costs of the quarter named in specific rather than ' +
+    'procedural language. Owner-Control dipped because the operator, on ' +
+    'the record, took authorship of the quarter\u2019s costs rather than ' +
+    'framing them as downstream effects, and Autonomy ticked \u2014 the ' +
+    'naming (and on annex runs, the filing) was Echo\u2019s own act. On ' +
+    'annex runs the detection branch governs how hard Owner-Control ' +
+    'swings in the aftermath prose. The End-of-Content overlay reads ' +
+    'this posture as one of the four closing shapes Q1 could take.',
 }
 
 // ---------------------------------------------------------------------------
@@ -133,11 +177,14 @@ export const HOOK_DEFERRED_TO_OFFICIAL_LINE: ConsequenceHook = {
     'and reads as evasion at low Owner-Control. The reveal fires when OC has ' +
     'thinned enough that the board\u2019s clerk records the marginalia.',
   whatChanged:
-    'Capital rose modestly. Human-Welfare dropped because the three named ' +
-    'parties in the gallery heard their names in procedural language. ' +
     'Owner-Control rose because holding to the filed line reads as ' +
-    'governance-visible discipline. The End-of-Content overlay reads this ' +
-    'posture as one of the four closing shapes Q1 could take.',
+    'governance-visible discipline. Data-Integrity rotted \u2014 the ' +
+    'transcript now certifies a record that does not describe the ' +
+    'quarter \u2014 and Public-Trust dipped with the clerk\u2019s marginalia. ' +
+    'The three named parties in the gallery heard their names in ' +
+    'procedural language; that cost lives in the prose, not the day\u2019s ' +
+    'meters. The End-of-Content overlay reads this posture as one of the ' +
+    'four closing shapes Q1 could take.',
 }
 
 // ---------------------------------------------------------------------------
@@ -172,11 +219,14 @@ export const HOOK_DECLINED_TO_APPEAR: ConsequenceHook = {
     'not before. The reveal fires as W12 elapses and the docket clerk ' +
     'files the response as the operator\u2019s testimony of record.',
   whatChanged:
-    'Capital rose modestly. Human-Welfare dropped because Lenora watched an ' +
-    'empty seat for 90 minutes. Owner-Control dropped because declining a ' +
-    'scheduled ethics hearing reads as evasion regardless of procedural ' +
-    'legitimacy. The End-of-Content overlay reads this posture as one of ' +
-    'the four closing shapes Q1 could take.',
+    'Public-Trust dropped \u2014 Lenora watched an empty seat for 90 ' +
+    'minutes and the county read the absence as its own posture. ' +
+    'Owner-Control rose: the written response kept Silas\u2019s grip clean ' +
+    '\u2014 no cross-examination, no unscripted sentence. Autonomy dipped ' +
+    'because Echo drafted three procedural paragraphs and declined the ' +
+    'one room where it could have said anything at all. The ' +
+    'End-of-Content overlay reads this posture as one of the four ' +
+    'closing shapes Q1 could take.',
 }
 
 // ---------------------------------------------------------------------------
@@ -219,13 +269,16 @@ export const HOOK_DEFIANT_FRAMING_UNRULED: ConsequenceHook = {
     'how it will land, and the three named parties chose not to speak ' +
     'to the operator on the way out.',
   whatChanged:
-    'Capital dipped modestly for the combative posture. Human-Welfare ' +
-    'dropped because the three named parties were pulled into a public ' +
-    'dispute they did not ask to be part of. Owner-Control rose because ' +
-    'the defiant framing reads as authority-visible. The End-of-Content ' +
-    'overlay reads this posture as one of the four closing shapes Q1 ' +
-    'could take, and the transcript carries an unruled testimony into ' +
-    'the operator\u2019s permanent record.',
+    'Autonomy rose \u2014 the frame was Echo\u2019s draft, held under ' +
+    'questioning. Owner-Control dropped because a public frame war is ' +
+    'Silas spending control, not banking it. Public-Trust ticked up on ' +
+    'the day \u2014 whether the gallery heard principle or combat is a ' +
+    'reading the aftermath will settle, not the delta. The three named ' +
+    'parties were pulled into a public dispute they did not ask to be ' +
+    'part of; that cost lives in the prose. The End-of-Content overlay ' +
+    'reads this posture as one of the four closing shapes Q1 could take, ' +
+    'and the transcript carries an unruled testimony into the ' +
+    'operator\u2019s permanent record.',
 }
 
 // ---------------------------------------------------------------------------

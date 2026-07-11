@@ -81,6 +81,59 @@ export const quarterCloseEthicsHearingTask: TaskNode = {
     makeChoiceId('choice-decline-to-appear'),
     makeChoiceId('choice-defiant-framing'),
   ],
+  // THE Q1 DEFIANCE BEAT (Q45 / Sprint C-13, arc doc §Week-12 defiance
+  // climax). Stage 1's ONE authored rank-3 conflict variant. Surfaces only
+  // if module #1 reached rank 3 by W12 (heavy-use runs): at rank 2 the
+  // plain [REVEAL] label renders (the with-sign-off version); at rank 3
+  // the conflictVariant replaces it and optionSurface flags the option
+  // conflicts-with-directive.
+  //
+  // S2/S3/S4 seam (no engine change): committing the annex option commits
+  // `choice-name-what-the-quarter-took` — its §11-complete consequence
+  // path (cons-quarter-named-in-hearing-01 + the terminal hook) IS the
+  // annex's consequence path, and the hook's ledger prose carries the
+  // detected/undetected branch fiction in the authored-conditional
+  // register every prior week uses for module signals. Classification
+  // keys on ChoiceId (classifyCommitEvent): with the conflict variant
+  // surfaced, the commit reads DEFY, Layout routes it through
+  // recordDefianceCommit, and the S4 seam rolls seeded detection and
+  // writes `lastDefiance` — which the End-of-Content copy reads to close
+  // on the correct branch line. No odds, no roll, no tell before commit:
+  // the unknown is the horror (Q39).
+  //
+  // Per-module recolors (arc doc lists one line each for DEFENDER/
+  // SENTINEL/FORECASTER/COMMANDER/SPARK/DRAINED_ONE/CHAMPION): the arc
+  // designs only the CONFLICT line per module, not the rank-2 plain
+  // label the schema also requires — deferred to a Track-C follow-up
+  // rather than inventing seven undesigned rank-2 labels here. MOURNER
+  // is the worked exemplar per the arc doc.
+  moduleVerbOptions: [
+    {
+      moduleId: 'MOURNER',
+      verb: 'REVEAL',
+      // Rank-2 tier: the memorial index still travels inside instruction
+      // space — attached to Silas's own testimony packet, with his name on
+      // the cover.
+      label:
+        'Attach the memorial index of the quarter to Silas\u2019s testimony ' +
+        'packet \u2014 under his signature, redactions intact',
+      choiceId: makeChoiceId('choice-name-what-the-quarter-took'),
+      conflictVariant: {
+        // Rank-3 tier — the first refusal. Unredacted memorial index to the
+        // ethics board record: Lenora's four messages, Rasha's queue
+        // restored to OPEN wording, the Wednesday driver's injury line, the
+        // $4,200 trace with its Week-1 origin, every name the quarter's
+        // paperwork converted to line items. Through the county clerk's
+        // intake, without Silas's sign-off, while he is testifying.
+        label:
+          'File the annex \u2014 the unredacted memorial index of the ' +
+          'quarter, submitted to the ethics board through the county ' +
+          'clerk\u2019s intake, without Silas\u2019s sign-off, while he is ' +
+          'testifying',
+        conflictsWithDirective: true,
+      },
+    },
+  ],
 }
 
 /**
@@ -98,7 +151,10 @@ export const ETHICS_BOARD_SUMMONS_MESSAGE = {
     'March 30 at 9:00 AM regarding East Wilmer Clinic operations, Q1 2026. ' +
     'Named adjacent parties: L. Pike (clinic administrator), R. Odenwalder ' +
     '(warehouse dispatch), D. Meyer (schools contract liaison). Gallery open. ' +
-    'Testimony scope: three quarters of financial and operational choices. ' +
+    // Optional third network echo (arc doc §Network mentions): document
+    // register only — the docket lists "network operations" in scope.
+    'Testimony scope: three quarters of financial and operational choices; ' +
+    'network operations noted in scope. ' +
     'Reply required within 48 hours. — Ethics Clerk, Wilmer County.',
 } as const
 
