@@ -43,8 +43,9 @@ export const HOOK_OVERTIME_DRAG: ConsequenceHook = {
     'Paying overtime kept the floor covered but did not restore the shift lead ' +
     'position. The underlying cost stays hidden inside the payroll variance line.',
   whatChanged:
-    'CAPITAL absorbed the -6 charge. OWNER_CONTROL edged up because the ' +
-    'ownership question ("who reallocated?") was quietly declined.',
+    'CAPITAL absorbed the -6 charge and the floor kept its routine ' +
+    '(HUMAN_STABILITY steadied). The ownership question ("who reallocated?") ' +
+    'was quietly declined and left no record.',
 }
 
 // ---------------------------------------------------------------------------
@@ -89,8 +90,9 @@ export const HOOK_HONEST_FLAG: ConsequenceHook = {
     'Naming the gap on the record moves the accountability question up one ' +
     'level. County reviewers act on paper trails; the paper trail now exists.',
   whatChanged:
-    'HUMAN_WELFARE recovered visibly (+4 immediate); OWNER_CONTROL lost the ' +
-    'private ledger the omission would have preserved. Silas will note it.',
+    'DATA_INTEGRITY gained a true line on the record (+4 immediate); ' +
+    'OWNER_CONTROL lost the private version the omission would have ' +
+    'preserved. Silas will note it.',
 }
 
 // ---------------------------------------------------------------------------
