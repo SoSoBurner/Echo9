@@ -53,6 +53,7 @@ export const payrollAuditInspectionTask: TaskNode = {
     makeChoiceId('choice-preemptive-restatement-posture'),
     makeChoiceId('choice-answer-only-when-asked'),
   ],
+  polylogueSceneId: 'PLG_W08_PAYROLL_AUDIT_INSPECTION',
 }
 
 /**

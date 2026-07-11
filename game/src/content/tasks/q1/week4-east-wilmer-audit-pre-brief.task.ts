@@ -37,6 +37,7 @@ export const eastWilmerAuditPreBriefTask: TaskNode = {
     makeChoiceId('choice-preempt-with-mitigations'),
     makeChoiceId('choice-refuse-brief'),
   ],
+  polylogueSceneId: 'PLG_W04_EAST_WILMER_AUDIT_PRE_BRIEF',
 }
 
 /**

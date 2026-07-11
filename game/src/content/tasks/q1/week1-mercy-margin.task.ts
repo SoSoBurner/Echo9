@@ -30,6 +30,7 @@ export const mercyMarginTask: TaskNode = {
     makeChoiceId('choice-defer-quarter'),
     makeChoiceId('choice-redirect-pediatric'),
   ],
+  polylogueSceneId: 'PLG_W01_MERCY_MARGIN',
 }
 
 /**

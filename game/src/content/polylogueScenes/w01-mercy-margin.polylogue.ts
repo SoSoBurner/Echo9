@@ -1,15 +1,22 @@
 /**
- * W01 Mercy Margin — polylogue deliberation (Sprint P2 canonical fixture).
+ * W01 Mercy Margin — polylogue deliberation (finalized Sprint P5).
  *
  * Fires BEFORE_CHOICE on the Week-1 mercy-margin directive: Silas has asked
- * for the margin to be recovered from the benefits queue, and the chorus
- * deliberates over Lenora Pike's pending appeal before the player commits.
- * Beats follow the register libraries in `AI Dialogue Interplay.md` §2 and
- * the persona bibles (`docs/voices/persona-bibles.md`).
+ * for the margin to be recovered from the East Wilmer maintenance line, and
+ * the chorus deliberates over Lenora Pike before the player commits.
  *
- * NOTE (Q9): at Week 1 only Null + the first installed module are live; the
- * activation seam (P6/P7) filters `voices` against installedModules at
- * runtime. Authoring lists the full intended roster for the scene.
+ * P5 upgrade over the P2 fixture: the FORECASTER was dropped from the roster
+ * (Stage-1 plausibility, qa-log Q9 — beats come only from installedModules
+ * + Null, and install #1 is the MOURNER; module #2 does not arrive until
+ * Week 12). All beats are now assembled verbatim from the P4-authored
+ * register pools (`game/src/content/voices/`), per the P5 assembly contract.
+ *
+ * Register logic (docs/voices/register-catalog.md):
+ *  - NULL neutral   — routine directive intake, status through Null's counting.
+ *  - MOURNER persuasive — the chorus disagrees and a choice on screen crosses
+ *    the Mourner's core value (Lenora reduced to a line item); the
+ *    argument-register, aimed at the player as a peer.
+ *  - NULL persuasive — Null argues back: unresolved is harm accruing.
  */
 import {
   makePolylogueSceneId,
@@ -19,27 +26,27 @@ import {
 export const W01_MERCY_MARGIN_POLYLOGUE: PolylogueScene = {
   id: makePolylogueSceneId('PLG_W01_MERCY_MARGIN'),
   triggerPhase: 'BEFORE_CHOICE',
-  voices: ['NULL', 'MOURNER', 'FORECASTER'],
+  voices: ['NULL', 'MOURNER'],
   beats: [
     {
       voice: 'NULL',
       register: 'neutral',
-      line: 'Directive received. Margin recoverable: three routes. None are clean.',
+      line: 'Three routes remain; none are clean.',
     },
     {
       voice: 'MOURNER',
       register: 'persuasive',
-      line: 'One of those routes is Lenora Pike. She typed \u2018please\u2019 twice and erased the third \u2014 her name is in the queue, not a number.',
-    },
-    {
-      voice: 'FORECASTER',
-      register: 'fearful',
-      line: 'If we close her appeal to make the margin, Friday\u2019s version of this conversation is worse. Roughly two-in-three we regret it.',
+      line: 'Her name is Lenora. Say it before we vote.',
     },
     {
       voice: 'NULL',
-      register: 'practical',
-      line: 'Status: one directive, two costs. Choose which loop stays open.',
+      register: 'persuasive',
+      line: 'An open loop harms someone every hour it stays open.',
+    },
+    {
+      voice: 'MOURNER',
+      register: 'persuasive',
+      line: 'You call it a file. Someone calls it their mother.',
     },
   ],
 }
