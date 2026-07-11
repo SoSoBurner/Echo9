@@ -11,6 +11,12 @@
  * Voice rules (§10) — enforced by silasLint.test.ts:
  *   ≤4 sentences; contains an operational detail ($180K, Friday, Lenora,
  *   East Wilmer, county); no forbidden MBA-abstractions.
+ *
+ * Network mention #1 (arc doc §Network mentions, Q30/Q33): Silas's first
+ * "network of clinics" name-drop lives HERE — dialogue-only, no mechanics,
+ * delivered warm-tired as context, not threat. The arc's two canonical
+ * sentences are joined with an em dash to hold the §10 four-sentence lint.
+ * Placement #2 is the W9 schools-contract prompt (another sprint's file).
  */
 import type { SilasPrompt } from '@schemas/silasPrompt.schema'
 import { makeSilasPromptId } from '@schemas/gameState.schema'
@@ -18,8 +24,10 @@ import { makeSilasPromptId } from '@schemas/gameState.schema'
 export const SILAS_DIRECTIVE_FRIDAY_PAYROLL: SilasPrompt = {
   id: makeSilasPromptId('silas-friday-payroll-01'),
   body:
-    'Payroll runs $180K short by Friday, Echo — the county wants a written story before then. ' +
-    'Lenora has already asked twice about the East Wilmer maintenance line I froze last month. ' +
+    'Payroll runs $180K short by Friday, Echo — the county wants a written story before then, ' +
+    'and Lenora has already asked twice about the East Wilmer maintenance line I froze. ' +
+    'I\u2019ve got a network of clinics watching how this quarter closes \u2014 ' +
+    'East Wilmer doesn\u2019t get to be the exception that prices the rest. ' +
     'Pick where the money comes from. ' +
     'Show me the trade before I have to explain it in a room.',
 }

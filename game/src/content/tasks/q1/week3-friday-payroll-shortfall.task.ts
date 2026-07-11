@@ -2,10 +2,11 @@
  * Friday-payroll-shortfall task — Q1 Week 3 directive (Sprint C4).
  *
  * The first Owner-Control vs. Capital squeeze in the Q1 arc. Payroll runs
- * $180K short by Friday; the county wants a written story. Three of the
- * four choices push OWNER_CONTROL down, so a plausible path arrives at
- * OC < 40 by Week 4 and the East Wilmer inspection (already authored in
- * T11) fires natively per §8.
+ * $180K short by Friday; the county wants a written story. Under the C-3
+ * 8-meter overlay, `cover-from-reserve` continues the low-OC path (W1
+ * defer-quarter −5 → W2 name-pediatric-gap −3 → W3 −3), so a plausible
+ * path arrives at OC < 40 by Week 4 and the East Wilmer inspection
+ * (already authored in T11) fires natively per §8.
  *
  * Lenora Pike still holds the human face for W1–W4 — her portal message
  * this week is a short forward from her Wk-1/Wk-2 exchange, not a fresh

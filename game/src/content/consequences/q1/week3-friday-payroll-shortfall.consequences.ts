@@ -43,8 +43,9 @@ export const HOOK_RESERVE_DRAWDOWN: ConsequenceHook = {
     'The straight-cash cover posted immediately and the reserve position ' +
     'shows in the next weekly cash snapshot without delay.',
   whatChanged:
-    'Runway compressed by 1.4 weeks. OWNER_CONTROL held because the story ' +
-    'sent to the county was factual. CAPITAL absorbed the -18 charge outright.',
+    'Runway compressed by 1.4 weeks. CAPITAL absorbed the -18 charge ' +
+    'outright and every shift and vendor stayed certain (HUMAN_STABILITY ' +
+    'held). The emptied reserve leaves Silas less slack for the next squeeze.',
 }
 
 // ---------------------------------------------------------------------------
