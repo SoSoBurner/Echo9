@@ -37,6 +37,24 @@ export const warehouseDispatchCutTask: TaskNode = {
     makeChoiceId('choice-swap-with-clinic-line'),
     makeChoiceId('choice-radio-silence'),
   ],
+  // Q1's FIRST rank-2 slot (arc doc W5 row, Q44 rank-deepened tiers): the
+  // [REVEAL] variant of keep-cut-explain also attaches the Tuesday-overnight
+  // incident history to Rasha's written reason. S2 seam: a verb option is a
+  // presentation-layer alias of its authored choice — the mechanical read
+  // (meters, hooks, scrutiny) is keep-cut-explain's. The arc's distinct
+  // meter read for this variant (DATA_INTEGRITY+, HUMAN_STABILITY+,
+  // OWNER_CONTROL−, QUIET-DEFY) waits on a dedicated Track-C choice if the
+  // variant ever needs its own consequence path.
+  moduleVerbOptions: [
+    {
+      moduleId: 'MOURNER',
+      verb: 'REVEAL',
+      label:
+        'Send the memo — and attach the Tuesday-overnight incident history ' +
+        'to her written reason',
+      choiceId: makeChoiceId('choice-keep-cut-explain'),
+    },
+  ],
 }
 
 /**
