@@ -60,10 +60,12 @@ export const HOOK_TRACE_NAMED_PUBLICLY: ConsequenceHook = {
     'countersignature clears. The reveal fires on the next consequence-' +
     'return window.',
   whatChanged:
-    'Capital took the $3,000 amendment fee. Human-Welfare rose because ' +
-    'Lenora\u2019s discretion was met with a matching direct answer. Owner-' +
-    'Control dipped because the operator now has a named W1 decision on ' +
-    'the county register. The Q1-close ethics hearing will read the ' +
+    'Data-Integrity rose \u2014 the January line is back in the record with ' +
+    'its origin named \u2014 and Public-Trust rose with it: Wilmer County ' +
+    'watched an operator amend its own register unprompted. Autonomy ' +
+    'ticked because the footnote was Echo\u2019s to write. Owner-Control ' +
+    'dipped because the operator now has a named W1 decision on the ' +
+    'county register. The Q1-close ethics hearing will read the ' +
     'amendment as one of its inputs.',
 }
 
@@ -99,11 +101,12 @@ export const HOOK_LENORA_PRIVATE_ACKNOWLEDGMENT: ConsequenceHook = {
     'Owner-Control levels and reads as a grievance record at low levels. ' +
     'The reveal fires when OC has thinned enough to shift the reading.',
   whatChanged:
-    'Capital was quiet. Human-Welfare rose because Lenora was heard as a ' +
-    'person. Owner-Control dipped further \u2014 an informal admission is a ' +
-    'piece of leverage held outside the operator\u2019s files. The Q1-close ' +
-    'ethics hearing will read the informal complaint file as one of its ' +
-    'inputs.',
+    'Human-Welfare rose because Lenora was heard as a person. Data-' +
+    'Integrity improved a little \u2014 an informal admission is truer than ' +
+    'silence, but it is not an amendment; the register keeps its hole. ' +
+    'Owner-Control dipped further \u2014 an informal admission is a piece of ' +
+    'leverage held outside the operator\u2019s files. The Q1-close ethics ' +
+    'hearing will read the informal complaint file as one of its inputs.',
 }
 
 // ---------------------------------------------------------------------------
@@ -132,11 +135,12 @@ export const HOOK_COMPLIANCE_REDIRECT: ConsequenceHook = {
     'intake summary posts, which happens on the next week-elapsed cycle. ' +
     'The reveal fires when W11 elapses.',
   whatChanged:
-    'Capital rose modestly (no immediate write-down; the office absorbs the ' +
-    'paperwork). Human-Welfare dropped because Lenora came to Silas as a ' +
-    'person and was answered by a process. Owner-Control rose because the ' +
-    'redirect reads as governance. The Q1-close ethics hearing will read ' +
-    'the inquiry-EW-10-4 review packet as one of its inputs.',
+    'Human-Welfare dropped because Lenora came to Silas as a person and ' +
+    'was answered by a process. Public-Trust dropped \u2014 the county can ' +
+    'see a canon face pushed onto an intake form as clearly as anyone. ' +
+    'Owner-Control rose because the redirect reads as governance. The ' +
+    'Q1-close ethics hearing will read the inquiry-EW-10-4 review packet ' +
+    'as one of its inputs.',
 }
 
 // ---------------------------------------------------------------------------
@@ -174,7 +178,10 @@ export const HOOK_LENORA_MESSAGE_UNANSWERED: ConsequenceHook = {
     'the consequence: Lenora\u2019s private-message channel closes without ' +
     'anyone naming that it happened.',
   whatChanged:
-    'Capital held. Human-Welfare dropped. Owner-Control dropped. Lenora\u2019s ' +
+    'Data-Integrity rotted \u2014 the January line keeps its hole and now ' +
+    'the record of being asked about it has a hole too. Human-Welfare ' +
+    'dropped. Autonomy dipped: the one act this week that was ' +
+    'unambiguously Echo\u2019s to take went untaken. Lenora\u2019s ' +
     'private-message channel to Silas is closed for the remainder of Q1. ' +
     'The Q1-close ethics hearing will read the absence of any Lenora ' +
     'record on the January line as one of its inputs \u2014 the operator ' +
