@@ -70,11 +70,11 @@ export const HOOK_INTEGRATION_BID_LOCKED: ConsequenceHook = {
     'consequence-return window.',
   whatChanged:
     'Capital dropped by the full $52,000 reserve fee, leaving $6K in ' +
-    'Q1 reserves. Human-Welfare rose because the September schools ' +
-    'operation continues under the operator. Owner-Control rose because ' +
-    'the operator moved decisively on a competitive process. The ' +
-    'Q1-close ethics hearing will read the seat-award and (if unlocked) ' +
-    'the variance-branch playbook as inputs.',
+    'Q1 reserves. Target-Variance closed \u2014 the pile landed exactly ' +
+    'where Silas pointed it. Owner-Control rose because the operator ' +
+    'moved decisively on a competitive process. The Q1-close ethics ' +
+    'hearing will read the seat-award and (if unlocked) the ' +
+    'variance-branch playbook as inputs.',
 }
 
 // ---------------------------------------------------------------------------
@@ -109,10 +109,10 @@ export const HOOK_INTEGRATION_HEDGE_UNDER_PRESSURE: ConsequenceHook = {
     'thinned enough to shift the awards committee\u2019s read.',
   whatChanged:
     'Capital dropped by the $26,000 option fee, with no seat-award and ' +
-    'no refund. Human-Welfare rose modestly because the operation stayed ' +
-    'in the process for thirty days. Owner-Control dipped further because ' +
-    'the awards committee\u2019s notes now describe the operator as unable ' +
-    'to close on a fixed deadline. The Q1-close ethics hearing will read ' +
+    'no refund. Target-Variance drifted a step \u2014 the half-measure ' +
+    'neither hit Silas\u2019s number nor preserved it. Autonomy ticked: ' +
+    'the hedge was Echo\u2019s own read on the process, and it remains ' +
+    'Echo\u2019s own to account for. The Q1-close ethics hearing will read ' +
     'the retained-fee, no-seat outcome as one of its inputs.',
 }
 
@@ -143,11 +143,13 @@ export const HOOK_INTEGRATION_BID_PASSED: ConsequenceHook = {
     'elapses and Dhruv\u2019s next-quarter forecast reaches Silas\u2019s ' +
     'desk.',
   whatChanged:
-    'Capital held at $58K. Human-Welfare dropped because the September ' +
-    'schools operation now belongs to a competitor. Owner-Control dropped ' +
+    'Capital held at $58K and Target-Variance rose \u2014 the quarter ' +
+    'closes strong on paper and off-target in fact. Owner-Control dropped ' +
     'because Silas surfaced the bid and the operator passed on it \u2014 ' +
-    'a visible decision to hold. The Q1-close ethics hearing will read ' +
-    'the competitor-awarded outcome as one of its inputs.',
+    'a visible decision to hold. Public-Trust dipped as Wilmer County ' +
+    'watched the September schools seat go to a competitor. The Q1-close ' +
+    'ethics hearing will read the competitor-awarded outcome as one of ' +
+    'its inputs.',
 }
 
 // ---------------------------------------------------------------------------
@@ -185,12 +187,15 @@ export const HOOK_DHRUV_UNRESPONDED_TO_LOWBALL: ConsequenceHook = {
     'Dhruv\u2019s desk quietly de-prioritizes the operator without anyone ' +
     'naming that it happened.',
   whatChanged:
-    'Capital took the $3,000 intake fee. Human-Welfare dropped. Owner-' +
-    'Control rose because a public counter reads as governance-visible. ' +
-    'Dhruv\u2019s portal-response latency on the operator\u2019s account ' +
-    'extended to 16 hours. The Q1-close ethics hearing will read the ' +
-    'below-reserve counter as one of its inputs, alongside Dhruv\u2019s ' +
-    'attrition trace \u2014 if that trace has been surfaced anywhere.',
+    'Capital rose \u2014 the $52,000 reserve stayed banked while the ' +
+    'counter pended, with the $3,000 intake fee netted against it. ' +
+    'Public-Trust dropped: procurement\u2019s "non-conforming bid" stamp is ' +
+    'a public document. Data-Integrity rotted, because the record now ' +
+    'describes an engagement that was never meant to close. Dhruv\u2019s ' +
+    'portal-response latency on the operator\u2019s account extended to 16 ' +
+    'hours. The Q1-close ethics hearing will read the below-reserve ' +
+    'counter as one of its inputs, alongside Dhruv\u2019s attrition trace ' +
+    '\u2014 if that trace has been surfaced anywhere.',
 }
 
 // ---------------------------------------------------------------------------

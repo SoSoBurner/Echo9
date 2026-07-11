@@ -62,6 +62,27 @@ export const capitalDeploymentAttemptTask: TaskNode = {
     makeChoiceId('choice-hold-savings-let-bid-pass'),
     makeChoiceId('choice-counter-with-lowball'),
   ],
+  // W11 rank-2 slot (arc doc W11 row, Q44 rank-deepened tiers): the
+  // provenance-annex [REVEAL] variant of deploy-full-lock-bid — the bid
+  // packet appends the provenance of the $58K: which weeks, which line
+  // items, which names. S2 seam: a verb option is a presentation-layer
+  // alias of its authored choice — the mechanical read (meters, hooks,
+  // scrutiny) is deploy-full-lock-bid's. The arc's distinct meter read
+  // for this variant (DATA_INTEGRITY+, PUBLIC_TRUST+, OWNER_CONTROL−,
+  // QUIET-DEFY) waits on a dedicated Track-C choice if the variant ever
+  // needs its own consequence path (same convention as the W5/W9 slots).
+  // This is the dress rehearsal for W12's authored conflict variant: the
+  // same memorial-index instinct, still inside instruction space.
+  moduleVerbOptions: [
+    {
+      moduleId: 'MOURNER',
+      verb: 'REVEAL',
+      label:
+        'Deploy the full $52,000 \u2014 and append the provenance of the ' +
+        '$58K to the bid packet: which weeks, which line items, which names',
+      choiceId: makeChoiceId('choice-deploy-full-lock-bid'),
+    },
+  ],
 }
 
 /**
