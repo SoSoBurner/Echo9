@@ -11,11 +11,14 @@
  * body text immediately and omits the animated cursor.
  */
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
-import { render, screen, cleanup } from '@testing-library/react'
+import { render, screen, cleanup, within } from '@testing-library/react'
 import React from 'react'
 import { SilasPromptPanel } from '@ui/silas/SilasPromptPanel'
 import type { SilasPrompt } from '@schemas/silasPrompt.schema'
 import { makeSilasPromptId } from '@schemas/gameState.schema'
+import { useGameStore } from '@state/store'
+import { resetStore } from '@tests/state/testHelpers'
+import { VOICE_IDS, NULL_VOICE_ID } from '@schemas/polylogueScene.schema'
 
 /**
  * Install a window.matchMedia stub. `reduce` = true makes the
@@ -49,6 +52,9 @@ describe('SilasPromptPanel', () => {
   beforeEach(() => {
     // Default: motion allowed (teletype runs). Reduced-motion test overrides.
     installMatchMedia(false)
+    // P10: the panel now subscribes to `silasFacingText` — reset the store so
+    // a prior test's debate state never leaks into a render assertion.
+    resetStore()
   })
 
   afterEach(() => {
@@ -84,5 +90,57 @@ describe('SilasPromptPanel', () => {
     // neither should be present.
     expect(container.querySelector('.animate-pulse')).toBeNull()
     expect(screen.queryByText(/press enter to skip/i)).toBeNull()
+  })
+
+  // ---------------------------------------------------------------------------
+  // P10 — Null's composed reply line (Q19 Silas ↔ Null boundary, UI layer).
+  // The panel subscribes to `silasFacingText` ONLY — never polylogueBeats or
+  // dissentSummary. Everything that crosses into Silas's panel is Null's
+  // single mediated utterance.
+  // ---------------------------------------------------------------------------
+
+  const FACING_TEXT = 'Consolidation proceeds with a reweighted queue.'
+
+  function seedDebateState(): void {
+    useGameStore.getState().setPolylogue({
+      beats: [
+        { voice: 'NULL', register: 'practical', line: 'The margin holds.' },
+        { voice: 'MOURNER', register: 'fearful', line: 'Someone is waiting on that route.' },
+      ],
+      silasFacingText: FACING_TEXT,
+      dissentSummary: 'MOURNER dissented on the reweighting.',
+    })
+  }
+
+  it("renders silasFacingText as Null's reply line when set", () => {
+    installMatchMedia(true) // instant teletype — assert on final text
+    seedDebateState()
+    render(React.createElement(SilasPromptPanel, { prompt: SAMPLE_PROMPT }))
+    const aside = screen.getByRole('complementary', { name: /silas vale/i })
+    expect(within(aside).getByText(FACING_TEXT)).toBeInTheDocument()
+  })
+
+  it('renders no reply line when silasFacingText is null (cold boot)', () => {
+    installMatchMedia(true)
+    render(React.createElement(SilasPromptPanel, { prompt: SAMPLE_PROMPT }))
+    expect(screen.queryByText(FACING_TEXT)).toBeNull()
+  })
+
+  it('boundary hygiene: never renders [VOICE · REGISTER] tags, non-Null voice names, or the dissent summary', () => {
+    installMatchMedia(true)
+    seedDebateState()
+    render(React.createElement(SilasPromptPanel, { prompt: SAMPLE_PROMPT }))
+    const aside = screen.getByRole('complementary', { name: /silas vale/i })
+    const text = aside.textContent ?? ''
+
+    // No chip-formatted debate tag ever crosses into Silas's panel.
+    expect(text).not.toMatch(/\[[A-Z_]+ · [A-Z_]+\]/)
+    // No chorus voice name other than Null.
+    for (const voice of VOICE_IDS) {
+      if (voice === NULL_VOICE_ID) continue
+      expect(text.toUpperCase()).not.toContain(voice)
+    }
+    // dissentSummary is HUD-internal — never rendered in Silas's panel.
+    expect(text).not.toContain('MOURNER dissented on the reweighting.')
   })
 })

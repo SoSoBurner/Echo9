@@ -86,4 +86,24 @@ describe('InnerChorusPanel', () => {
     const items = screen.getAllByRole('listitem')
     expect(items[1]!.getAttribute('data-tone')).toBe('dominant')
   })
+
+  // P10 — one-line dissent digest (the HUD-internal counterpart to Null's
+  // silasFacingText; may name voices, per polylogueSlice doc).
+  it('renders the dissentSummary as a one-line digest when a debate has landed', () => {
+    useGameStore.getState().setPolylogue({
+      beats: [{ voice: 'NULL', register: 'practical', line: 'The margin holds.' }],
+      silasFacingText: 'Consolidation proceeds.',
+      dissentSummary: 'MOURNER dissented on the reweighting.',
+    })
+    render(React.createElement(InnerChorusPanel))
+    const group = screen.getByRole('group', { name: /inner chorus/i })
+    expect(
+      within(group).getByText('MOURNER dissented on the reweighting.'),
+    ).toBeInTheDocument()
+  })
+
+  it('renders no dissent digest when no debate has landed', () => {
+    render(React.createElement(InnerChorusPanel))
+    expect(screen.queryByText(/dissented/i)).toBeNull()
+  })
 })

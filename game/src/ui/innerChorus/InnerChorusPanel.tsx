@@ -90,6 +90,10 @@ export function InnerChorusPanel() {
   // the underlying hidden value, only the ladder step. Feeds the Sentinel-peek
   // gate inside the selector (the sole sanctioned leak, Q42).
   const silasEscalationTier = useGameStore(selectSilasEscalationTier)
+  // P10: one-line dissent digest from the last polylogue. HUD-internal — it
+  // may name chorus voices (unlike silasFacingText, which crosses the Q19
+  // boundary into Silas's panel). Null until a debate lands.
+  const dissentSummary = useGameStore((s) => s.dissentSummary)
 
   const { voices } = selectInnerChorusVoices({
     silasApproval,
@@ -122,6 +126,13 @@ export function InnerChorusPanel() {
           <VoiceRow key={voice.voiceId} voice={voice} />
         ))}
       </ul>
+      {/* P10 — one-line dissent digest under the roster. Existing tokens,
+          single truncated line so the panel never grows past its slot. */}
+      {dissentSummary !== null && (
+        <p className="text-fg-secondary text-[10px] font-mono truncate">
+          {dissentSummary}
+        </p>
+      )}
     </section>
   )
 }

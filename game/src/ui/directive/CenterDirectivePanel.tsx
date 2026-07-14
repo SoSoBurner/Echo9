@@ -21,6 +21,7 @@ import {
 import { NullCompression } from './NullCompression'
 import { HumanMessage } from './HumanMessage'
 import { ChoicePanel } from '@ui/choices/ChoicePanel'
+import { ChorusDebateSection } from '@ui/innerChorus/ChorusDebateSection'
 
 interface CenterDirectivePanelProps {
   task: TaskNode
@@ -64,6 +65,12 @@ export function CenterDirectivePanel({
 
       {/* Human message */}
       <HumanMessage speaker={humanMessage.speaker} body={humanMessage.body} />
+
+      {/* P10 (Q14 hybrid accordion) — chorus deliberation between directive
+          body and choices. The section gates itself (DIRECTIVE maturity ≥2,
+          empty-beats → null) and owns its own store subscription, so this
+          panel's props stay store-free. */}
+      <ChorusDebateSection />
 
       {/* Choices — S2 option surface (base + module-verb extras) */}
       <ChoicePanel
