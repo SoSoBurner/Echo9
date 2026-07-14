@@ -49,3 +49,6 @@ API Keys.txt
 *.key
 secrets/
 *.secret
+
+# Voice-register LLM lint cache (P8)
+.voice-lint-cache/

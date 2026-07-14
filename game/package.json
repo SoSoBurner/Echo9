@@ -8,6 +8,7 @@
     "build": "node scripts/build.mjs",
     "preview": "vite preview",
     "lint": "oxlint",
+    "lint:voices": "node scripts/voiceRegisterLint.mjs",
     "test": "vitest",
     "test:run": "vitest run",
     "test:ui": "vitest --ui",
