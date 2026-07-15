@@ -109,4 +109,69 @@ describe('ChoicePanel — option surface rendering', () => {
     fireEvent.keyDown(verbRadio, { key: 'Enter' })
     expect(onCommit).toHaveBeenCalledWith(makeChoiceId('choice-base-01'))
   })
+
+  it('renders a visible Execute Directive button that commits the selected option on click', () => {
+    const onCommit = vi.fn()
+    render(
+      React.createElement(ChoicePanel, {
+        options: [BASE_OPTION, VERB_OPTION],
+        onCommit,
+      }),
+    )
+    const button = screen.getByRole('button', { name: /execute directive/i })
+    expect(button).toBeInTheDocument()
+    fireEvent.click(button)
+    // selectedIndex defaults to 0 → commits the base option's ChoiceId
+    expect(onCommit).toHaveBeenCalledWith(makeChoiceId('choice-base-01'))
+  })
+
+  it('Execute button commits the newly selected option after the player selects a different radio', () => {
+    const onCommit = vi.fn()
+    const otherOption: DisplayOption = {
+      key: 'choice-alt-02',
+      choiceId: makeChoiceId('choice-alt-02'),
+      label: 'Freeze the reallocation',
+      meterDeltas: { OWNER_CONTROL: -5 },
+      kind: 'BASE',
+    }
+    render(
+      React.createElement(ChoicePanel, {
+        options: [BASE_OPTION, otherOption],
+        onCommit,
+      }),
+    )
+    const radios = screen.getAllByRole('radio')
+    const secondRadio = radios[1]
+    if (!secondRadio) throw new Error('second radio missing')
+    fireEvent.click(secondRadio)
+    const button = screen.getByRole('button', { name: /execute directive/i })
+    fireEvent.click(button)
+    expect(onCommit).toHaveBeenCalledWith(makeChoiceId('choice-alt-02'))
+  })
+
+  it('Execute button is disabled and does not commit when options is empty', () => {
+    const onCommit = vi.fn()
+    render(
+      React.createElement(ChoicePanel, {
+        options: [],
+        onCommit,
+      }),
+    )
+    const button = screen.getByRole('button', { name: /execute directive/i })
+    expect(button).toBeDisabled()
+    fireEvent.click(button)
+    expect(onCommit).not.toHaveBeenCalled()
+  })
+
+  it('Execute button lives outside the radiogroup so it does not violate ARIA owned-children', () => {
+    render(
+      React.createElement(ChoicePanel, {
+        options: [BASE_OPTION, VERB_OPTION],
+        onCommit: () => {},
+      }),
+    )
+    const radiogroup = screen.getByRole('radiogroup', { name: /choose a directive response/i })
+    const button = screen.getByRole('button', { name: /execute directive/i })
+    expect(radiogroup.contains(button)).toBe(false)
+  })
 })

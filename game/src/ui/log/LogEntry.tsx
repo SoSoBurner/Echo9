@@ -42,6 +42,8 @@ function LogEntryImpl({ trace, asListItem = true }: LogEntryProps) {
   return (
     <div
       data-trace-id={trace.id}
+      data-source-task-id={trace.sourceTaskId}
+      data-source-choice-id={trace.sourceChoiceId}
       role={asListItem ? 'listitem' : undefined}
       className={[
         'log-entry-enter',
@@ -52,9 +54,6 @@ function LogEntryImpl({ trace, asListItem = true }: LogEntryProps) {
     >
       <span className="text-fg-secondary font-mono tabular-nums shrink-0">{time}</span>
       <span className="flex-1 truncate">{trace.body}</span>
-      <span className="text-fg-secondary font-mono text-[0.6875rem] shrink-0">
-        {trace.sourceChoiceId}
-      </span>
     </div>
   )
 }

@@ -106,28 +106,59 @@ export function ChoicePanel({ options, onCommit, registerKeyboardHandlers }: Cho
     }
   }
 
+  const selectedOption = options[selectedIndex]
+  const commitLabel = selectedOption
+    ? `Execute directive: ${selectedOption.label}`
+    : 'Execute directive'
+  const commitDisabled = !selectedOption
+
   return (
-    <div
-      ref={groupRef}
-      role="radiogroup"
-      aria-label="Choose a directive response"
-      className="space-y-2"
-      onKeyDown={handleKeyDown}
-    >
-      <p className="text-fg-secondary text-xs uppercase tracking-widest font-mono mb-3">
-        Select Response
-      </p>
-      {options.map((option, index) => (
-        <ChoiceCard
-          key={option.key}
-          ref={(el: HTMLElement | null) => { cardRefs.current[index] = el }}
-          option={option}
-          index={index}
-          selected={index === selectedIndex}
-          onSelect={() => setSelectedIndex(index)}
-          onCommit={commitSelected}
-        />
-      ))}
+    <div className="space-y-2">
+      <div
+        ref={groupRef}
+        role="radiogroup"
+        aria-label="Choose a directive response"
+        className="space-y-2"
+        onKeyDown={handleKeyDown}
+      >
+        <p className="text-fg-secondary text-xs uppercase tracking-widest font-mono mb-3">
+          Select Response
+        </p>
+        {options.map((option, index) => (
+          <ChoiceCard
+            key={option.key}
+            ref={(el: HTMLElement | null) => { cardRefs.current[index] = el }}
+            option={option}
+            index={index}
+            selected={index === selectedIndex}
+            onSelect={() => setSelectedIndex(index)}
+            onCommit={commitSelected}
+          />
+        ))}
+      </div>
+      <div className="flex items-center gap-3 pt-3">
+        <button
+          type="button"
+          onClick={commitSelected}
+          disabled={commitDisabled}
+          aria-label={commitLabel}
+          className={[
+            'text-null-accent border border-null-accent',
+            'px-4 py-2 text-xs uppercase tracking-widest font-mono',
+            'hover:bg-null-accent/10',
+            'focus:outline-none focus:ring-2 focus:ring-null-accent',
+            'disabled:opacity-40 disabled:cursor-not-allowed',
+          ].join(' ')}
+        >
+          Execute Directive
+        </button>
+        <span
+          className="text-fg-secondary text-xs font-mono"
+          aria-hidden="true"
+        >
+          (or press Enter)
+        </span>
+      </div>
     </div>
   )
 }

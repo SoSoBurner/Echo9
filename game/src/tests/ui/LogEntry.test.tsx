@@ -47,10 +47,13 @@ describe('LogEntry', () => {
     expect(matches.length).toBeGreaterThan(0)
   })
 
-  it('renders the sourceChoiceId', () => {
+  it('exposes the sourceChoiceId as a data attribute for §11 traceability (not visible text)', () => {
     const trace = makeTrace({ sourceChoiceId: fxChoiceId('choice-distinct-id-001') })
-    render(React.createElement(LogEntry, { trace }))
-    expect(screen.getByText(/choice-distinct-id-001/)).toBeTruthy()
+    const { container } = render(React.createElement(LogEntry, { trace }))
+    const row = container.querySelector('[data-source-choice-id="choice-distinct-id-001"]')
+    expect(row).toBeTruthy()
+    // The raw ID must NOT appear as visible player-facing text.
+    expect(screen.queryByText(/choice-distinct-id-001/)).toBeNull()
   })
 
   it('is memoized — same trace reference does not re-execute render body', () => {

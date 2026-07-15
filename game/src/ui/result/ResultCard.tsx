@@ -81,16 +81,17 @@ export function ResultCard({ trace, onContinue }: ResultCardProps) {
         Result
       </h2>
 
-      <div className="border border-sealed-dim px-4 py-4 space-y-3">
+      <div
+        className="border border-sealed-dim px-4 py-4 space-y-3"
+        data-source-task-id={trace.sourceTaskId}
+        data-source-choice-id={trace.sourceChoiceId}
+      >
         {/* Trace body — register-selected (S5 narration gradient) */}
         <p className="text-fg-primary text-sm leading-relaxed">
           {body}
         </p>
 
-        {/* Trace metadata */}
         <div className="flex gap-4 text-fg-secondary text-xs font-mono">
-          <span>Task: {trace.sourceTaskId}</span>
-          <span>Choice: {trace.sourceChoiceId}</span>
           <span>{date}</span>
         </div>
       </div>
