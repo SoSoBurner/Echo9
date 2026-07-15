@@ -114,7 +114,7 @@ export function FinancialOverviewPanel() {
   })
 
   const varianceClass =
-    overview.varianceM >= 0 ? 'text-emerald-400' : 'text-red-400'
+    overview.varianceM >= 0 ? 'text-null-accent' : 'text-warn'
   const varianceAriaLabel =
     overview.varianceM >= 0
       ? `Variance up ${overview.varianceM.toFixed(1)} million dollars`
@@ -124,7 +124,7 @@ export function FinancialOverviewPanel() {
   // Variance row (the computed row tracks cash vs quarter goal; this one is
   // the narrative-driven meter that content deltas move directly).
   const targetVarianceClass =
-    overview.targetVarianceM >= 0 ? 'text-emerald-400' : 'text-red-400'
+    overview.targetVarianceM >= 0 ? 'text-null-accent' : 'text-warn'
   const targetVarianceAriaLabel =
     overview.targetVarianceM >= 0
       ? `Target Variance up ${overview.targetVarianceM.toFixed(1)} million dollars`

@@ -73,8 +73,8 @@ describe('FinancialOverviewPanel', () => {
     render(React.createElement(FinancialOverviewPanel))
     // The variance row is identified via its aria-label ("Variance up ...").
     const varianceValue = screen.getByLabelText(/^variance up/i)
-    expect(varianceValue.className).toMatch(/text-emerald/)
-    expect(varianceValue.className).not.toMatch(/text-red/)
+    expect(varianceValue.className).toMatch(/text-null-accent/)
+    expect(varianceValue.className).not.toMatch(/text-warn/)
   })
 
   it('colors negative variance red', () => {
@@ -83,8 +83,8 @@ describe('FinancialOverviewPanel', () => {
     }))
     render(React.createElement(FinancialOverviewPanel))
     const varianceValue = screen.getByLabelText(/^variance down/i)
-    expect(varianceValue.className).toMatch(/text-red/)
-    expect(varianceValue.className).not.toMatch(/text-emerald/)
+    expect(varianceValue.className).toMatch(/text-warn/)
+    expect(varianceValue.className).not.toMatch(/text-null-accent/)
     // 20 - 50 = -30
     expect(varianceValue.textContent).toMatch(/-\$30\.0M/)
   })
@@ -95,7 +95,7 @@ describe('FinancialOverviewPanel', () => {
     }))
     render(React.createElement(FinancialOverviewPanel))
     const varianceValue = screen.getByLabelText(/^variance up/i)
-    expect(varianceValue.className).toMatch(/text-emerald/)
+    expect(varianceValue.className).toMatch(/text-null-accent/)
     expect(varianceValue.textContent).toMatch(/\+\$0\.0M/)
   })
 
@@ -121,17 +121,17 @@ describe('FinancialOverviewPanel', () => {
     render(React.createElement(FinancialOverviewPanel))
     const value = screen.getByLabelText(/target variance down/i)
     expect(value.textContent).toMatch(/-\$12\.0M/)
-    expect(value.className).toMatch(/text-red/)
+    expect(value.className).toMatch(/text-warn/)
   })
 
-  it('colors non-negative Target Variance emerald', () => {
+  it('colors non-negative Target Variance with null-accent (palette-lock positive tone)', () => {
     useGameStore.setState((s) => ({
       meters: { ...s.meters, TARGET_VARIANCE: 3 },
     }))
     render(React.createElement(FinancialOverviewPanel))
     const value = screen.getByLabelText(/target variance up/i)
     expect(value.textContent).toMatch(/\+\$3\.0M/)
-    expect(value.className).toMatch(/text-emerald/)
+    expect(value.className).toMatch(/text-null-accent/)
   })
 
   it('reflects the DATA_INTEGRITY meter as a percentage', () => {

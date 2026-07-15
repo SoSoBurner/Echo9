@@ -32,7 +32,7 @@ interface RowProps {
 
 function KpiRow({ label, value, tone }: RowProps) {
   const toneClass =
-    tone === 'positive' ? 'text-emerald-400' : 'text-red-400'
+    tone === 'positive' ? 'text-null-accent' : 'text-warn'
   return (
     <li
       role="listitem"

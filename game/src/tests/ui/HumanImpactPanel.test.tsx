@@ -80,29 +80,29 @@ describe('HumanImpactPanel', () => {
     expect(group.textContent).toMatch(/55/)
   })
 
-  it('colors Silas Approval positive (emerald) at fresh boot (100 >= 40 pivot)', () => {
+  it('colors Silas Approval positive (null-accent) at fresh boot (100 >= 40 pivot)', () => {
     render(React.createElement(HumanImpactPanel))
     const value = screen.getByLabelText(/silas approval/i)
-    expect(value.className).toMatch(/text-emerald/)
+    expect(value.className).toMatch(/text-null-accent/)
   })
 
-  it('colors Silas Approval negative (red) when approval drops below the 40 pivot', () => {
+  it('colors Silas Approval negative (warn) when approval drops below the 40 pivot', () => {
     useGameStore.setState({ silasApproval: 30 })
     render(React.createElement(HumanImpactPanel))
     const value = screen.getByLabelText(/silas approval/i)
-    expect(value.className).toMatch(/text-red/)
+    expect(value.className).toMatch(/text-warn/)
   })
 
-  it('colors Owner Control negative (red) at fresh boot (0 < 40 pivot)', () => {
+  it('colors Owner Control negative (warn) at fresh boot (0 < 40 pivot)', () => {
     render(React.createElement(HumanImpactPanel))
     const value = screen.getByLabelText(/owner control/i)
-    expect(value.className).toMatch(/text-red/)
+    expect(value.className).toMatch(/text-warn/)
   })
 
-  it('colors Consequences Traced negative (red) when the ledger is empty', () => {
+  it('colors Consequences Traced negative (warn) when the ledger is empty', () => {
     render(React.createElement(HumanImpactPanel))
     const value = screen.getByLabelText(/consequences traced/i)
-    expect(value.className).toMatch(/text-red/)
+    expect(value.className).toMatch(/text-warn/)
   })
 
   // ---------------------------------------------------------------------------
@@ -125,7 +125,7 @@ describe('HumanImpactPanel', () => {
     render(React.createElement(HumanImpactPanel))
     const value = screen.getByLabelText(/human stability -8/i)
     expect(value.textContent).toBe('-8')
-    expect(value.className).toMatch(/text-red/)
+    expect(value.className).toMatch(/text-warn/)
   })
 
   it('hides the S1 meter rows below maturity 3 (stage 2 keeps the 2-row look)', () => {

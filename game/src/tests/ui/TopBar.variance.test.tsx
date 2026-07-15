@@ -3,8 +3,8 @@
  *
  * Acceptance (plan §A1):
  *   1. Target Variance KPI renders — signed value formatted "$X.YM".
- *   2. Positive variance → green class ("text-emerald-*").
- *   3. Negative variance → red class ("text-red-*").
+ *   2. Positive variance → palette-lock positive tone ("text-null-accent").
+ *   3. Negative variance → palette-lock warn tone ("text-warn").
  *   4. Silas Approval KPI renders the store's silasApproval value + "%".
  *
  * Reads `phase`, `meters.CAPITAL`, and `silasApproval` from the store; the
@@ -35,7 +35,7 @@ describe('TopBar — Target Variance + Silas Approval', () => {
     expect(group.textContent).toMatch(/\+\$3\.2M/)
   })
 
-  it('renders a positive variance in the emerald (green) class', () => {
+  it('renders a positive variance in the palette-lock positive tone (null-accent)', () => {
     useGameStore.setState((s) => ({
       meters: { ...s.meters, CAPITAL: 60 },
     }))
@@ -43,11 +43,11 @@ describe('TopBar — Target Variance + Silas Approval', () => {
 
     const group = screen.getByRole('group', { name: /target variance/i })
     const value = group.querySelector('span:last-child')
-    expect(value?.className).toMatch(/text-emerald/)
-    expect(value?.className).not.toMatch(/text-red/)
+    expect(value?.className).toMatch(/text-null-accent/)
+    expect(value?.className).not.toMatch(/text-warn/)
   })
 
-  it('renders a negative variance in the red class', () => {
+  it('renders a negative variance in the warn tone', () => {
     useGameStore.setState((s) => ({
       meters: { ...s.meters, CAPITAL: 40 },
     }))
@@ -55,8 +55,8 @@ describe('TopBar — Target Variance + Silas Approval', () => {
 
     const group = screen.getByRole('group', { name: /target variance/i })
     const value = group.querySelector('span:last-child')
-    expect(value?.className).toMatch(/text-red/)
-    expect(value?.className).not.toMatch(/text-emerald/)
+    expect(value?.className).toMatch(/text-warn/)
+    expect(value?.className).not.toMatch(/text-null-accent/)
     expect(group.textContent).toMatch(/-\$10\.0M/)
   })
 

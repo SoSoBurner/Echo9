@@ -147,6 +147,22 @@ describe('Increased-contrast palette must strictly beat default palette', () => 
 const FORBIDDEN =
   /\b(?:text|bg|border|ring|from|to|via|fill|stroke|outline|divide|placeholder|caret|decoration|accent|shadow)-\[#[0-9a-fA-F]{3,8}\]/
 
+/**
+ * Forbidden Tailwind named-palette classes. The Echo9 palette lock (§9)
+ * permits only the tokens defined in PALETTE. Named Tailwind palettes like
+ * `text-emerald-400` bypass the palette lock silently — the arbitrary-hex
+ * scan above will not catch them, and the increased-contrast override in
+ * index.css does not remap them, so they break the comfort setting too.
+ *
+ * If a new palette color is genuinely needed, ADD it to PALETTE + @theme
+ * and consume it via the token class (e.g. `text-null-accent`).
+ */
+const TAILWIND_NAMED_PALETTES =
+  '(?:slate|gray|zinc|neutral|stone|red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose)'
+const FORBIDDEN_NAMED = new RegExp(
+  `\\b(?:text|bg|border|ring|from|to|via|fill|stroke|outline|divide|placeholder|caret|decoration|accent|shadow)-${TAILWIND_NAMED_PALETTES}-\\d{2,3}\\b`,
+)
+
 /** Collect all .ts, .tsx, and .css files under a directory, recursively. */
 function collectSourceFiles(dir: string): string[] {
   const results: string[] = []
@@ -211,6 +227,32 @@ describe('Arbitrary color guard — no inline hex utilities in source files', ()
     expect(
       offenders,
       `Found arbitrary color utilities. To add a color, edit src/ui/tokens/palette.ts.\n` +
+        offenders.map((o) => `  ${o.file}:${o.line}  ${o.text}`).join('\n'),
+    ).toEqual([])
+  })
+
+  it('forbids Tailwind named-palette classes (text-emerald-400, bg-red-500, etc.) — palette lock §9', () => {
+    const offenders: { file: string; line: number; text: string }[] = []
+
+    for (const filePath of allFiles) {
+      const lines = fs.readFileSync(filePath, 'utf-8').split(/\r?\n/)
+      lines.forEach((text, i) => {
+        if (FORBIDDEN_NAMED.test(text)) {
+          offenders.push({
+            file: path.relative(srcDir, filePath),
+            line: i + 1,
+            text: text.trim(),
+          })
+        }
+      })
+    }
+
+    expect(
+      offenders,
+      `Found Tailwind named-palette classes. These bypass the palette lock AND ` +
+        `the increased-contrast comfort override. Use a token class ` +
+        `(text-null-accent / text-warn / etc.) or add a new token to ` +
+        `src/ui/tokens/palette.ts.\n` +
         offenders.map((o) => `  ${o.file}:${o.line}  ${o.text}`).join('\n'),
     ).toEqual([])
   })

@@ -75,7 +75,7 @@ export function TopBar() {
             Target Variance
           </span>
           <span
-            className={`text-sm font-mono tabular-nums ${variance >= 0 ? 'text-emerald-400' : 'text-red-400'}`}
+            className={`text-sm font-mono tabular-nums ${variance >= 0 ? 'text-null-accent' : 'text-warn'}`}
           >
             {formatVarianceM(variance)}
           </span>
