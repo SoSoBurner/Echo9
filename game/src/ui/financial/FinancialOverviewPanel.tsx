@@ -23,9 +23,9 @@
  * Integrity) render only at maturity >= 3 — earlier stages keep the sparse
  * silhouette look.
  *
- * Placeholders (see selector for full rationale):
- *   - No quarter-calendar slice exists yet. Selector falls back to
- *     CURRENT_WEEK_PLACEHOLDER when currentWeek is undefined.
+ * Calendar cursor: `selectCurrentWeek` scans Q1_SEQUENCE for the first
+ * unresolved week (same rule Layout uses). Q1-closed collapses to Q_WEEKS
+ * so daysRemaining/weeksRemaining fall to 0 cleanly.
  *
  * Accessibility (PLAN.md §10):
  *   - Section is role="group" with aria-label "Financial Overview".
@@ -37,7 +37,9 @@ import { useGameStore } from '@state/store'
 import {
   selectFinancialOverview,
   type FinancialOverview,
+  Q_WEEKS,
 } from '@state/selectors/financialOverview'
+import { selectCurrentWeek } from '@state/selectors/currentWeek'
 import { usePanelState } from '@systems/tutorial/usePanelState'
 import { DonutChart } from '@ui/charts/DonutChart'
 
@@ -101,6 +103,9 @@ export function FinancialOverviewPanel() {
   const autonomyMeter = useGameStore((s) => s.meters.AUTONOMY)
   const targetVarianceMeter = useGameStore((s) => s.meters.TARGET_VARIANCE)
   const dataIntegrityMeter = useGameStore((s) => s.meters.DATA_INTEGRITY)
+  // Real quarter cursor (Sprint C15b). Null means Q1 has closed — treat that
+  // as end-of-quarter so daysRemaining/weeksRemaining collapse to 0.
+  const currentWeek = useGameStore(selectCurrentWeek)
 
   if (!disclosed) return null
 
@@ -109,8 +114,7 @@ export function FinancialOverviewPanel() {
     autonomyMeter,
     targetVarianceMeter,
     dataIntegrityMeter,
-    // currentWeek is intentionally omitted — the selector falls back to its
-    // placeholder until a quarter-calendar slice lands.
+    currentWeek: currentWeek ?? Q_WEEKS,
   })
 
   const varianceClass =
