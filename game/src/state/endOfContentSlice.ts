@@ -23,7 +23,7 @@
 import type { StateCreator } from 'zustand'
 import type { RootState } from './store'
 
-const END_OF_CONTENT_STORAGE_KEY = 'echo9:endOfContentSeen'
+export const END_OF_CONTENT_STORAGE_KEY = 'echo9:endOfContentSeen'
 
 const readInitial = (): boolean => {
   try {

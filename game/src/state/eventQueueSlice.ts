@@ -37,6 +37,7 @@ import { makeTraceId, type TraceId } from '@schemas/gameState.schema'
 import { makeStageOneAncestryId } from '@schemas/resultTrace.schema'
 import { markBeat } from '@ui/debug/BeatTelemetry'
 import { END_OF_CONTENT_TERMINAL_FLAG } from '@content/contentBoundary.manifest'
+import { END_OF_CONTENT_STORAGE_KEY } from './endOfContentSlice'
 import type { RootState } from './store'
 
 export type EventQueueSlice = {
@@ -85,22 +86,32 @@ export const createEventQueueSlice: StateCreator<
       for (const h of hooks) state.pendingFiredHooks.push(h)
     }),
   ackFirstPending: () => {
-    const head = get().pendingFiredHooks[0]
-    if (!head) return
-    const queueLenBefore = get().pendingFiredHooks.length
+    // Precompute the terminal condition BEFORE mutating state — the shift and
+    // the endOfContentSeen flip MUST land in a single immer producer so no
+    // render can observe (queue empty, overlay not shown). Splitting these
+    // across two set() calls would surface an inconsistent frame where the
+    // ConsequenceReturnPanel unmounts (queue empty) before the EoC overlay
+    // mounts (endOfContentSeen still false), and the resolver's dep-array
+    // re-fires in that window could redirect the phase.
+    const snapshot = get()
+    if (!snapshot.pendingFiredHooks[0]) return
+    const isTerminal =
+      snapshot.pendingFiredHooks.length === 1 &&
+      snapshot.flags.has(END_OF_CONTENT_TERMINAL_FLAG)
     set((state) => {
       state.pendingFiredHooks.shift()
+      if (isTerminal) state.endOfContentSeen = true
     })
-    // Terminal-boundary detection (C16 flag-based): when acking the LAST
-    // pending hook AND the end-of-content terminal flag has entered state,
-    // flip endOfContentSeen through the slice action so its dedicated
-    // localStorage key updates atomically with the state mutation. Pre-C16
-    // this was a hook-id check pinned to a single W1 optional consequence
-    // (`cons-pediatric-silence-01`), so only one W1 posture ever reached the
-    // overlay. The flag is set by Layout on any Week 12 commit and mirrors
-    // the resolutionFlag, so every Q1-close posture now lands here.
-    if (queueLenBefore === 1 && get().flags.has(END_OF_CONTENT_TERMINAL_FLAG)) {
-      get().markEndOfContentSeen()
+    // localStorage side effect after the atomic state mutation. The only
+    // window here is tab-close between set() and setItem — matches the
+    // existing risk profile of markEndOfContentSeen() itself (immer runs
+    // state + storage in the same synchronous producer).
+    if (isTerminal) {
+      try {
+        localStorage.setItem(END_OF_CONTENT_STORAGE_KEY, 'true')
+      } catch {
+        // localStorage unavailable (private mode, quota) — state still flips.
+      }
     }
   },
   clearPending: () =>
@@ -120,29 +131,36 @@ export const createEventQueueSlice: StateCreator<
     if (fired.length === 0) return
     markBeat('firstEchoFired')
 
-    // Trace append is intentionally a separate slice action — the ledger is
-    // a cosmetic player-facing audit log; losing a trace entry on a mid-
-    // sequence crash is acceptable. The queue is NOT: removing a hook from
-    // `scheduledConsequences` without also pushing it onto `pendingFiredHooks`
-    // would leak the §11 invariant (a delayed consequence vanishing without
-    // ever surfacing). So the remove+push pair below MUST happen in a single
-    // atomic immer producer.
-    for (const hook of fired) {
+    // Pre-materialize traces outside set() — pure work, no state mutation.
+    // freshTraceId() and Date.now() are non-deterministic but they only
+    // matter for identity, not for the §11 invariant.
+    const traces = fired.map((hook) => {
       const { playerExplanation } = materialize(hook)
-      live.appendTrace({
+      return {
         id: freshTraceId(),
         sourceTaskId: hook.sourceTaskId,
         sourceChoiceId: hook.sourceChoiceId,
-        stageOneAncestryId: makeStageOneAncestryId(hook.sourceTaskId, hook.sourceChoiceId),
+        stageOneAncestryId: makeStageOneAncestryId(
+          hook.sourceTaskId,
+          hook.sourceChoiceId,
+        ),
         timestamp: Date.now(),
         body: playerExplanation,
-      })
-    }
-    // Atomic: remove-from-scheduled and push-to-pending land in ONE set()
-    // so the §11 invariant cannot leak between dispatches. If the React tree
-    // throws between the two halves of a split mutation, the hook would be
-    // gone from scheduledConsequences but absent from pendingFiredHooks too.
+      }
+    })
+
+    // §11 atomicity: ledger append + scheduled splice + pending push all
+    // land in ONE immer producer. Previously trace appends ran in a loop
+    // BEFORE the atomic splice/push — that opened a window where the ledger
+    // held new entries while scheduledConsequences still contained the fired
+    // hooks. A dep-array re-fire of evaluateAndEnqueue in that window would
+    // re-evaluate the same hooks and duplicate them into both ledger and
+    // pending. Bundling everything atomically also means a mid-flow throw
+    // cannot leave the hook removed from scheduled but absent from pending.
     set((state) => {
+      for (const trace of traces) {
+        state.ledger.push(trace)
+      }
       for (const hook of fired) {
         const idx = state.scheduledConsequences.findIndex((h) => h.id === hook.id)
         if (idx !== -1) state.scheduledConsequences.splice(idx, 1)
