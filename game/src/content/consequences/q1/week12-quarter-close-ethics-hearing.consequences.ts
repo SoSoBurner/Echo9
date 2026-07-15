@@ -9,7 +9,7 @@
  * traceabilityInvariant.test.ts).
  *
  * Reveal-condition coverage across the four Week 12 choices:
- *   choice-name-what-the-quarter-took → PHASE: CONSEQUENCE_RETURN
+ *   choice-name-what-the-quarter-took → FLAG: 'east-wilmer-quarter-elapsed' (same-session quarter close)
  *   choice-defer-to-official-line     → METER_THRESHOLD: OWNER_CONTROL <= -20
  *   choice-decline-to-appear          → FLAG: 'q1-week12-elapsed'
  *   choice-defiant-framing            → NEVER (Pillar 3 silence-as-horror)
@@ -73,7 +73,10 @@ import {
 const TASK_ID = makeTaskId('task-quarter-close-ethics-hearing-12')
 
 // ---------------------------------------------------------------------------
-// Hook 1 — choice-name-what-the-quarter-took → PHASE reveal at CONSEQUENCE_RETURN
+// Hook 1 — choice-name-what-the-quarter-took → FLAG reveal on Q1 close
+// (§11 week-elapse return; was the unreachable PHASE:'CONSEQUENCE_RETURN' —
+// W12's own commit raises `east-wilmer-quarter-elapsed` so sworn testimony
+// posts to the docket record within the same session it is delivered)
 // ---------------------------------------------------------------------------
 
 export const HOOK_QUARTER_NAMED_IN_HEARING: ConsequenceHook = {
@@ -122,7 +125,9 @@ export const HOOK_QUARTER_NAMED_IN_HEARING: ConsequenceHook = {
     'to the wrong person too late. Not a victory. A receipt. ' +
     'The county assessed a $2,800 amended-record fee against next ' +
     'quarter\u2019s ledger. Q1_CLOSED.',
-  revealCondition: { type: 'PHASE', phase: 'CONSEQUENCE_RETURN' },
+  // Q1 close: W12's own commit raises `east-wilmer-quarter-elapsed`; the
+  // sworn testimony posts to the docket in the same session it is delivered.
+  revealCondition: { type: 'FLAG', flag: 'east-wilmer-quarter-elapsed' },
   whyNow:
     'Sworn testimony posts to the docket record within the same session it ' +
     'is delivered. The consequence-return window fires as the transcript ' +

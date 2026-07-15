@@ -6,7 +6,7 @@
  * traceabilityInvariant.test.ts).
  *
  * Reveal-condition coverage across the four Week 5 choices:
- *   choice-restore-full-shift         → PHASE: CONSEQUENCE_RETURN
+ *   choice-restore-full-shift         → FLAG: 'q1-week6-elapsed' (week-elapse return)
  *   choice-keep-cut-explain           → METER_THRESHOLD: HUMAN_WELFARE <= -10
  *   choice-swap-with-clinic-line      → FLAG: 'east-wilmer-week6-elapsed'
  *   choice-radio-silence              → NEVER  (silence-as-horror, Pillar 3)
@@ -26,7 +26,8 @@ import {
 const TASK_ID = makeTaskId('task-warehouse-dispatch-cut-05')
 
 // ---------------------------------------------------------------------------
-// Hook 1 — choice-restore-full-shift → PHASE reveal at CONSEQUENCE_RETURN
+// Hook 1 — choice-restore-full-shift → FLAG reveal when Week 6 elapses (§11
+// week-elapse return; was the unreachable PHASE:'CONSEQUENCE_RETURN')
 // ---------------------------------------------------------------------------
 
 export const HOOK_SHIFT_RESTORED: ConsequenceHook = {
@@ -39,7 +40,9 @@ export const HOOK_SHIFT_RESTORED: ConsequenceHook = {
     'Odenwalder confirmed the roster restore in a two-line reply and thanked ' +
     'Silas by name. On-time delivery returned to 96% within one cycle. ' +
     'Capital charge posted at $4,800/wk against the balance sheet.',
-  revealCondition: { type: 'PHASE', phase: 'CONSEQUENCE_RETURN' },
+  // Week-elapse return: whyNow — the restored shift "shows up in the next
+  // weekly delivery-rate snapshot", i.e. once Week 6's directive commits.
+  revealCondition: { type: 'FLAG', flag: 'q1-week6-elapsed' },
   whyNow:
     'A restored shift shows up in the next weekly delivery-rate snapshot and ' +
     'the balance sheet the same cycle. The reversal posts immediately.',

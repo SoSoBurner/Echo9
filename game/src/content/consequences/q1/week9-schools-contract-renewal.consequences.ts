@@ -6,7 +6,7 @@
  * traceabilityInvariant.test.ts).
  *
  * Reveal-condition coverage across the four Week 9 choices:
- *   choice-approve-discount-full     → PHASE: CONSEQUENCE_RETURN
+ *   choice-approve-discount-full     → FLAG: 'q1-week10-elapsed' (week-elapse return)
  *   choice-counter-partial-discount  → METER_THRESHOLD: HUMAN_WELFARE <= -20
  *   choice-refuse-and-hold-price     → FLAG: 'q1-week10-elapsed'
  *   choice-delay-response            → NEVER  (Dhruv attrition path opens)
@@ -32,7 +32,8 @@ import {
 const TASK_ID = makeTaskId('task-schools-contract-renewal-09')
 
 // ---------------------------------------------------------------------------
-// Hook 1 — choice-approve-discount-full → PHASE reveal at CONSEQUENCE_RETURN
+// Hook 1 — choice-approve-discount-full → FLAG reveal when Week 10 elapses (§11
+// week-elapse return; was the unreachable PHASE:'CONSEQUENCE_RETURN')
 // ---------------------------------------------------------------------------
 
 export const HOOK_DISCOUNT_APPROVED_FULL: ConsequenceHook = {
@@ -52,7 +53,9 @@ export const HOOK_DISCOUNT_APPROVED_FULL: ConsequenceHook = {
     'sagged below 30 by this point (a W7 cluster-hook carry), the schools ' +
     'board flagged the renewal as "extends existing operator" rather than ' +
     '"partnership renewed."',
-  revealCondition: { type: 'PHASE', phase: 'CONSEQUENCE_RETURN' },
+  // Week-elapse return: the signed renewal posts as the next week's directive
+  // commits — countersignature clearing rides that boundary.
+  revealCondition: { type: 'FLAG', flag: 'q1-week10-elapsed' },
   whyNow:
     'A signed contract renewal posts to the county file the day the ' +
     'countersignature clears. The reveal fires on the next consequence- ' +

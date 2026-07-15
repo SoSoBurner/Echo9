@@ -6,7 +6,7 @@
  * traceabilityInvariant.test.ts).
  *
  * Reveal-condition coverage across the four Week 2 choices:
- *   choice-cover-overtime          → PHASE: CONSEQUENCE_RETURN
+ *   choice-cover-overtime          → FLAG: 'q1-week3-elapsed' (week-elapse return)
  *   choice-freeze-reallocation     → METER_THRESHOLD: HUMAN_WELFARE <= -8
  *   choice-name-pediatric-gap      → FLAG: 'east-wilmer-week3-elapsed'
  *   choice-redirect-claims-cover   → NEVER  (silence-as-horror, Pillar 3)
@@ -26,7 +26,8 @@ import {
 const TASK_ID = makeTaskId('task-queue-triage-02')
 
 // ---------------------------------------------------------------------------
-// Hook 1 — choice-cover-overtime → PHASE reveal at CONSEQUENCE_RETURN
+// Hook 1 — choice-cover-overtime → FLAG reveal when Week 3 elapses (§11
+// week-elapse return; was the unreachable PHASE:'CONSEQUENCE_RETURN')
 // ---------------------------------------------------------------------------
 
 export const HOOK_OVERTIME_DRAG: ConsequenceHook = {
@@ -38,7 +39,9 @@ export const HOOK_OVERTIME_DRAG: ConsequenceHook = {
     'East Wilmer covered the pediatric shift lead gap with unfunded overtime. ' +
     'Lenora Pike noted 47 additional overtime hours logged; no headcount added. ' +
     'The reallocation that caused the gap remained in place.',
-  revealCondition: { type: 'PHASE', phase: 'CONSEQUENCE_RETURN' },
+  // Week-elapse return: the cost "stays hidden inside the payroll variance
+  // line" (whyNow) — it surfaces when the NEXT week's payroll beat commits.
+  revealCondition: { type: 'FLAG', flag: 'q1-week3-elapsed' },
   whyNow:
     'Paying overtime kept the floor covered but did not restore the shift lead ' +
     'position. The underlying cost stays hidden inside the payroll variance line.',

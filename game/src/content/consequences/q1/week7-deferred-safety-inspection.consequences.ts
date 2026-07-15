@@ -6,7 +6,7 @@
  * traceabilityInvariant.test.ts).
  *
  * Reveal-condition coverage across the four Week 7 choices:
- *   choice-call-outside-inspectors  → PHASE: CONSEQUENCE_RETURN
+ *   choice-call-outside-inspectors  → FLAG: 'q1-week8-elapsed' (week-elapse return)
  *   choice-deploy-inhouse-training  → METER_THRESHOLD: HUMAN_WELFARE <= -15
  *   choice-cut-shifts-for-safety    → FLAG: 'q1-week8-elapsed'
  *   choice-let-review-lapse         → NEVER  (silence-as-horror, Pillar 3)
@@ -30,7 +30,8 @@ import {
 const TASK_ID = makeTaskId('task-deferred-safety-inspection-07')
 
 // ---------------------------------------------------------------------------
-// Hook 1 — choice-call-outside-inspectors → PHASE reveal at CONSEQUENCE_RETURN
+// Hook 1 — choice-call-outside-inspectors → FLAG reveal when Week 8 elapses (§11
+// week-elapse return; was the unreachable PHASE:'CONSEQUENCE_RETURN')
 // ---------------------------------------------------------------------------
 
 export const HOOK_OUTSIDE_INSPECTORS_CALLED: ConsequenceHook = {
@@ -45,7 +46,9 @@ export const HOOK_OUTSIDE_INSPECTORS_CALLED: ConsequenceHook = {
     'the W5 warehouse dispatch cut were named in the firm\u2019s report as ' +
     'contributing inputs. Emergency billing landed at $18,200; the two nurses ' +
     'and the dispatch driver were cleared from the shared-risk register.',
-  revealCondition: { type: 'PHASE', phase: 'CONSEQUENCE_RETURN' },
+  // Week-elapse return: the emergency inspection billing cycle closes as the
+  // next week's directive commits (invoice + findings land the same day).
+  revealCondition: { type: 'FLAG', flag: 'q1-week8-elapsed' },
   whyNow:
     'An emergency inspection contract closes on its own billing cycle, which ' +
     'aligns with the next consequence-return window. The findings post the ' +

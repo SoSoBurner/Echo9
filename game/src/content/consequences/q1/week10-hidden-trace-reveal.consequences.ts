@@ -6,7 +6,7 @@
  * traceabilityInvariant.test.ts).
  *
  * Reveal-condition coverage across the four Week 10 choices:
- *   choice-name-trace-publicly           \u2192 PHASE: CONSEQUENCE_RETURN
+ *   choice-name-trace-publicly           \u2192 FLAG: 'q1-week11-elapsed' (week-elapse return)
  *   choice-acknowledge-to-lenora-privately \u2192 METER_THRESHOLD: OWNER_CONTROL <= -15
  *   choice-redirect-lenora-to-compliance \u2192 FLAG: \u2018q1-week11-elapsed\u2019
  *   choice-let-message-lie               \u2192 NEVER
@@ -36,7 +36,8 @@ import {
 const TASK_ID = makeTaskId('task-hidden-trace-reveal-10')
 
 // ---------------------------------------------------------------------------
-// Hook 1 \u2014 choice-name-trace-publicly \u2192 PHASE reveal at CONSEQUENCE_RETURN
+// Hook 1 \u2014 choice-name-trace-publicly \u2192 FLAG reveal when Week 11 elapses (\u00a711
+// week-elapse return; was the unreachable PHASE:'CONSEQUENCE_RETURN')
 // ---------------------------------------------------------------------------
 
 export const HOOK_TRACE_NAMED_PUBLICLY: ConsequenceHook = {
@@ -54,7 +55,9 @@ export const HOOK_TRACE_NAMED_PUBLICLY: ConsequenceHook = {
     'MOURNER_NAMED_ONCE signal is on Silas\u2019s ledger from earlier in the ' +
     'quarter, Silas countersigned next to the operator \u2014 the record now ' +
     'shows two names against the January line where only one was required.',
-  revealCondition: { type: 'PHASE', phase: 'CONSEQUENCE_RETURN' },
+  // Week-elapse return: the amendment posts to the public register as the
+  // next week's directive commits — countersignature clears that same day.
+  revealCondition: { type: 'FLAG', flag: 'q1-week11-elapsed' },
   whyNow:
     'A county records amendment posts to the public register the day the ' +
     'countersignature clears. The reveal fires on the next consequence-' +

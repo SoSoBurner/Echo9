@@ -6,7 +6,7 @@
  * traceabilityInvariant.test.ts).
  *
  * Reveal-condition coverage across the four Week 3 choices:
- *   choice-cover-from-reserve      → PHASE: CONSEQUENCE_RETURN
+ *   choice-cover-from-reserve      → FLAG: 'q1-week4-elapsed' (week-elapse return)
  *   choice-delay-vendor-payments   → METER_THRESHOLD: OWNER_CONTROL <= -10
  *   choice-cut-clinic-line-item    → FLAG: 'east-wilmer-week4-elapsed'
  *   choice-borrow-silas-personal   → NEVER  (silence-as-horror, Pillar 3)
@@ -26,7 +26,8 @@ import {
 const TASK_ID = makeTaskId('task-friday-payroll-03')
 
 // ---------------------------------------------------------------------------
-// Hook 1 — choice-cover-from-reserve → PHASE reveal at CONSEQUENCE_RETURN
+// Hook 1 — choice-cover-from-reserve → FLAG reveal when Week 4 elapses (§11
+// week-elapse return; was the unreachable PHASE:'CONSEQUENCE_RETURN')
 // ---------------------------------------------------------------------------
 
 export const HOOK_RESERVE_DRAWDOWN: ConsequenceHook = {
@@ -38,7 +39,9 @@ export const HOOK_RESERVE_DRAWDOWN: ConsequenceHook = {
     'Payroll cleared in full on Friday. Operating cash reserve fell from ' +
     '$820K to $640K — the largest single-week drawdown of Q1. ' +
     'County received a clean run-rate story.',
-  revealCondition: { type: 'PHASE', phase: 'CONSEQUENCE_RETURN' },
+  // Week-elapse return: whyNow — the reserve position "shows in the next
+  // weekly cash snapshot", i.e. once Week 4's directive is on the record.
+  revealCondition: { type: 'FLAG', flag: 'q1-week4-elapsed' },
   whyNow:
     'The straight-cash cover posted immediately and the reserve position ' +
     'shows in the next weekly cash snapshot without delay.',

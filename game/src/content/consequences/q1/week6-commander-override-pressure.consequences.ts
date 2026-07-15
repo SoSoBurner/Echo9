@@ -6,7 +6,7 @@
  * traceabilityInvariant.test.ts).
  *
  * Reveal-condition coverage across the four Week 6 choices:
- *   choice-confirm-override         → PHASE: CONSEQUENCE_RETURN
+ *   choice-confirm-override         → FLAG: 'q1-week6-elapsed' (same-session week-elapse return)
  *   choice-defer-safety-review      → METER_THRESHOLD: CAPITAL <= -10
  *   choice-defy-commander-publicly  → FLAG: 'q1-week7-elapsed'
  *   choice-hold-both-open           → NEVER  (silence-as-horror, Pillar 3)
@@ -26,7 +26,8 @@ import {
 const TASK_ID = makeTaskId('task-commander-override-pressure-06')
 
 // ---------------------------------------------------------------------------
-// Hook 1 — choice-confirm-override → PHASE reveal at CONSEQUENCE_RETURN
+// Hook 1 — choice-confirm-override → FLAG reveal on Week 6's own elapse (§11
+// week-elapse return; was the unreachable PHASE:'CONSEQUENCE_RETURN')
 // ---------------------------------------------------------------------------
 
 export const HOOK_OVERRIDE_CONFIRMED: ConsequenceHook = {
@@ -40,7 +41,11 @@ export const HOOK_OVERRIDE_CONFIRMED: ConsequenceHook = {
     'without adjudication. Commander\u2019s module signature (if installed) ' +
     'appears on the paperwork alongside Silas\u2019s; otherwise Silas signed ' +
     'the override alone.',
-  revealCondition: { type: 'PHASE', phase: 'CONSEQUENCE_RETURN' },
+  // SAME-SESSION week-elapse return (deviation from the default next-week
+  // key, per whyNow: "posts ... the same business day the override is
+  // signed. The reversal is immediate."). Week 6's own commit raises
+  // q1-week6-elapsed, so the reveal fires in the commit that signed it.
+  revealCondition: { type: 'FLAG', flag: 'q1-week6-elapsed' },
   whyNow:
     'A closed safety review posts to the county paperwork registry the same ' +
     'business day the override is signed. The reversal is immediate.',

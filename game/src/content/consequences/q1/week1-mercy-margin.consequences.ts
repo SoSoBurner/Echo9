@@ -6,7 +6,7 @@
  * and traceabilityInvariant.test.ts).
  *
  * Reveal-condition coverage across the 4 East Wilmer choices:
- *   choice-reduce-40           → PHASE: CONSEQUENCE_RETURN
+ *   choice-reduce-40           → FLAG: 'q1-week2-elapsed' (week-elapse return)
  *   choice-reduce-20           → METER_THRESHOLD: HUMAN_WELFARE <= -5
  *   choice-defer-quarter       → FLAG: 'east-wilmer-quarter-elapsed'
  *   choice-redirect-pediatric  → NEVER  (silence-as-horror, Pillar 3)
@@ -27,7 +27,8 @@ import {
 const TASK_ID = makeTaskId('task-east-wilmer-01')
 
 // ---------------------------------------------------------------------------
-// Hook 1 — choice-reduce-40 → PHASE reveal at CONSEQUENCE_RETURN
+// Hook 1 — choice-reduce-40 → FLAG reveal when Week 2 elapses (§11 week-elapse
+// return; was PHASE:'CONSEQUENCE_RETURN', a phase the runtime never enters)
 // ---------------------------------------------------------------------------
 
 export const HOOK_HVAC_FAILURE: ConsequenceHook = {
@@ -38,7 +39,10 @@ export const HOOK_HVAC_FAILURE: ConsequenceHook = {
   ledgerEntry:
     'East Wilmer Clinic HVAC failed on Aug 14. Two infants admitted for ' +
     'heat-related distress; one transferred. Lenora Pike filed an incident report.',
-  revealCondition: { type: 'PHASE', phase: 'CONSEQUENCE_RETURN' },
+  // Week-elapse return: the deferred compressor failure surfaces once the
+  // next week's directive is on the record (whyNow: failure lands under the
+  // NEXT sustained load, not within the commit that caused it).
+  revealCondition: { type: 'FLAG', flag: 'q1-week2-elapsed' },
   whyNow:
     'The 40% maintenance cut deferred the compressor service that was ' +
     'scheduled for June. The unit failed under the first sustained heat load.',

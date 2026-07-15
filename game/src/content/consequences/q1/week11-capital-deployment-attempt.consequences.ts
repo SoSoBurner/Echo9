@@ -6,7 +6,7 @@
  * traceabilityInvariant.test.ts).
  *
  * Reveal-condition coverage across the four Week 11 choices:
- *   choice-deploy-full-lock-bid        \u2192 PHASE: CONSEQUENCE_RETURN
+ *   choice-deploy-full-lock-bid        \u2192 FLAG: 'q1-week12-elapsed' (week-elapse return)
  *   choice-deploy-half-hedge            \u2192 METER_THRESHOLD: OWNER_CONTROL <= -18
  *   choice-hold-savings-let-bid-pass    \u2192 FLAG: \u2018q1-week12-elapsed\u2019
  *   choice-counter-with-lowball         \u2192 NEVER
@@ -40,7 +40,8 @@ import {
 const TASK_ID = makeTaskId('task-capital-deployment-attempt-11')
 
 // ---------------------------------------------------------------------------
-// Hook 1 \u2014 choice-deploy-full-lock-bid \u2192 PHASE reveal at CONSEQUENCE_RETURN
+// Hook 1 \u2014 choice-deploy-full-lock-bid \u2192 FLAG reveal when Week 12 elapses (\u00a711
+// week-elapse return; was the unreachable PHASE:'CONSEQUENCE_RETURN')
 // ---------------------------------------------------------------------------
 
 export const HOOK_INTEGRATION_BID_LOCKED: ConsequenceHook = {
@@ -63,7 +64,9 @@ export const HOOK_INTEGRATION_BID_LOCKED: ConsequenceHook = {
     'available. If Capital was below 80, the base two-verb execution ' +
     'only \u2014 accept the seat, staff the seat. The Q1-close ethics ' +
     'hearing will read the deployment as a marker of operator posture.',
-  revealCondition: { type: 'PHASE', phase: 'CONSEQUENCE_RETURN' },
+  // Week-elapse return: the seat-award docket posts as the W12 close commits
+  // — the procurement window aligns with Q1's terminal week.
+  revealCondition: { type: 'FLAG', flag: 'q1-week12-elapsed' },
   whyNow:
     'A cleared county wire posts to the seat-award docket the day the ' +
     'procurement office confirms. The reveal fires on the next ' +

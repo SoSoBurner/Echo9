@@ -6,7 +6,7 @@
  * traceabilityInvariant.test.ts).
  *
  * Reveal-condition coverage across the four Week 8 choices:
- *   choice-full-cooperation-posture       → PHASE: CONSEQUENCE_RETURN
+ *   choice-full-cooperation-posture       → FLAG: 'q1-week9-elapsed' (week-elapse return)
  *   choice-legal-minimum-posture          → METER_THRESHOLD: OWNER_CONTROL <= -18
  *   choice-preemptive-restatement-posture → FLAG: 'q1-week9-elapsed'
  *   choice-answer-only-when-asked         → NEVER  (institutional silence, Pillar 3)
@@ -32,7 +32,8 @@ import {
 const TASK_ID = makeTaskId('task-payroll-audit-inspection-08')
 
 // ---------------------------------------------------------------------------
-// Hook 1 — choice-full-cooperation-posture → PHASE reveal at CONSEQUENCE_RETURN
+// Hook 1 — choice-full-cooperation-posture → FLAG reveal when Week 9 elapses (§11
+// week-elapse return; was the unreachable PHASE:'CONSEQUENCE_RETURN')
 // ---------------------------------------------------------------------------
 
 export const HOOK_FULL_COOPERATION_POSTURE: ConsequenceHook = {
@@ -48,7 +49,9 @@ export const HOOK_FULL_COOPERATION_POSTURE: ConsequenceHook = {
     '"cooperative-baseline" on day 1. PAYROLL_AUDIT_DONE was set on the ' +
     'directive close. The Q1P.A/Q1P.B inspection scenes will inherit the ' +
     'cooperative posture as their starting frame.',
-  revealCondition: { type: 'PHASE', phase: 'CONSEQUENCE_RETURN' },
+  // Week-elapse return: day-1 posture posts to the county file within the
+  // audit's opening cycle — visible as the next week's directive commits.
+  revealCondition: { type: 'FLAG', flag: 'q1-week9-elapsed' },
   whyNow:
     'A posture-selection on day 1 of the audit posts to the county file ' +
     'immediately and is visible in the next consequence-return window.',

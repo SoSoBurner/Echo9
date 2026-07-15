@@ -6,7 +6,7 @@
  * traceabilityInvariant.test.ts).
  *
  * Reveal-condition coverage across the four Week 4 choices:
- *   choice-full-disclosure           → PHASE: CONSEQUENCE_RETURN
+ *   choice-full-disclosure           → FLAG: 'q1-week4-elapsed' (same-session week-elapse return)
  *   choice-hedge-story               → METER_THRESHOLD: OWNER_CONTROL <= -12
  *   choice-preempt-with-mitigations  → FLAG: 'east-wilmer-week5-elapsed'
  *   choice-refuse-brief              → NEVER  (silence-as-horror, Pillar 3)
@@ -28,7 +28,8 @@ import {
 const TASK_ID = makeTaskId('task-east-wilmer-audit-04')
 
 // ---------------------------------------------------------------------------
-// Hook 1 — choice-full-disclosure → PHASE reveal at CONSEQUENCE_RETURN
+// Hook 1 — choice-full-disclosure → FLAG reveal on Week 4's own elapse (§11
+// week-elapse return; was the unreachable PHASE:'CONSEQUENCE_RETURN')
 // ---------------------------------------------------------------------------
 
 export const HOOK_FULL_DISCLOSURE_FILED: ConsequenceHook = {
@@ -41,7 +42,12 @@ export const HOOK_FULL_DISCLOSURE_FILED: ConsequenceHook = {
     'reroute, the W2 shift-lead reallocation, and every payables-timing note. ' +
     'Auditors accepted the packet at the loading dock and spent the morning ' +
     'on the floor with Lenora Pike. The written record now exists.',
-  revealCondition: { type: 'PHASE', phase: 'CONSEQUENCE_RETURN' },
+  // SAME-SESSION week-elapse return (deviation from the default next-week
+  // key, per whyNow: "posts on submission ... the same day. The exposure and
+  // its acknowledgment surface together."). Week 4's own commit raises
+  // q1-week4-elapsed, so the reveal fires in the commit that filed it —
+  // same-session precedent as the W12 written-response hook.
+  revealCondition: { type: 'FLAG', flag: 'q1-week4-elapsed' },
   whyNow:
     'A filed narrative posts on submission and is entered into the audit ' +
     'record the same day. The exposure and its acknowledgment surface together.',

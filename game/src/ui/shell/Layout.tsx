@@ -41,6 +41,7 @@ import { selectSilasEscalationTier } from '@state/selectors/silasEscalation'
 import { applyEscalationTone } from '@content/silasPrompts/escalationTone'
 import { resolveInspection } from '@systems/inspectionEngine'
 import { resolveCapital } from '@systems/capitalResolver'
+import { elapsedFlagsForWeek } from '@systems/weekElapse'
 import type { ResultTrace } from '@schemas/resultTrace.schema'
 import type { ConsequenceHook } from '@schemas/consequenceHook.schema'
 import {
@@ -288,6 +289,18 @@ export function Layout() {
       //    unresolved entry on the next render, advancing the arc without
       //    any cursor slice.
       setFlag(currentEntry.resolutionFlag)
+
+      // 6+. §11 week-elapse returns (ship-gate leak fix): raising the elapse
+      //     flags for the week that just resolved is what lets FLAG-keyed
+      //     delayed hooks (`q1-week<N>-elapsed`, `east-wilmer-week<N>-elapsed`,
+      //     `east-wilmer-quarter-elapsed`) actually fire. Before this seam
+      //     existed, 24 of 49 hooks entered scheduledConsequences and could
+      //     never return. The evaluate pass runs via the flags dep of the
+      //     evaluateAndEnqueue useEffect below — same mechanism the terminal
+      //     Q1_CLOSED hook already rides. Guarded by hookReachability.test.ts.
+      for (const flag of elapsedFlagsForWeek(currentEntry.week)) {
+        setFlag(flag)
+      }
 
       // 6a. E2 disclosure ramp — count this commit as a use of each
       //     A-track panel. First commit discloses them at stage 1; by
