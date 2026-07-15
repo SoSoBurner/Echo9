@@ -52,3 +52,6 @@ secrets/
 
 # Voice-register LLM lint cache (P8)
 .voice-lint-cache/
+
+# itch.io upload artifact (rebuilt by `npm run build:itch`; never commit)
+echo9-itch.zip

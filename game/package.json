@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "node scripts/build.mjs",
+    "build:itch": "node scripts/build-itch.mjs",
     "preview": "vite preview",
     "lint": "oxlint",
     "lint:voices": "node scripts/voiceRegisterLint.mjs",
