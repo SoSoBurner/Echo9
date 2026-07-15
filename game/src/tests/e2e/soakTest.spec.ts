@@ -103,6 +103,14 @@ async function installSoakHarness(page: Page): Promise<void> {
 }
 
 test.describe('Soak — repeated boot+choice cycles under CPU throttle', () => {
+  // The soak measures §13 budgets against the SHIPPED bundle, so it targets
+  // the vite preview server (production build, port 4173) rather than the
+  // dev server. Dev mode serves 350+ unbundled modules per navigation and
+  // the soak's rapid goto() loop exhausted Chrome's network stack
+  // (net::ERR_INSUFFICIENT_RESOURCES) once the P-track content landed —
+  // the preview bundle is ~16 requests per boot. See playwright.config.ts.
+  test.use({ baseURL: 'http://localhost:4173' })
+
   // Soak relies on `performance.memory` (chromium-only) and CDP CPU throttling
   // (chromium-only). Skip under RELEASE_GATE cross-browser runs so Firefox
   // and WebKit projects don't fail on a chromium-specific measurement gap.

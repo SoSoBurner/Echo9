@@ -57,12 +57,30 @@ export default defineConfig({
         { name: 'webkit', use: { ...devices['Desktop Safari'] } },
       ]
     : [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
-  webServer: {
-    command: 'npm run dev',
-    port: 5173,
-    reuseExistingServer: !process.env['CI'],
-    timeout: 120_000,
-    stdout: 'ignore',
-    stderr: 'pipe',
-  },
+  // Two servers:
+  //  - dev (5173): unbundled, fast HMR — every spec except the soak.
+  //  - preview (4173): the PRODUCTION bundle — the soak targets this via
+  //    test.use({ baseURL }) in soakTest.spec.ts. Rationale: §13 budgets
+  //    describe the shipped bundle, and dev mode serves 350+ unbundled
+  //    modules per navigation — the soak's rapid goto() loop exhausted
+  //    Chrome's network stack (net::ERR_INSUFFICIENT_RESOURCES) once the
+  //    P-track content landed (found at ship-gate, 2026-07-14).
+  webServer: [
+    {
+      command: 'npm run dev',
+      port: 5173,
+      reuseExistingServer: !process.env['CI'],
+      timeout: 120_000,
+      stdout: 'ignore',
+      stderr: 'pipe',
+    },
+    {
+      command: 'npm run build && npx vite preview --port 4173 --strictPort',
+      port: 4173,
+      reuseExistingServer: !process.env['CI'],
+      timeout: 240_000,
+      stdout: 'ignore',
+      stderr: 'pipe',
+    },
+  ],
 })
