@@ -67,7 +67,8 @@ export function RightModuleConsole({ registerModuleFocus }: RightModuleConsolePr
       aria-label="Module console"
       className="flex flex-col gap-3 px-4 py-4 border-b border-sealed-dim"
     >
-      <p className="text-fg-secondary text-xs uppercase tracking-widest font-mono">
+      {/* V6: ruled header — matches the mockup's hairline under panel titles. */}
+      <p className="text-fg-secondary text-xs uppercase tracking-widest font-mono border-b border-sealed-dim pb-2">
         Module Console
       </p>
       {firstInstalledId === null ? (

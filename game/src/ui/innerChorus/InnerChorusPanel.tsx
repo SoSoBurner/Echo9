@@ -112,9 +112,11 @@ export function InnerChorusPanel() {
     <section
       role="group"
       aria-label="Inner Chorus"
-      className="flex flex-col gap-2 px-4 py-4 border-b border-sealed-dim"
+      className="flex flex-col gap-2 px-4 py-3 border-b border-sealed-dim"
     >
-      <p className="text-fg-secondary text-xs uppercase tracking-widest">
+      {/* V6: ruled header — matches the mockup's hairline under every
+          left-column panel title. */}
+      <p className="text-fg-secondary text-xs uppercase tracking-widest font-mono border-b border-sealed-dim pb-2">
         Inner Chorus
       </p>
       <ul

@@ -48,8 +48,14 @@ export function TopBar() {
       aria-label="HUD top bar"
     >
       <div className="flex items-center gap-6">
+        {/* V6 mockup parity: the brand anchors the LEFT edge of the bar
+            (the mockup's "ECHO 9" wordmark position), with week + phase
+            reading as the chapter strip beside it. */}
+        <span className="text-fg-primary text-sm font-semibold uppercase tracking-[0.3em]">
+          Echo 9
+        </span>
         <span
-          className="text-fg-secondary text-xs uppercase tracking-widest font-mono"
+          className="text-fg-secondary text-xs uppercase tracking-widest font-mono tabular-nums"
           aria-label="Current week"
         >
           {weekLabel}
@@ -69,7 +75,7 @@ export function TopBar() {
             Target Variance
           </span>
           <span
-            className={`text-sm font-mono ${variance >= 0 ? 'text-emerald-400' : 'text-red-400'}`}
+            className={`text-sm font-mono tabular-nums ${variance >= 0 ? 'text-emerald-400' : 'text-red-400'}`}
           >
             {formatVarianceM(variance)}
           </span>
@@ -82,11 +88,10 @@ export function TopBar() {
           <span className="text-fg-secondary text-[10px] uppercase tracking-widest font-mono">
             Silas Approval
           </span>
-          <span className="text-fg-primary text-sm font-mono">
+          <span className="text-fg-primary text-sm font-mono tabular-nums">
             {silasApproval}%
           </span>
         </div>
-        <span className="text-fg-secondary text-xs uppercase tracking-widest">Echo 9</span>
         <button
           type="button"
           aria-label="Pause game"

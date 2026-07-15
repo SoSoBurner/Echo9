@@ -73,13 +73,13 @@ function KpiRow({ label, value, valueClassName, valueAriaLabel }: RowProps) {
   return (
     <li
       role="listitem"
-      className="flex items-center justify-between py-1"
+      className="flex items-center justify-between py-0.5"
     >
       <span className="text-fg-secondary text-[11px] uppercase tracking-widest font-mono">
         {label}
       </span>
       <span
-        className={`text-sm font-mono ${valueClassName ?? 'text-fg-primary'}`}
+        className={`text-sm font-mono tabular-nums ${valueClassName ?? 'text-fg-primary'}`}
         aria-label={valueAriaLabel}
       >
         {value}
@@ -134,9 +134,11 @@ export function FinancialOverviewPanel() {
     <section
       role="group"
       aria-label="Financial Overview"
-      className="flex flex-col gap-2 px-4 py-4 border-b border-sealed-dim"
+      className="flex flex-col gap-2 px-4 py-3 border-b border-sealed-dim"
     >
-      <p className="text-fg-secondary text-xs uppercase tracking-widest">
+      {/* V6: ruled header — matches the mockup's hairline under every
+          left-column panel title. */}
+      <p className="text-fg-secondary text-xs uppercase tracking-widest font-mono border-b border-sealed-dim pb-2">
         Financial Overview
       </p>
       {/* Stage 3: donut visualization of cash vs quarter target — SVG only

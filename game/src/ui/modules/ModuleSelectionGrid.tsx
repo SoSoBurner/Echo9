@@ -28,10 +28,13 @@ import { useGameStore } from '@state/store'
 import { MODULE_ROSTER } from '@content/modules/moduleRoster'
 import { markBeat } from '@ui/debug/BeatTelemetry'
 
-// Grid shape: 4 cols × as many rows as the offered roster needs, ordered as
-// MODULE_ROSTER (8 modules → 2×4 at install #1; 7 → 2 rows of 4+3 at the
-// B7 second-install window).
-const GRID_COLS = 4
+// Grid shape: 2 cols × as many rows as the offered roster needs, ordered as
+// MODULE_ROSTER (8 modules → 4×2 at install #1; 7 → 4 rows of 2+2+2+1 at the
+// B7 second-install window). V6: was 4 cols — module names overflowed the
+// ~60px cells the 300px right column allows; 2 cols renders every name
+// un-clipped. Keyboard nav arithmetic derives from GRID_COLS, so the roving
+// tabindex stays correct.
+const GRID_COLS = 2
 
 function indexToRC(index: number): { row: number; col: number } {
   return { row: Math.floor(index / GRID_COLS), col: index % GRID_COLS }
@@ -188,10 +191,10 @@ export function ModuleSelectionGrid() {
     <div
       role="grid"
       aria-label="Select a personality module"
-      className="grid grid-cols-4 gap-2 px-3 py-3"
+      className="grid grid-cols-2 gap-2 px-3 py-3"
       onKeyDown={handleGridKeyDown}
     >
-      <p className="col-span-4 text-fg-secondary text-xs uppercase tracking-widest mb-1">
+      <p className="col-span-2 text-fg-secondary text-xs uppercase tracking-widest font-mono mb-1">
         Install a Module
       </p>
       {Array.from({ length: gridRows }, (_, rowIdx) => (
@@ -225,7 +228,7 @@ export function ModuleSelectionGrid() {
                 ].join(' ')}
               >
                 <span
-                  className="text-fg-primary text-xs font-mono uppercase tracking-widest"
+                  className="text-fg-primary text-xs font-mono uppercase tracking-wider truncate"
                 >
                   {mod.name}
                 </span>

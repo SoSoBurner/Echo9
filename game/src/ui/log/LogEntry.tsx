@@ -50,7 +50,7 @@ function LogEntryImpl({ trace, asListItem = true }: LogEntryProps) {
         'text-fg-primary text-xs leading-snug',
       ].join(' ')}
     >
-      <span className="text-fg-secondary font-mono shrink-0">{time}</span>
+      <span className="text-fg-secondary font-mono tabular-nums shrink-0">{time}</span>
       <span className="flex-1 truncate">{trace.body}</span>
       <span className="text-fg-secondary font-mono text-[0.6875rem] shrink-0">
         {trace.sourceChoiceId}

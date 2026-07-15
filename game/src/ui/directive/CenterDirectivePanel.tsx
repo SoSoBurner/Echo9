@@ -56,8 +56,10 @@ export function CenterDirectivePanel({
     <section className="space-y-6" aria-label="Directive panel">
       {/* Directive heading */}
       <div className="space-y-1">
-        <p className="text-fg-secondary text-xs uppercase tracking-widest">Directive</p>
-        <h1 className="text-fg-primary text-lg font-mono leading-snug">{task.directive}</h1>
+        <p className="text-fg-secondary text-xs uppercase tracking-widest font-mono">Directive</p>
+        {/* V6: display-scale headline — the mockup gives the directive title
+            clear typographic dominance over panel labels and body copy. */}
+        <h1 className="text-fg-primary text-2xl font-mono leading-snug">{task.directive}</h1>
       </div>
 
       {/* Null observation */}

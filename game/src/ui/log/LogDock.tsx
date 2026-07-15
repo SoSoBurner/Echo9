@@ -107,10 +107,13 @@ export function LogDock({ registerToggle }: LogDockProps) {
         12 so virtualization would be pure overhead. role="list" keeps the
         listitem children well-formed for AT.
       */}
+      {/* V6: justify-end bottom-anchors the window inside the capped dock
+          band (Layout h-36) so the NEWEST entries stay visible and older
+          ones clip off the top — pure CSS, no scroll behavior added. */}
       <div
         role="list"
         aria-label="Recent log entries"
-        className="flex flex-col gap-0.5 overflow-hidden"
+        className="flex flex-col justify-end gap-0.5 overflow-hidden flex-1 min-h-0"
       >
         {visible.map((trace) => (
           <LogEntry key={trace.id} trace={trace} />

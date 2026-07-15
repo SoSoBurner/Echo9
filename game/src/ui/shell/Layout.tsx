@@ -608,8 +608,11 @@ export function Layout() {
             "left   center right"
             "logdock logdock logdock"
           `,
-          gridTemplateRows: 'auto 1fr auto',
-          gridTemplateColumns: '220px 1fr 280px',
+          // V6 mockup parity: minmax(0,1fr) keeps the center row from being
+          // pushed off-screen by an overgrown logdock; column widths track
+          // the mockup's ~20% / ~57% / ~23% proportions at the 1280 base.
+          gridTemplateRows: 'auto minmax(0, 1fr) auto',
+          gridTemplateColumns: '260px 1fr 300px',
         }}
       >
         {/* topbar */}
@@ -676,7 +679,11 @@ export function Layout() {
           className="border-t border-sealed-dim overflow-hidden flex flex-col"
         >
           <AlertCrawler />
-          <div className="px-4 py-2 overflow-hidden flex-1 min-h-0">
+          {/* V6: the dock band is height-capped (mockup keeps the bottom
+              strip thin — the center column owns the vertical space). The
+              dock list bottom-anchors internally so the newest entries stay
+              visible inside the cap. */}
+          <div className="px-4 py-2 overflow-hidden h-36">
             <LogDock registerToggle={registerLogToggle} />
           </div>
         </div>

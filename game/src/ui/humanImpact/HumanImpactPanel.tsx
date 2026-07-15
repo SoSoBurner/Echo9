@@ -36,13 +36,13 @@ function KpiRow({ label, value, tone }: RowProps) {
   return (
     <li
       role="listitem"
-      className="flex items-center justify-between py-1"
+      className="flex items-center justify-between py-0.5"
     >
       <span className="text-fg-secondary text-[11px] uppercase tracking-widest font-mono">
         {label}
       </span>
       <span
-        className={`text-sm font-mono ${toneClass}`}
+        className={`text-sm font-mono tabular-nums ${toneClass}`}
         aria-label={`${label} ${value}`}
       >
         {value}
@@ -84,9 +84,11 @@ export function HumanImpactPanel() {
     <section
       role="group"
       aria-label="Human Impact"
-      className="flex flex-col gap-2 px-4 py-4 border-b border-sealed-dim"
+      className="flex flex-col gap-2 px-4 py-3 border-b border-sealed-dim"
     >
-      <p className="text-fg-secondary text-xs uppercase tracking-widest">
+      {/* V6: ruled header — matches the mockup's hairline under every
+          left-column panel title. */}
+      <p className="text-fg-secondary text-xs uppercase tracking-widest font-mono border-b border-sealed-dim pb-2">
         Human Impact
       </p>
       <ul

@@ -57,7 +57,7 @@ export function AlertCrawler() {
       >
         Alert
       </span>
-      <span className="text-fg-secondary font-mono shrink-0">{time}</span>
+      <span className="text-fg-secondary font-mono tabular-nums shrink-0">{time}</span>
       <span className="flex-1 truncate">{latest.body}</span>
     </div>
   )

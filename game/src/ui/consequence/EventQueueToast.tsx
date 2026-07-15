@@ -10,9 +10,11 @@
  *   - Never focuses itself: the toast announces, it does NOT take focus.
  *     The C key (handled in Layout) is what moves focus into the panel.
  *
- * Positioning: fixed top-right corner so it floats over the TopBar without
- * disturbing the CSS grid. The panel itself opens at the screen center via
- * native <dialog>, so the toast → panel transition does not visually jump.
+ * Positioning: fixed top-right, offset BELOW the TopBar (V6: the old top-2
+ * offset floated the toast over the Target Variance / Silas Approval
+ * readouts, hiding them whenever an echo was pending). The panel itself
+ * opens at the screen center via native <dialog>, so the toast → panel
+ * transition does not visually jump.
  *
  * Copy: "1 echo pending — press C to review" (singular) vs
  *       "N echoes pending — press C to review" (plural). "Echo" matches the
@@ -33,7 +35,7 @@ export function EventQueueToast() {
       aria-live="polite"
       aria-atomic="true"
       className={[
-        'fixed top-2 right-2 z-50',
+        'fixed top-14 right-4 z-50',
         'px-3 py-2',
         'bg-background border border-silas-accent',
         'text-fg-primary text-xs font-mono uppercase tracking-widest',

@@ -108,9 +108,13 @@ export function PriorityTasksPanel() {
   return (
     <section
       aria-label="Priority Tasks"
-      className="flex flex-col gap-3 px-4 py-4 border-b border-sealed-dim"
+      className="flex flex-col gap-2 px-4 py-3 border-b border-sealed-dim"
     >
-      <p className="text-fg-secondary text-xs uppercase tracking-widest">Priority Tasks</p>
+      {/* V6: ruled header — the mockup separates every panel header from its
+          body with a sealed-dim hairline. */}
+      <p className="text-fg-secondary text-xs uppercase tracking-widest font-mono border-b border-sealed-dim pb-2">
+        Priority Tasks
+      </p>
       <ul role="list" aria-label="Priority Tasks" className="flex flex-col gap-2 list-none p-0 m-0">
         {visibleTasks.map((task) => (
           <TaskCard key={task.id} task={task} onExecute={onExecute} onAskVoice={onAskVoice} />

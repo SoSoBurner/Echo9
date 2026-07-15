@@ -114,7 +114,7 @@ export function ChoicePanel({ options, onCommit, registerKeyboardHandlers }: Cho
       className="space-y-2"
       onKeyDown={handleKeyDown}
     >
-      <p className="text-fg-secondary text-xs uppercase tracking-widest mb-3">
+      <p className="text-fg-secondary text-xs uppercase tracking-widest font-mono mb-3">
         Select Response
       </p>
       {options.map((option, index) => (
