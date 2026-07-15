@@ -14,6 +14,12 @@
  *   1. Activate a cell → confirm panel appears (silasFraming + Confirm/Cancel).
  *   2. Confirm calls installModule(id). Cancel returns to the grid.
  *   3. Single-click install is forbidden — a single Enter must NOT install.
+ *
+ * B7: the grid offers only UNINSTALLED modules. At install #1 (empty map)
+ * that is all 8; at the Week-12 second-install window (installWindowOpen)
+ * it is the remaining 7 — "Choose from the remaining seven" per q1-arc
+ * §Install beats. Row count derives from the filtered roster length so the
+ * roving-tabindex arithmetic stays correct in both states.
  */
 import { useCallback, useRef, useState, type KeyboardEvent } from 'react'
 import type { ModuleId } from '@schemas/gameState.schema'
@@ -22,9 +28,10 @@ import { useGameStore } from '@state/store'
 import { MODULE_ROSTER } from '@content/modules/moduleRoster'
 import { markBeat } from '@ui/debug/BeatTelemetry'
 
-// Grid shape: 2 rows × 4 cols, ordered as MODULE_ROSTER.
+// Grid shape: 4 cols × as many rows as the offered roster needs, ordered as
+// MODULE_ROSTER (8 modules → 2×4 at install #1; 7 → 2 rows of 4+3 at the
+// B7 second-install window).
 const GRID_COLS = 4
-const GRID_ROWS = 2
 
 function indexToRC(index: number): { row: number; col: number } {
   return { row: Math.floor(index / GRID_COLS), col: index % GRID_COLS }
@@ -35,6 +42,11 @@ function rcToIndex(row: number, col: number): number {
 
 export function ModuleSelectionGrid() {
   const installModule = useGameStore((s) => s.installModule)
+  const installedModules = useGameStore((s) => s.installedModules)
+
+  // B7: offer only uninstalled modules. Cheap per-render filter — 8 entries.
+  const roster = MODULE_ROSTER.filter((mod) => !installedModules[mod.id])
+  const gridRows = Math.ceil(roster.length / GRID_COLS)
 
   const [focusedIndex, setFocusedIndex] = useState(0)
   const [pendingModule, setPendingModule] = useState<ModuleNode | null>(null)
@@ -84,12 +96,12 @@ export function ModuleSelectionGrid() {
         break
       }
       case 'ArrowDown': {
-        const nextRow = (row + 1) % GRID_ROWS
+        const nextRow = (row + 1) % gridRows
         nextIndex = rcToIndex(nextRow, col)
         break
       }
       case 'ArrowUp': {
-        const nextRow = (row - 1 + GRID_ROWS) % GRID_ROWS
+        const nextRow = (row - 1 + gridRows) % gridRows
         nextIndex = rcToIndex(nextRow, col)
         break
       }
@@ -101,17 +113,19 @@ export function ModuleSelectionGrid() {
       }
       case 'End': {
         // WAI-ARIA APG grid pattern: End = last cell of current row;
-        // Ctrl+End (or Cmd+End on macOS) = grid-global last cell.
+        // Ctrl+End (or Cmd+End on macOS) = grid-global last cell. Row-End is
+        // clamped so a partial last row (7-module B7 window) still lands on
+        // its real last cell instead of a hole.
         nextIndex = (e.ctrlKey || e.metaKey)
-          ? MODULE_ROSTER.length - 1
-          : rcToIndex(row, GRID_COLS - 1)
+          ? roster.length - 1
+          : Math.min(rcToIndex(row, GRID_COLS - 1), roster.length - 1)
         break
       }
       default:
         return
     }
 
-    if (nextIndex !== null && nextIndex < MODULE_ROSTER.length) {
+    if (nextIndex !== null && nextIndex < roster.length) {
       e.preventDefault()
       setFocusedIndex(nextIndex)
       focusCell(nextIndex)
@@ -180,11 +194,11 @@ export function ModuleSelectionGrid() {
       <p className="col-span-4 text-fg-secondary text-xs uppercase tracking-widest mb-1">
         Install a Module
       </p>
-      {Array.from({ length: GRID_ROWS }, (_, rowIdx) => (
+      {Array.from({ length: gridRows }, (_, rowIdx) => (
         <div role="row" key={`row-${rowIdx}`} className="contents">
           {Array.from({ length: GRID_COLS }, (_, colIdx) => {
             const index = rcToIndex(rowIdx, colIdx)
-            const mod = MODULE_ROSTER[index]
+            const mod = roster[index]
             if (!mod) return null
             const isFocused = index === focusedIndex
             return (

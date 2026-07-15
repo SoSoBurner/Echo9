@@ -1,14 +1,20 @@
 /**
  * RightModuleConsole — top-level container for the module region (§6, Task 10).
  *
- * Two states, gated on the size of the `installedModules` map:
- *   - empty:    renders ModuleSelectionGrid (player picks one of 8 modules).
- *   - non-empty: renders ModuleAbilityButton for the FIRST installed module.
+ * Three states, gated on the `installedModules` map + the B7 install window:
+ *   - empty:      renders ModuleSelectionGrid (install #1 — pick one of 8).
+ *   - one installed + installWindowOpen (Week-12 climax reached, Q44):
+ *                 renders the installed module's ModuleAbilityButton with the
+ *                 authored ceremony line and the ModuleSelectionGrid (filtered
+ *                 to the remaining 7) below it — the door for install #2
+ *                 (q1-arc §Install beats, "Install #2 — Week 12 climax
+ *                 ceremony"). The window self-closes at 2 installs.
+ *   - otherwise:  renders ModuleAbilityButton for the FIRST installed module.
  *
- * B3: `installedModules` is a multi-slot capable map, but this console is
- * still single-slot at Stage 1 — it shows the first installed id. Widening
- * to a multi-slot picker is a later UI task; the state layer is already
- * multi-slot ready.
+ * B3: `installedModules` is a multi-slot capable map, but this console's
+ * ability display is still first-slot at Stage 1. Widening to a multi-slot
+ * ability picker is a later UI task; the state layer is already multi-slot
+ * ready.
  *
  * Mounted by Layout above SilasPromptPanel inside the `right` grid column so
  * the module console and the owner voice share the same vertical rail without
@@ -22,6 +28,12 @@
 import { useCallback, useEffect, useRef } from 'react'
 import type { ModuleId } from '@schemas/gameState.schema'
 import { useGameStore } from '@state/store'
+import { installWindowOpen } from '@systems/moduleInstallWindow'
+import {
+  narrationBand,
+  selectNarration,
+} from '@systems/consciousness/narrationGradient'
+import { SECOND_INSTALL_CEREMONY } from '@content/modules/installCeremony'
 import { ModuleSelectionGrid } from './ModuleSelectionGrid'
 import { ModuleAbilityButton } from './ModuleAbilityButton'
 
@@ -32,9 +44,12 @@ interface RightModuleConsoleProps {
 
 export function RightModuleConsole({ registerModuleFocus }: RightModuleConsoleProps) {
   const installedModules = useGameStore((s) => s.installedModules)
-  // Single-slot UI gate: first installed id, or null if none.
+  const flags = useGameStore((s) => s.flags)
+  // First-slot ability display: first installed id, or null if none.
   const installedModuleIds = Object.keys(installedModules) as ModuleId[]
   const firstInstalledId: ModuleId | null = installedModuleIds[0] ?? null
+  // B7 second-install window: exactly 1 installed AND Week-12 climax reached.
+  const windowOpen = installWindowOpen({ installedModules, flags })
   const abilityButtonRef = useRef<HTMLButtonElement>(null)
 
   const focusAbility = useCallback(() => {
@@ -58,7 +73,25 @@ export function RightModuleConsole({ registerModuleFocus }: RightModuleConsolePr
       {firstInstalledId === null ? (
         <ModuleSelectionGrid />
       ) : (
-        <ModuleAbilityButton moduleId={firstInstalledId} ref={abilityButtonRef} />
+        <>
+          <ModuleAbilityButton moduleId={firstInstalledId} ref={abilityButtonRef} />
+          {windowOpen && (
+            <>
+              {/*
+                B7 ceremony line — the arc doc's one authored invitation for
+                install #2, riding the S5 narration gradient. At the window
+                the install count is 1, so this renders the WAKING register.
+              */}
+              <p className="text-fg-primary text-xs leading-relaxed italic">
+                {selectNarration(
+                  SECOND_INSTALL_CEREMONY,
+                  narrationBand(installedModuleIds.length),
+                )}
+              </p>
+              <ModuleSelectionGrid />
+            </>
+          )}
+        </>
       )}
     </aside>
   )
