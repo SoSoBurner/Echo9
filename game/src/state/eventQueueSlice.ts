@@ -33,8 +33,8 @@ import {
   materialize,
   type EvalState,
 } from '@systems/consequenceEngine'
-import { makeTraceId, type TraceId } from '@schemas/gameState.schema'
 import { makeStageOneAncestryId } from '@schemas/resultTrace.schema'
+import { freshTraceId } from '@systems/ids'
 import { markBeat } from '@ui/debug/BeatTelemetry'
 import { END_OF_CONTENT_TERMINAL_FLAG } from '@content/contentBoundary.manifest'
 import { END_OF_CONTENT_STORAGE_KEY } from './endOfContentSlice'
@@ -60,18 +60,6 @@ export type EventQueueSlice = {
    * around the pure consequenceEngine.
    */
   evaluateAndEnqueue: () => void
-}
-
-// crypto.randomUUID() is secure-context only — plain-HTTP staging would throw.
-// Mirrors freshTraceId() in Layout.tsx; kept local to avoid creating a new
-// shared util file for a single duplication. If a third caller appears (T13+),
-// hoist to @systems/ids.ts.
-function freshTraceId(): TraceId {
-  const id =
-    typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
-      ? crypto.randomUUID()
-      : `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 12)}`
-  return makeTraceId(id)
 }
 
 export const createEventQueueSlice: StateCreator<

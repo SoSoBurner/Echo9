@@ -25,7 +25,8 @@
  */
 import { useCallback, type Ref } from 'react'
 import type { ModuleId } from '@schemas/gameState.schema'
-import { makeTaskId, makeChoiceId, makeTraceId } from '@schemas/gameState.schema'
+import { makeTaskId, makeChoiceId } from '@schemas/gameState.schema'
+import { freshTraceId } from '@systems/ids'
 import type { ResultTrace } from '@schemas/resultTrace.schema'
 import { makeStageOneAncestryId } from '@schemas/resultTrace.schema'
 import { useGameStore } from '@state/store'
@@ -39,14 +40,6 @@ interface ModuleAbilityButtonProps {
   moduleId: ModuleId
   /** Optional ref for global keyboard focus (Layout wires M → focus). */
   ref?: Ref<HTMLButtonElement>
-}
-
-// crypto.randomUUID() is secure-context only — fall back for plain-HTTP staging.
-function freshTraceIdString(): string {
-  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
-    return crypto.randomUUID()
-  }
-  return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 12)}`
 }
 
 export function ModuleAbilityButton({ moduleId, ref }: ModuleAbilityButtonProps) {
@@ -76,7 +69,7 @@ export function ModuleAbilityButton({ moduleId, ref }: ModuleAbilityButtonProps)
     // 3. Ledger entry — synthetic ids mark this as a module-action trace.
     // Body reads from the registry `verb`; content owns the wording.
     const trace: ResultTrace = {
-      id: makeTraceId(freshTraceIdString()),
+      id: freshTraceId(),
       sourceTaskId: makeTaskId('module-action'),
       sourceChoiceId: makeChoiceId(`module-${moduleId.toLowerCase()}`),
       stageOneAncestryId: makeStageOneAncestryId(

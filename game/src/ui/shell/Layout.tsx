@@ -45,22 +45,12 @@ import { elapsedFlagsForWeek } from '@systems/weekElapse'
 import type { ResultTrace } from '@schemas/resultTrace.schema'
 import type { ConsequenceHook } from '@schemas/consequenceHook.schema'
 import {
-  makeTraceId,
   makeChoiceId,
   makeTaskId,
-  type TraceId,
   type ChoiceId,
   type ConsequenceId,
 } from '@schemas/gameState.schema'
-
-// crypto.randomUUID() is secure-context only — plain-HTTP staging would throw.
-function freshTraceId(): TraceId {
-  const id =
-    typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
-      ? crypto.randomUUID()
-      : `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 12)}`
-  return makeTraceId(id)
-}
+import { freshTraceId } from '@systems/ids'
 
 // ---------------------------------------------------------------------------
 // C15 content wiring — Q1_SEQUENCE derivation drives the whole 12-week arc.
