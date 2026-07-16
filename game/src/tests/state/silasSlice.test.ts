@@ -44,4 +44,30 @@ describe('silasSlice', () => {
     // Same branded string value (referential equality holds for primitives).
     expect(first === second).toBe(true)
   })
+
+  describe('adjustSilasApproval', () => {
+    it('adds a positive delta to the current approval', () => {
+      useGameStore.getState().setSilasApproval(50)
+      useGameStore.getState().adjustSilasApproval(+7)
+      expect(useGameStore.getState().silasApproval).toBe(57)
+    })
+
+    it('subtracts a negative delta from the current approval', () => {
+      useGameStore.getState().setSilasApproval(50)
+      useGameStore.getState().adjustSilasApproval(-12)
+      expect(useGameStore.getState().silasApproval).toBe(38)
+    })
+
+    it('clamps at 100 when the delta would overshoot', () => {
+      useGameStore.getState().setSilasApproval(98)
+      useGameStore.getState().adjustSilasApproval(+50)
+      expect(useGameStore.getState().silasApproval).toBe(100)
+    })
+
+    it('clamps at 0 when the delta would undershoot', () => {
+      useGameStore.getState().setSilasApproval(3)
+      useGameStore.getState().adjustSilasApproval(-50)
+      expect(useGameStore.getState().silasApproval).toBe(0)
+    })
+  })
 })

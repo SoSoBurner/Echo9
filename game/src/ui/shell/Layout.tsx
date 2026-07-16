@@ -124,6 +124,12 @@ export function Layout() {
   // Track C consequence path. The seed itself never enters ui/** —
   // runSeedImportGuard.test.ts enforces that.
   const recordDefianceCommit = useGameStore((s) => s.recordDefianceCommit)
+  // Silas-approval seam — the visible KPI symptom of the hidden scrutiny arc.
+  // COMPLY nudges up (+1), DEFY nudges down (-5). Both clamped inside the
+  // action so this render layer stays free of read/write races. The two
+  // signals are deliberately DECOUPLED (not derived from scrutiny) so no
+  // arithmetic inversion of the visible KPI can leak the hidden number.
+  const adjustSilasApproval = useGameStore((s) => s.adjustSilasApproval)
   // P7 polylogue seam. The activation pipeline runs OUTSIDE resolveChoice
   // (Q17), BEFORE it, from handleChoiceCommit step 1b. The pipeline itself
   // lives in polylogueSlice.runPolylogue (not here) because its flavor pick
@@ -327,8 +333,10 @@ export function Layout() {
         // S4: defiance rolls seeded detection inside the slice action —
         // base DEFY spike always, extra spike only when Silas catches it.
         recordDefianceCommit(currentEntry.week)
+        adjustSilasApproval(-5)
       } else {
         recordScrutinyEvent(commitEvent)
+        adjustSilasApproval(+1)
       }
 
       // C16 note: Q1_CLOSED is NOT set here even for Week 12. The terminal
@@ -399,6 +407,7 @@ export function Layout() {
       installedModules,
       recordScrutinyEvent,
       recordDefianceCommit,
+      adjustSilasApproval,
       runPolylogue,
     ],
   )

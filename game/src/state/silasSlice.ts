@@ -65,6 +65,14 @@ export type SilasSlice = {
   lastDefiance: DefianceRecord | null
   setCurrentPrompt: (id: SilasPromptId | null) => void
   setSilasApproval: (value: number) => void
+  /**
+   * Additive approval nudge — internally clamped to [0, 100]. Used by the
+   * choice-commit seam so callers do NOT need to read + arithmetic + write
+   * across a render boundary (which risks stale-closure races when several
+   * commits land in the same frame). Positive delta = COMPLY nudge up,
+   * negative = DEFY nudge down.
+   */
+  adjustSilasApproval: (delta: number) => void
   /** Raw scrutiny mutator — COMPLY decays, DEFY spikes (S3 seam). */
   recordScrutinyEvent: (event: ScrutinyEvent) => void
   /**
@@ -98,6 +106,10 @@ export const createSilasSlice: StateCreator<
   setSilasApproval: (value) =>
     set((state) => {
       state.silasApproval = Math.max(0, Math.min(100, value))
+    }),
+  adjustSilasApproval: (delta) =>
+    set((state) => {
+      state.silasApproval = Math.max(0, Math.min(100, state.silasApproval + delta))
     }),
   recordScrutinyEvent: (event) =>
     set((state) => {
